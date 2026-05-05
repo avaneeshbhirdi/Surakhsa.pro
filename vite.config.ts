@@ -19,8 +19,8 @@ export default defineConfig({
     port: 5173,
   },
   build: {
-    // Raise the warning limit so Vercel doesn't flag it (bundle is ~680kB, acceptable for this app)
-    chunkSizeWarningLimit: 800,
+    // Raise the warning limit so Vercel doesn't flag it
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         // Split vendor libraries into separate chunks for better caching
@@ -30,6 +30,7 @@ export default defineConfig({
             if (id.includes('@supabase')) return 'vendor-supabase'
             if (id.includes('framer-motion')) return 'vendor-motion'
             if (id.includes('lucide-react')) return 'vendor-lucide'
+            if (id.includes('recharts') || id.includes('d3')) return 'vendor-charts'
             if (id.includes('zustand') || id.includes('clsx') || id.includes('tailwind-merge')) return 'vendor-misc'
           }
         },
