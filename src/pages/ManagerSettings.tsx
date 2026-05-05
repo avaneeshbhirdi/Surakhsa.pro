@@ -95,30 +95,7 @@ export default function ManagerSettings() {
             </div>
           </div>
 
-          {/* Active Event Section */}
-          <div className="v-card">
-            <h3 className="v-text-title mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Calendar size={18} color="var(--v-orange)" /> Active Event
-            </h3>
-            {activeEvent ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {[
-                  { label: 'Event Name', value: activeEvent.name },
-                  { label: 'Venue', value: activeEvent.venue_name || '—' },
-                  { label: 'Status', value: activeEvent.status },
-                  { label: 'PIN', value: activeEvent.pin },
-                  { label: 'Capacity', value: activeEvent.total_capacity.toLocaleString() },
-                ].map(r => (
-                  <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--v-bg-dark)', borderRadius: '10px', border: '1px solid var(--v-border)' }}>
-                    <span className="v-text-sm" style={{ opacity: 0.6 }}>{r.label}</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600 }}>{r.value}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="v-text-sm" style={{ opacity: 0.4, textAlign: 'center', padding: '30px' }}>No active event</p>
-            )}
-          </div>
+
 
           {/* Notification Preferences */}
           <div className="v-card">

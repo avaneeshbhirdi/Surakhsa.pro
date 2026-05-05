@@ -15,11 +15,11 @@ export default function ManagerSidebar() {
 
   const navItems = [
     { icon: <Home size={18} />, label: 'Home', path: '/manager' },
-    { icon: <Calendar size={18} />, label: 'History', path: '/event/history' },
-    { icon: <Target size={18} />, label: 'Map', path: '/manager/map' },
     { icon: <MapPin size={18} />, label: 'Zones', path: '/manager/zones' },
-    { icon: <Folder size={18} />, label: 'Analytics', path: '/manager/analytics' },
+    { icon: <Target size={18} />, label: 'Map', path: '/manager/map' },
     { icon: <MessageSquare size={18} />, label: 'Comms', path: '/manager/comms' },
+    { icon: <Folder size={18} />, label: 'Analytics', path: '/manager/analytics' },
+    { icon: <Calendar size={18} />, label: 'History', path: '/event/history' },
   ]
 
   const bottomItems = [

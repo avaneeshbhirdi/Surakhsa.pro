@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useEventStore } from '@/stores/eventStore'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
@@ -9,6 +9,62 @@ export default function ManagerMap() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, latestReadings, alerts, loadEvent } = useEventStore()
   const [loading, setLoading] = useState(true)
+
+  const [positions, setPositions] = useState<Record<string, {x: number, y: number}>>(() => {
+    try {
+      const saved = localStorage.getItem('virtus_zone_positions')
+      if (saved) return JSON.parse(saved)
+    } catch (e) {}
+    return {}
+  })
+  
+  const [draggingZone, setDraggingZone] = useState<string | null>(null)
+  const draggingRef = useRef<{ id: string, startX: number, startY: number, initialPctX: number, initialPctY: number } | null>(null)
+
+  const handleMouseDown = (e: React.MouseEvent, id: string, defaultLeft: string, defaultTop: string) => {
+    e.preventDefault()
+    setDraggingZone(id)
+    const pos = positions[id] || {
+      x: parseFloat(defaultLeft),
+      y: parseFloat(defaultTop)
+    }
+    draggingRef.current = {
+      id,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialPctX: pos.x,
+      initialPctY: pos.y
+    }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!draggingRef.current) return
+    const { id, startX, startY, initialPctX, initialPctY } = draggingRef.current
+    const container = e.currentTarget as HTMLDivElement
+    const rect = container.getBoundingClientRect()
+
+    const deltaX = e.clientX - startX
+    const deltaY = e.clientY - startY
+
+    const deltaPctX = (deltaX / rect.width) * 100
+    const deltaPctY = (deltaY / rect.height) * 100
+
+    setPositions(prev => ({
+      ...prev,
+      [id]: {
+        x: Math.max(0, Math.min(90, initialPctX + deltaPctX)),
+        y: Math.max(0, Math.min(90, initialPctY + deltaPctY))
+      }
+    }))
+  }
+
+  const handleMouseUp = () => {
+    if (draggingRef.current) {
+      localStorage.setItem('virtus_zone_positions', JSON.stringify(positions))
+      draggingRef.current = null
+      setDraggingZone(null)
+    }
+  }
 
   useEffect(() => {
     const loadActiveEvent = async () => {
@@ -109,7 +165,12 @@ export default function ManagerMap() {
             overflow: 'auto',
             padding: '24px'
           }}>
-            <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '600px', minWidth: '600px' }}>
+            <div 
+              style={{ position: 'relative', width: '100%', height: '100%', minHeight: '600px', minWidth: '600px' }}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
               {zones.map((z, idx) => {
                 const reading = latestReadings[z.id]
                 const density = reading?.density || 0
@@ -117,30 +178,40 @@ export default function ManagerMap() {
                 const hasAlert = activeAlertZones.has(z.id)
                 const color = getRiskColor(pct)
                 const riskLabel = getRiskLabel(pct)
-                const pos = PREDEFINED_POSITIONS[idx % PREDEFINED_POSITIONS.length]
-                const scale = maxCapacity > 0 ? 0.7 + (z.capacity / maxCapacity) * 0.8 : 1 // 0.7x to 1.5x scaling
-                const boxWidth = `${Math.round(200 * scale)}px`
-                const boxMinHeight = `${Math.round(100 * scale)}px`
+                const defaultPos = PREDEFINED_POSITIONS[idx % PREDEFINED_POSITIONS.length]
+                const currentPos = positions[z.id] || { x: parseFloat(defaultPos.left), y: parseFloat(defaultPos.top) }
+                
+                // Scale width based on capacity (160px to 460px)
+                const capacityScale = maxCapacity > 0 ? (z.capacity / maxCapacity) : 0
+                const boxWidth = `${160 + (300 * capacityScale)}px`
+                const boxMinHeight = `100px`
 
                 return (
-                  <div key={z.id} style={{
-                    position: 'absolute',
-                    top: pos.top,
-                    left: pos.left,
-                    background: `${color}10`,
-                    border: `1px solid ${color}`,
-                    borderRadius: '8px',
-                    padding: '12px 24px',
-                    width: boxWidth,
-                    minHeight: boxMinHeight,
-                    boxShadow: `0 0 20px ${color}20`,
-                    backdropFilter: 'blur(4px)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '4px'
-                  }}>
+                  <div 
+                    key={z.id} 
+                    onMouseDown={(e) => handleMouseDown(e, z.id, defaultPos.left, defaultPos.top)}
+                    style={{
+                      position: 'absolute',
+                      top: `${currentPos.y}%`,
+                      left: `${currentPos.x}%`,
+                      background: `${color}10`,
+                      border: `1px solid ${color}`,
+                      borderRadius: '8px',
+                      padding: '12px 24px',
+                      width: boxWidth,
+                      minHeight: boxMinHeight,
+                      boxShadow: draggingZone === z.id ? `0 0 30px ${color}50` : `0 0 20px ${color}20`,
+                      backdropFilter: 'blur(4px)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                      cursor: draggingZone === z.id ? 'grabbing' : 'grab',
+                      transition: draggingZone === z.id ? 'none' : 'box-shadow 0.2s',
+                      zIndex: draggingZone === z.id ? 10 : 1
+                    }}
+                  >
                     {hasAlert && (
                       <span style={{
                         position: 'absolute', top: '-10px', right: '-10px',
