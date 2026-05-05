@@ -25,7 +25,6 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* Sidebar */
 .virtus-sidebar {
   width: 260px;
   background: var(--v-sidebar-bg);
@@ -33,6 +32,22 @@ body {
   display: flex;
   flex-direction: column;
   padding: 24px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.virtus-sidebar--collapsed {
+  width: 80px;
+  padding: 24px 12px;
+}
+
+.virtus-sidebar--collapsed .virtus-nav-item {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.virtus-sidebar--collapsed .virtus-nav-item svg {
+  margin: 0;
 }
 
 .virtus-logo-container {
