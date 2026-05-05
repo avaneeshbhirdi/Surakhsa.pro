@@ -41,15 +41,7 @@ export default function EventHistory() {
     setLoading(false)
   }
 
-  const getStatusBadge = (status: string) => {
-    const map: Record<string, string> = {
-      DRAFT: 'badge-info',
-      ACTIVE: 'badge-safe',
-      PAUSED: 'badge-warning',
-      ENDED: 'badge-danger',
-    }
-    return map[status] || 'badge-info'
-  }
+
 
   return (
     <div className="virtus-layout">
