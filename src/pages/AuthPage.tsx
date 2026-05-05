@@ -57,6 +57,12 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (isAuthenticated && role) {
+      const pendingRole = localStorage.getItem('suraksha_pending_role')
+      
+      // If there's a pending role update, don't redirect yet. 
+      // The other useEffect will update the DB and re-trigger state.
+      if (pendingRole && role === 'GUEST') return
+
       if (role === 'ADMIN') navigate('/dashboard')
       else if (role === 'EVENT_MANAGER') navigate('/manager')
       else if (role === 'COORDINATOR') navigate('/coordinator')
