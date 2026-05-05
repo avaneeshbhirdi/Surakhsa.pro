@@ -13,7 +13,7 @@ interface ZoneInput {
 
 export default function CreateEvent() {
   const navigate = useNavigate()
-  const { profile } = useAuthStore()
+  const { profile, role } = useAuthStore()
   const { createEvent, isLoading } = useEventStore()
 
   const [step, setStep] = useState(1)
@@ -78,7 +78,7 @@ export default function CreateEvent() {
     <div className="create-event page">
       <div className="header">
         <div className="header__left">
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard')}>
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate(role === 'ADMIN' ? '/dashboard' : '/manager')}>
             <ArrowLeft size={18} />
           </button>
           <h1 className="header__title">Create Event</h1>
@@ -216,7 +216,7 @@ export default function CreateEvent() {
             </p>
             <div className="flex gap-4 mt-8">
               <button className="btn btn-outline flex-1" onClick={() => navigate('/event/history')}>View Events</button>
-              <button className="btn btn-gold flex-1" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
+              <button className="btn btn-gold flex-1" onClick={() => navigate(role === 'ADMIN' ? '/dashboard' : '/manager')}>Go to Dashboard</button>
             </div>
           </div>
         )}

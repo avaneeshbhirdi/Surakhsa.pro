@@ -7,7 +7,7 @@ import { ArrowLeft, Calendar, MapPin, Users, AlertTriangle } from 'lucide-react'
 
 export default function EventHistory() {
   const navigate = useNavigate()
-  const { profile } = useAuthStore()
+  const { profile, role } = useAuthStore()
   const [events, setEvents] = useState<(Event & { zones_count?: number; alerts_count?: number })[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -54,7 +54,7 @@ export default function EventHistory() {
     <div className="page">
       <div className="header">
         <div className="header__left">
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard')}>
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate(role === 'ADMIN' ? '/dashboard' : '/manager')}>
             <ArrowLeft size={18} />
           </button>
           <h1 className="header__title">Event History</h1>
@@ -78,8 +78,8 @@ export default function EventHistory() {
               <div
                 key={evt.id}
                 className="card-glass"
-                style={{ cursor: evt.status === 'ACTIVE' ? 'pointer' : 'default', padding: 'var(--space-5)' }}
-                onClick={() => evt.status === 'ACTIVE' && navigate('/dashboard')}
+                style={{ cursor: (evt.status === 'ACTIVE' || evt.status === 'PAUSED' || evt.status === 'DRAFT') ? 'pointer' : 'default', padding: 'var(--space-5)' }}
+                onClick={() => (evt.status === 'ACTIVE' || evt.status === 'PAUSED' || evt.status === 'DRAFT') && navigate(role === 'ADMIN' ? '/dashboard' : '/manager')}
               >
                 <div className="flex flex-between" style={{ alignItems: 'flex-start' }}>
                   <div>

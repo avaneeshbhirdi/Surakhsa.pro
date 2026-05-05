@@ -130,14 +130,16 @@ export const useEventStore = create<EventState>((set, get) => ({
       const latestReadings: Record<string, ZoneReading> = {}
       if (zonesRes.data) {
         for (const zone of zonesRes.data) {
-          const { data: reading } = await supabase
+          const { data: readings } = await supabase
             .from('zone_readings')
             .select('*')
             .eq('zone_id', zone.id)
             .order('recorded_at', { ascending: false })
             .limit(1)
-            .single()
-          if (reading) latestReadings[zone.id] = reading
+          
+          if (readings && readings.length > 0) {
+            latestReadings[zone.id] = readings[0]
+          }
         }
       }
 

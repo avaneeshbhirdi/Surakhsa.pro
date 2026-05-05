@@ -3,7 +3,7 @@
    ============================================ */
 
 // ---- User & Profile ----
-export type UserRole = 'ADMIN' | 'COORDINATOR' | 'STEWARD'
+export type UserRole = 'ADMIN' | 'EVENT_MANAGER' | 'COORDINATOR' | 'GUEST'
 
 export interface Profile {
   id: string

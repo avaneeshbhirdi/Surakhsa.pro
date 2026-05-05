@@ -28,9 +28,12 @@ export default function Navbar() {
         </span>
       </div>
 
-      {role === 'ADMIN' && (
+      {(role === 'ADMIN' || role === 'EVENT_MANAGER') && (
         <div className="flex gap-1 hide-on-mobile">
-          <button className={`btn btn-sm ${isActive('/dashboard') ? 'btn-primary' : 'btn-ghost'}`} onClick={() => navigate('/dashboard')}>
+          <button 
+            className={`btn btn-sm ${isActive(role === 'ADMIN' ? '/dashboard' : '/manager') ? 'btn-primary' : 'btn-ghost'}`} 
+            onClick={() => navigate(role === 'ADMIN' ? '/dashboard' : '/manager')}
+          >
             <LayoutDashboard size={14} /> Dashboard
           </button>
           <button className={`btn btn-sm ${isActive('/event/create') ? 'btn-primary' : 'btn-ghost'}`} onClick={() => navigate('/event/create')}>

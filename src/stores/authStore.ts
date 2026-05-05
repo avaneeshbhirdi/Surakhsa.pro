@@ -28,7 +28,7 @@ interface AuthState {
   // Actions
   initialize: () => Promise<void>
   login: (email: string, password: string) => Promise<void>
-  signup: (email: string, password: string, fullName: string) => Promise<void>
+  signup: (email: string, password: string, fullName: string, role?: UserRole) => Promise<void>
   loginWithGoogle: () => Promise<void>
   joinWithPin: (pin: string, displayName: string, role: UserRole, zoneId?: string) => Promise<void>
   logout: () => Promise<void>
@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           session,
           profile,
           isAuthenticated: true,
-          role: profile?.role || 'ADMIN',
+          role: profile?.role || 'GUEST',
           isLoading: false,
         })
       } else {
@@ -99,7 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             session,
             profile,
             isAuthenticated: true,
-            role: profile?.role || 'ADMIN',
+            role: profile?.role || 'GUEST',
           })
         } else if (event === 'SIGNED_OUT') {
           set({
@@ -139,7 +139,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         options: {
           data: {
             full_name: fullName,
-            role: 'ADMIN',
+            role: role || 'GUEST',
           },
         },
       })

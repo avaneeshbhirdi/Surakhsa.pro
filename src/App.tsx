@@ -8,7 +8,8 @@ import LandingPage from '@/pages/LandingPage'
 import AuthPage from '@/pages/AuthPage'
 import AdminDashboard from '@/pages/AdminDashboard'
 import CoordinatorApp from '@/pages/CoordinatorApp'
-import StewardApp from '@/pages/StewardApp'
+import ManagerDashboard from '@/pages/ManagerDashboard'
+import GuestApp from '@/pages/GuestApp'
 import CreateEvent from '@/pages/CreateEvent'
 import EventHistory from '@/pages/EventHistory'
 
@@ -59,23 +60,28 @@ function App() {
           <AdminDashboard />
         </ProtectedRoute>
       } />
+      <Route path="/manager" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
+          <ManagerDashboard />
+        </ProtectedRoute>
+      } />
       <Route path="/coordinator" element={
-        <ProtectedRoute allowedRoles={['COORDINATOR']}>
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER', 'COORDINATOR']}>
           <CoordinatorApp />
         </ProtectedRoute>
       } />
-      <Route path="/steward" element={
-        <ProtectedRoute allowedRoles={['STEWARD']}>
-          <StewardApp />
+      <Route path="/guest" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER', 'COORDINATOR', 'GUEST']}>
+          <GuestApp />
         </ProtectedRoute>
       } />
       <Route path="/event/create" element={
-        <ProtectedRoute allowedRoles={['ADMIN']}>
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
           <CreateEvent />
         </ProtectedRoute>
       } />
       <Route path="/event/history" element={
-        <ProtectedRoute allowedRoles={['ADMIN']}>
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
           <EventHistory />
         </ProtectedRoute>
       } />
