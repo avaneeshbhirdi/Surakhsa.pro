@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/stores/authStore'
 import Hero from '@/components/ui/animated-shader-hero'
 import { ShuffleFeatureCards } from '@/components/ui/feature-cards'
 import { 
@@ -13,13 +14,26 @@ import './LandingPage.css'
 
 export default function LandingPage() {
   const navigate = useNavigate()
+  const { isAuthenticated, role } = useAuthStore()
+
+  const getDashboardRoute = () => {
+    if (role === 'ADMIN') return '/dashboard'
+    if (role === 'EVENT_MANAGER') return '/manager'
+    if (role === 'COORDINATOR') return '/coordinator'
+    if (role === 'GUEST') return '/guest'
+    return '/'
+  }
 
   return (
     <div className="landing">
       {/* Navigation */}
       <nav className="landing__nav" style={{ zIndex: 100 }}>
         <div className="landing__nav-inner container">
-          <div className="landing__logo">
+          <div 
+            className="landing__logo" 
+            onClick={() => isAuthenticated ? navigate(getDashboardRoute()) : window.scrollTo({ top: 0, behavior: 'smooth' })}
+            style={{ cursor: 'pointer' }}
+          >
             <img 
               src="/main logo-png.png" 
               alt="Suraksha.pro" 
@@ -28,8 +42,16 @@ export default function LandingPage() {
             <span className="landing__logo-text">Suraksha<span className="text-gold">.pro</span></span>
           </div>
           <div className="landing__nav-actions">
-            <button className="btn btn-ghost" onClick={() => navigate('/auth')}>Login</button>
-            <button className="btn btn-gold btn-sm" onClick={() => navigate('/auth')}>Get Started</button>
+            {isAuthenticated ? (
+              <button className="btn btn-gold btn-sm" onClick={() => navigate(getDashboardRoute())}>
+                Go to Dashboard
+              </button>
+            ) : (
+              <>
+                <button className="btn btn-ghost" onClick={() => navigate('/auth')}>Login</button>
+                <button className="btn btn-gold btn-sm" onClick={() => navigate('/auth')}>Get Started</button>
+              </>
+            )}
           </div>
         </div>
       </nav>

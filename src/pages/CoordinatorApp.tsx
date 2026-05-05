@@ -9,7 +9,7 @@ import type { Event } from '@/lib/types'
 
 export default function CoordinatorApp() {
   const { pinSession, profile } = useAuthStore()
-  const { zones, alerts, latestReadings, loadEvent, acknowledgeAlert } = useEventStore()
+  const { zones, alerts, latestReadings, loadEvent, acknowledgeAlert, sendStewardMessage, triggerAlert } = useEventStore()
   const [activeTab, setActiveTab] = useState<'zone' | 'comms' | 'alerts'>('zone')
   const [isPTTActive, setIsPTTActive] = useState(false)
   const [textMessage, setTextMessage] = useState('')
@@ -54,46 +54,42 @@ export default function CoordinatorApp() {
 
   const handleReport = async (status: 'ALL_CLEAR' | 'CROWD_BUILDING' | 'EMERGENCY') => {
     if (!pinSession) return
-    await supabase.from('steward_updates').insert({
-      event_id: eventId,
-      zone_id: zoneId,
-      staff_id: pinSession.staffId,
-      status,
-    })
+    try {
+      await sendStewardMessage(eventId, zoneId, pinSession.staffId, status)
+    } catch (err) {
+      console.error('Failed to send status update')
+    }
   }
 
   const handleSendMessage = async () => {
     if (!textMessage.trim() || !pinSession) return
-    await supabase.from('instructions').insert({
-      event_id: eventId,
-      zone_id: zoneId || null,
-      sender_id: pinSession.staffId,
-      message: textMessage.trim(),
-      is_broadcast: false,
-    })
-    setTextMessage('')
-    setMessageSent(true)
-    setTimeout(() => setMessageSent(false), 2500)
+    try {
+      // We send arbitrary text as a generic 'CROWD_BUILDING' or just keep it whatever.
+      // Since it's a message, we'll send it as 'ALL_CLEAR' with the message attached.
+      await sendStewardMessage(eventId, zoneId || null, pinSession.staffId, 'ALL_CLEAR', textMessage.trim())
+      setTextMessage('')
+      setMessageSent(true)
+      setTimeout(() => setMessageSent(false), 2500)
+    } catch (err) {
+      console.error('Failed to send message')
+    }
   }
 
   const handleSendEmergencyAlert = async () => {
     if (!pinSession || !eventId) return
-    await supabase.from('steward_updates').insert({
-      event_id: eventId,
-      zone_id: zoneId || null,
-      staff_id: pinSession.staffId,
-      status: 'EMERGENCY',
-    })
-    await supabase.from('alerts').insert({
-      event_id: eventId,
-      zone_id: zoneId || null,
-      risk_type: 'STAMPEDE_RISK',
-      risk_score: 90,
-      priority: 'CRITICAL',
-      message: `🚨 Emergency reported by ${pinSession.displayName} at Zone ${myZone?.label || '?'}`,
-      recommended_action: 'Dispatch immediate response team.',
-      status: 'TRIGGERED',
-    })
+    try {
+      await sendStewardMessage(eventId, zoneId || null, pinSession.staffId, 'EMERGENCY')
+      await triggerAlert(
+        eventId,
+        zoneId || null,
+        'OTHER', // mapped as STAMPEDE/EMERGENCY
+        'CRITICAL',
+        `🚨 Emergency reported by ${pinSession.displayName} at Zone ${myZone?.label || '?'}`,
+        pinSession.staffId
+      )
+    } catch (err) {
+      console.error('Failed to send emergency alert')
+    }
   }
 
   return (

@@ -1,16 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Shield, 
-  Activity, 
-  Map as MapIcon, 
   AlertTriangle, 
-  Phone, 
-  HeartPulse, 
-  Flame, 
-  LogOut 
+  Map as MapIcon, 
+  LogOut,
+  Phone,
+  HeartPulse,
+  Flame
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { useEventStore } from '@/stores/eventStore'
 import './GuestApp.css'
 
 interface EmergencyModalProps {
@@ -77,28 +76,40 @@ function EmergencyModal({ type, onClose, onConfirm }: EmergencyModalProps) {
 }
 
 export default function GuestApp() {
-  const { logout } = useAuthStore()
+  const { logout, pinSession } = useAuthStore()
+  const { zones, alerts, latestReadings, loadEvent, triggerAlert } = useEventStore()
   const [emergencyType, setEmergencyType] = useState<'POLICE' | 'AMBULANCE' | 'FIRE' | null>(null)
 
-  // Simulated live data
-  const zones = [
-    { name: 'Conference Room A', density: '82%', people: 124, risk: 'CRITICAL' },
-    { name: 'Dining Hall', density: '45%', people: 68, risk: 'SAFE' },
-    { name: 'Main Lobby', density: '68%', people: 210, risk: 'WARNING' },
-    { name: 'Exhibition Hall 1', density: '12%', people: 15, risk: 'SAFE' },
-  ]
+  useEffect(() => {
+    if (pinSession?.eventId) {
+      loadEvent(pinSession.eventId)
+    }
+  }, [pinSession])
 
-  const alerts = [
-    { id: 1, time: '2m ago', text: 'Crowd density increasing at Main Entrance. Please use North Gate.' },
-    { id: 2, time: '15m ago', text: 'Lost child reported near Zone 3. Blue tshirt, age 6.' },
-    { id: 3, time: '45m ago', text: 'First aid station now open near Gate 4.' },
-  ]
+  const handleEmergencyCall = async () => {
+    if (!emergencyType || !pinSession?.eventId) return
+    
+    // Type mapping
+    const typeMap = {
+      'POLICE': 'POLICE',
+      'AMBULANCE': 'MEDICAL',
+      'FIRE': 'FIRE'
+    } as const
 
-  const handleEmergencyCall = () => {
-    // In a real app, this would use window.location.href = 'tel:...'
-    console.log(`Simulating call to ${emergencyType}`)
-    setEmergencyType(null)
-    alert(`Initiating emergency call to ${emergencyType}...`)
+    try {
+      await triggerAlert(
+        pinSession.eventId,
+        null, // General area
+        typeMap[emergencyType],
+        'CRITICAL',
+        `Guest triggered a ${emergencyType} emergency call.`,
+        'GUEST'
+      )
+      setEmergencyType(null)
+      alert(`Emergency sent! Security and ${emergencyType} have been notified immediately.`)
+    } catch (err) {
+      alert('Failed to send emergency alert.')
+    }
   }
 
   return (
@@ -115,43 +126,60 @@ export default function GuestApp() {
 
       <main className="crowd__content">
         <div className="crowd__section">
-          <h2 className="crowd__section-title"><MapIcon size={16} /> Live Heatmap</h2>
-          <div className="crowd__map-card">
-            <div className="crowd__map-placeholder">
-              <div className="crowd__map-overlay" />
-              <Shield size={48} color="rgba(255,255,255,0.2)" />
-              <span style={{ position: 'absolute', bottom: '20px', fontSize: '12px', opacity: 0.5 }}>READ-ONLY SAFETY VIEW</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="crowd__section">
-          <h2 className="crowd__section-title"><Activity size={16} /> Room Status & Occupancy</h2>
-          <div className="crowd__zones">
-            {zones.map((zone, idx) => (
-              <div key={idx} className="crowd__zone-item">
-                <div className="crowd__zone-info">
-                  <span className="crowd__zone-name">{zone.name}</span>
-                  <span className="crowd__zone-density">{zone.people} people present • {zone.density} capacity</span>
+          <h2 className="crowd__section-title"><MapIcon size={16} /> Live Occupancy</h2>
+          {zones.length === 0 ? (
+            <p className="text-muted" style={{ padding: 'var(--space-4)' }}>No active zones to display.</p>
+          ) : (
+            zones.map((z) => {
+              const reading = latestReadings[z.id]
+              const density = z.capacity > 0 ? Math.min(100, Math.round(((reading?.density || 0) / z.capacity) * 100)) : 0
+              const riskColor = reading?.color_state === 'RED' ? 'var(--color-danger-pulse)' : reading?.color_state === 'YELLOW' ? 'var(--color-warning)' : 'var(--color-safe)'
+              
+              return (
+                <div key={z.id} className="crowd__zone-card">
+                  <div className="crowd__zone-header">
+                    <h3 className="crowd__zone-name">{z.label} {z.name ? `- ${z.name}` : ''}</h3>
+                    <span className="crowd__zone-risk" style={{ color: riskColor }}>
+                      {reading?.color_state || 'SAFE'}
+                    </span>
+                  </div>
+                  <div className="crowd__zone-stats">
+                    <div>
+                      <div className="crowd__stat-label">Density</div>
+                      <div className="crowd__stat-value">{density}%</div>
+                    </div>
+                    <div>
+                      <div className="crowd__stat-label">People</div>
+                      <div className="crowd__stat-value">{reading?.density || 0}</div>
+                    </div>
+                  </div>
+                  <div className="crowd__progress">
+                    <div className="crowd__progress-bar" style={{ width: `${density}%`, background: riskColor }} />
+                  </div>
                 </div>
-                <span className={`crowd__risk-badge crowd__risk-badge--${zone.risk.toLowerCase()}`}>
-                  {zone.risk}
-                </span>
-              </div>
-            ))}
-          </div>
+              )
+            })
+          )}
         </div>
 
-        <div className="crowd__section">
-          <h2 className="crowd__section-title"><AlertTriangle size={16} /> Live Alerts</h2>
-          <div className="crowd__alerts">
-            {alerts.map(alert => (
-              <div key={alert.id} className="crowd__alert-item">
-                <div className="crowd__alert-time">{alert.time}</div>
-                <div className="crowd__alert-text">{alert.text}</div>
+        <h2 className="heading-section" style={{ marginTop: 'var(--space-6)', marginBottom: 'var(--space-4)' }}>
+          <AlertTriangle size={20} className="text-warning" style={{ display: 'inline', marginRight: 'var(--space-2)' }} />
+          Recent Announcements
+        </h2>
+        
+        <div className="crowd__alerts">
+          {alerts.length === 0 ? (
+            <p className="text-muted" style={{ padding: 'var(--space-4)' }}>No announcements yet.</p>
+          ) : (
+            alerts.slice(0, 5).map(a => (
+              <div key={a.id} className="crowd__alert-item">
+                <div className="crowd__alert-time">
+                  {new Date(a.triggered_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div className="crowd__alert-text">{a.message}</div>
               </div>
-            ))}
-          </div>
+            ))
+          )}
         </div>
       </main>
 

@@ -188,38 +188,34 @@ export default function AuthPage() {
 
         {/* Role Selection Screen */}
         {mode === 'select' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', marginTop: '1rem' }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--color-text-secondary)', fontSize: 'var(--text-lg)' }}>
-              Select your access type
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', marginTop: '1rem' }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '0.5rem', color: 'var(--color-text-secondary)', fontSize: 'var(--text-lg)' }}>
+              Welcome to Suraksha.pro
             </h2>
-            <button 
-              className="btn btn-outline" 
-              style={{ padding: '1.25rem', fontSize: 'var(--text-lg)' }}
-              onClick={() => { setUserType('GUEST'); switchMode('login'); }}
-            >
-              Public Access (Guest)
-            </button>
-            <button 
-              className="btn btn-outline" 
-              style={{ padding: '1.25rem', fontSize: 'var(--text-lg)' }}
-              onClick={() => { setUserType('COORDINATOR'); switchMode('login'); }}
-            >
-              Staff / Coordinator
-            </button>
+            
+            {/* Primary Action for Guests/Staff */}
             <button 
               className="btn btn-gold" 
-              style={{ padding: '1.25rem', fontSize: 'var(--text-lg)' }}
-              onClick={() => { setUserType('EVENT_MANAGER'); switchMode('login'); }}
-            >
-              Event Manager
-            </button>
-            <div className="auth__separator">OR</div>
-            <button 
-              className="btn btn-ghost" 
-              style={{ opacity: 0.7 }}
+              style={{ 
+                padding: '1.75rem 1.25rem', 
+                fontSize: 'var(--text-xl)', 
+                fontWeight: 'bold',
+                boxShadow: '0 0 20px rgba(212, 175, 55, 0.3)'
+              }}
               onClick={() => switchMode('pin')}
             >
-              Join Active Event via PIN
+              JOIN EVENT VIA PIN
+            </button>
+
+            <div className="auth__separator">OR</div>
+            
+            {/* Secondary Action for Managers */}
+            <button 
+              className="btn btn-outline" 
+              style={{ padding: '1rem', fontSize: 'var(--text-base)', opacity: 0.8 }}
+              onClick={() => { setUserType('EVENT_MANAGER'); switchMode('login'); }}
+            >
+              Event Manager Login
             </button>
           </div>
         )}
@@ -228,10 +224,10 @@ export default function AuthPage() {
         {(mode === 'login' || mode === 'signup') && (
           <div className="tabs" style={{ marginBottom: 'var(--space-6)' }}>
             <button className={`tab ${mode === 'login' ? 'tab--active' : ''}`} onClick={() => switchMode('login')}>
-              {userType === 'EVENT_MANAGER' ? 'Manager Login' : userType === 'COORDINATOR' ? 'Staff Login' : 'Guest Login'}
+              Manager Login
             </button>
             <button className={`tab ${mode === 'signup' ? 'tab--active' : ''}`} onClick={() => switchMode('signup')}>
-              Sign Up
+              Manager Sign Up
             </button>
           </div>
         )}
@@ -295,10 +291,10 @@ export default function AuthPage() {
               <input type="password" className="input" placeholder="••••••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
             </div>
             <p className="text-muted" style={{ fontSize: 'var(--text-xs)' }}>
-              {userType === 'EVENT_MANAGER' ? 'Manager accounts require email verification.' : 'Start your safety journey.'}
+              Manager accounts require email verification.
             </p>
             <button type="submit" className="btn btn-gold w-full" disabled={isLoading}>
-              {isLoading ? <span className="spinner" /> : `Create ${userType === 'EVENT_MANAGER' ? 'Manager' : userType === 'COORDINATOR' ? 'Staff' : 'Guest'} Account`}
+              {isLoading ? <span className="spinner" /> : 'Create Manager Account'}
             </button>
 
             <div className="auth__separator">OR</div>

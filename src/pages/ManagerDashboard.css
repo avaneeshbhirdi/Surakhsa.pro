@@ -1,72 +1,326 @@
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
-  flex-wrap: wrap;
-  gap: var(--space-2);
+/* Virtus-style Dark Mode Dashboard */
+:root {
+  --v-bg-dark: #1A1A1A;
+  --v-sidebar-bg: #1A1A1A;
+  --v-card-bg: #222222;
+  --v-card-bg-light: #2A2A2A;
+  --v-orange: #E65A28; /* Primary Accent */
+  --v-orange-dim: rgba(230, 90, 40, 0.15);
+  --v-text-main: #FFFFFF;
+  --v-text-muted: #8E8E8E;
+  --v-border: #333333;
 }
 
-.admin-dashboard-content {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-areas:
-    "metrics"
-    "zones"
-    "alerts"
-    "comms";
-  gap: var(--space-4);
-  padding: var(--space-4);
+body {
+  background: var(--v-bg-dark);
+  color: var(--v-text-main);
+}
+
+.virtus-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Sidebar */
+.virtus-sidebar {
+  width: 260px;
+  background: var(--v-sidebar-bg);
+  border-right: 1px solid var(--v-border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.virtus-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.virtus-logo-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--v-text-main);
+}
+
+.virtus-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--v-card-bg-light);
+  padding: 10px 16px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+
+.virtus-search input {
+  background: transparent;
+  border: none;
+  color: var(--v-text-main);
+  outline: none;
+  width: 100%;
+}
+
+.virtus-search input::placeholder {
+  color: var(--v-text-muted);
+}
+
+.virtus-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   flex: 1;
 }
 
-.dashboard-metrics { grid-area: metrics; }
-.dashboard-zones { grid-area: zones; }
-.dashboard-alerts { grid-area: alerts; }
-.dashboard-comms { grid-area: comms; }
+.virtus-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--v-text-muted);
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
 
-.dashboard-zone-grid {
+.virtus-nav-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--v-text-main);
+}
+
+.virtus-nav-item.active {
+  background: var(--v-orange);
+  color: #fff;
+}
+
+.virtus-nav-divider {
+  height: 1px;
+  background: var(--v-border);
+  margin: 16px 0;
+}
+
+.virtus-badge {
+  background: var(--v-card-bg-light);
+  color: var(--v-text-muted);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-left: auto;
+}
+
+/* Main Content Area */
+.virtus-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+  overflow-y: auto;
+  background: var(--v-bg-dark);
+}
+
+/* Header */
+.virtus-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.virtus-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--v-border);
+  font-size: 13px;
+  color: var(--v-text-muted);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.virtus-pill:hover {
+  background: var(--v-card-bg-light);
+  color: var(--v-text-main);
+}
+
+/* Grid Layout */
+.virtus-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+  grid-auto-rows: minmax(min-content, max-content);
 }
 
-/* Desktop 4-panel layout */
-@media (min-width: 1025px) {
-  .admin-dashboard-content {
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: auto auto 1fr;
-    grid-template-areas:
-      "metrics metrics"
-      "zones alerts"
-      "zones comms";
-    max-height: calc(100vh - var(--header-height) - 52px);
-    overflow: hidden;
-  }
-
-  .dashboard-zones {
-    overflow-y: auto;
-  }
-
-  .dashboard-alerts {
-    overflow-y: auto;
-  }
-
-  .dashboard-comms {
-    border-top: 1px solid var(--color-border);
-    padding-top: var(--space-4);
-  }
+/* Card Styles */
+.v-card {
+  background: var(--v-card-bg);
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
 }
 
-/* Tablet 2-panel */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .admin-dashboard-content {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "metrics metrics"
-      "zones zones"
-      "alerts comms";
-  }
+.v-card.orange {
+  background: var(--v-orange);
+  color: white;
+}
+
+/* Specific Cards Mapping */
+.v-task-progress {
+  grid-column: span 3;
+}
+
+.v-today-task {
+  grid-column: span 3;
+}
+
+.v-performance {
+  grid-column: span 6;
+}
+
+.v-zone-capacities {
+  grid-column: span 4;
+}
+
+.v-staff-reports {
+  grid-column: span 5;
+}
+
+.v-risk-score {
+  grid-column: span 3;
+}
+
+/* Text Utilities */
+.v-text-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.v-text-huge {
+  font-size: 42px;
+  font-weight: 500;
+}
+
+.v-text-sm {
+  font-size: 13px;
+  color: var(--v-text-muted);
+}
+
+/* Recharts Customization */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--v-border);
+}
+
+.recharts-text {
+  fill: var(--v-text-muted) !important;
+}
+
+/* Simulator Toggle Button */
+.simulator-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.simulator-toggle.active {
+  background: var(--v-orange-dim);
+  color: var(--v-orange);
+  border: 1px solid var(--v-orange);
+}
+
+.simulator-toggle.inactive {
+  background: var(--v-card-bg);
+  color: var(--v-text-muted);
+  border: 1px solid var(--v-border);
+}
+
+/* Mini Progress Bars */
+.v-progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--v-border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.v-progress-fill {
+  height: 100%;
+  background: var(--v-orange);
+  border-radius: 3px;
+}
+
+/* Avatar list */
+.v-avatar-list {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.v-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--v-card-bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Staff Report Item */
+.v-report-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--v-border);
+}
+
+.v-report-item:last-child {
+  border-bottom: none;
+}
+
+.v-status-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.v-status-pill.warning {
+  background: rgba(255, 166, 0, 0.1);
+  color: orange;
+}
+
+.v-status-pill.danger {
+  background: rgba(255, 0, 0, 0.1);
+  color: #ff4d4d;
+}
+
+.v-status-pill.safe {
+  background: rgba(0, 255, 0, 0.1);
+  color: #4dff4d;
 }
