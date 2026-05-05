@@ -104,3 +104,40 @@
   color: var(--color-gold);
   background: rgba(201, 168, 76, 0.1);
 }
+
+.auth__separator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+}
+
+.auth__separator::before,
+.auth__separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.btn-google {
+  background: white;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  font-weight: var(--weight-medium);
+}
+
+.btn-google:hover {
+  background: #f9fafb;
+}
+
+.google-icon {
+  width: 18px;
+  height: 18px;
+}
