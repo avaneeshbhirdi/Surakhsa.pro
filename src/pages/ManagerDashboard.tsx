@@ -417,8 +417,6 @@ export default function ManagerDashboard() {
             <p className="v-text-sm mt-4 text-center">Based on density and flow</p>
           </div>
 
-          </div>
-
           {/* Row 3: Active Staff & Coordinators */}
           <div className="v-card v-active-staff" style={{ gridColumn: 'span 12' }}>
             <div className="flex flex-between mb-4">
