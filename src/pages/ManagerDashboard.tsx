@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
+import type { EventStaff } from '@/lib/types'
 import { Plus, Copy, Check, Megaphone, Activity, Play, Pause, Square } from 'lucide-react'
 import { LineChart, Line, XAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
 import './ManagerDashboard.css'
@@ -127,6 +128,14 @@ export default function ManagerDashboard() {
     setShowEndConfirm(false)
     clearEvent()
     navigate('/event/history')
+  }
+
+  const handleDirectMessage = (s: EventStaff) => {
+    setAlertType('ZONE')
+    setSelectedTargetZone(s.zone_id || '')
+    const zoneLabel = zones.find(z => z.id === s.zone_id)?.label || 'Global'
+    setAlertMessage(`@${s.display_name} (Zone ${zoneLabel}): `)
+    setShowAlertModal(true)
   }
 
   // Send manual broadcast alert
@@ -406,6 +415,48 @@ export default function ManagerDashboard() {
               </div>
             </div>
             <p className="v-text-sm mt-4 text-center">Based on density and flow</p>
+          </div>
+
+          </div>
+
+          {/* Row 3: Active Staff & Coordinators */}
+          <div className="v-card v-active-staff" style={{ gridColumn: 'span 12' }}>
+            <div className="flex flex-between mb-4">
+              <h3 className="v-text-title" style={{ margin: 0 }}>Active Coordinators & Staff</h3>
+              <div className="flex gap-2">
+                <span className="v-status-pill safe" style={{ fontSize: '10px' }}>
+                  {staff.length} Online
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {staff.map(s => {
+                const z = zones.find(zn => zn.id === s.zone_id)
+                return (
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'var(--v-bg-dark)', borderRadius: '12px', border: '1px solid var(--v-border)' }}>
+                    <div className="flex gap-3 align-center">
+                      <div className="v-avatar">
+                        {s.display_name.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 500 }}>{s.display_name}</div>
+                        <div className="v-text-sm">{z?.label ? `Zone ${z.label}` : 'Global'} • {s.role.replace('_', ' ')}</div>
+                      </div>
+                    </div>
+                    <button 
+                      className="btn btn-sm" 
+                      style={{ fontSize: '12px', padding: '6px 12px', background: 'rgba(255,255,255,0.05)', color: 'var(--v-text-main)', border: '1px solid var(--v-border)', borderRadius: '16px' }} 
+                      onClick={() => handleDirectMessage(s)}
+                    >
+                      Message
+                    </button>
+                  </div>
+                )
+              })}
+              {staff.length === 0 && (
+                <p className="v-text-sm text-muted">No staff currently online.</p>
+              )}
+            </div>
           </div>
 
         </div>
