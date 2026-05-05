@@ -8,10 +8,11 @@ export interface FeatureCardProps {
   description: string;
   position: string;
   handleShuffle: () => void;
-  onViewMore: () => void;
+  onExpand: () => void;
+  isExpanded: boolean;
 }
 
-export function FeatureCard({ handleShuffle, icon, title, description, position, onViewMore }: FeatureCardProps) {
+export function FeatureCard({ handleShuffle, icon, title, description, position, onExpand, isExpanded }: FeatureCardProps) {
   const dragRef = useRef(0);
   const isFront = position === "front";
   const isHidden = position.startsWith("hidden");
@@ -29,7 +30,7 @@ export function FeatureCard({ handleShuffle, icon, title, description, position,
         placeContent: 'center',
         padding: '2rem',
         borderRadius: '1rem',
-        border: '1px solid rgba(253, 186, 116, 0.2)', // Gold tint
+        border: '1px solid rgba(253, 186, 116, 0.2)',
         background: 'rgba(20, 20, 20, 0.65)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -37,7 +38,7 @@ export function FeatureCard({ handleShuffle, icon, title, description, position,
         userSelect: 'none',
         pointerEvents: isHidden ? 'none' : 'auto',
         opacity: isHidden ? 0 : 1,
-        cursor: isFront ? 'grab' : 'pointer',
+        cursor: isFront ? (isExpanded ? 'grab' : 'pointer') : 'auto',
       }}
       animate={{
         rotate: position === "front" ? "-4deg" : position === "middle" ? "0deg" : position === "back" ? "4deg" : "0deg",
@@ -63,12 +64,12 @@ export function FeatureCard({ handleShuffle, icon, title, description, position,
         dragRef.current = 0;
       }}
       onClick={(e) => {
-        if (isFront && Math.abs(dragRef.current) < 5) {
-          handleShuffle();
+        if (isFront && !isExpanded && Math.abs(dragRef.current) < 5) {
+          onExpand();
         }
       }}
-      whileTap={isFront ? { cursor: "grabbing" } : {}}
-      transition={{ duration: 0.35 }}
+      whileTap={isFront ? { scale: 0.98 } : {}}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', textAlign: 'center' }}>
         <div style={{ 
@@ -88,33 +89,15 @@ export function FeatureCard({ handleShuffle, icon, title, description, position,
           {title}
         </h3>
         
-        {isFront && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewMore();
-              }}
-              style={{
-                background: 'rgba(253, 186, 116, 0.2)',
-                border: '1px solid rgba(253, 186, 116, 0.4)',
-                color: '#facc15',
-                padding: '0.5rem 1.5rem',
-                borderRadius: '9999px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.875rem'
-              }}
-            >
-              View More
-            </button>
-            <div style={{ 
-              fontSize: '0.75rem', 
-              color: 'rgba(255, 255, 255, 0.5)',
-              opacity: 0.8
-            }}>
-              ← Swipe or Click to shuffle →
-            </div>
+        {isFront && !isExpanded && (
+          <div style={{ 
+            marginTop: '2rem', 
+            fontSize: '0.875rem', 
+            color: '#facc15', 
+            opacity: 0.8,
+            animation: 'pulse 2s infinite'
+          }}>
+            Click to View Details or Swipe to Shuffle
           </div>
         )}
       </div>
@@ -122,7 +105,7 @@ export function FeatureCard({ handleShuffle, icon, title, description, position,
   );
 }
 
-export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardProps, 'position' | 'handleShuffle' | 'onViewMore'>[] }) {
+export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardProps, 'position' | 'handleShuffle' | 'onExpand' | 'isExpanded'>[] }) {
   const initialPositions = features.map((_, index) => {
     if (index === 0) return "front";
     if (index === 1) return "middle";
@@ -131,10 +114,10 @@ export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardPr
   });
 
   const [positions, setPositions] = useState(initialPositions);
-  const [showDescription, setShowDescription] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleShuffle = () => {
-    setShowDescription(false);
+    setIsExpanded(false);
     setPositions((prev) => {
       const newPositions = [...prev];
       const front = newPositions.shift();
@@ -151,78 +134,99 @@ export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardPr
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '4rem',
       width: '100%',
       minHeight: '600px',
       padding: '4rem 2rem',
       overflow: 'hidden',
-      flexWrap: 'wrap'
     }}>
-      <div style={{
-        position: 'relative',
-        width: '350px',
-        height: '450px',
-      }}>
-        {features.map((feature, index) => (
-          <FeatureCard
-            key={feature.id}
-            {...feature}
-            handleShuffle={handleShuffle}
-            position={positions[index]}
-            onViewMore={() => setShowDescription(true)}
-          />
-        ))}
-      </div>
-
       <motion.div 
-        key={activeFeature.id}
-        initial={{ opacity: 0, x: 20, scale: 0.95 }}
         animate={{ 
-          opacity: showDescription ? 1 : 0, 
-          x: showDescription ? 0 : 40,
-          scale: showDescription ? 1 : 0.95,
-          pointerEvents: showDescription ? 'auto' : 'none'
+          x: isExpanded ? -250 : 0,
         }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: "anticipate" }}
         style={{
-          width: '100%',
-          maxWidth: '450px',
-          padding: '2.5rem',
-          borderRadius: '1rem',
-          border: '1px solid rgba(253, 186, 116, 0.2)',
-          background: 'rgba(20, 20, 20, 0.4)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
           display: 'flex',
-          flexDirection: 'column',
+          alignItems: 'center',
           justifyContent: 'center',
-          gap: '1rem',
-          position: 'relative'
+          gap: '4rem',
+          position: 'relative',
+          width: '100%',
+          maxWidth: '1200px'
         }}
       >
-        <button 
-          onClick={() => setShowDescription(false)}
+        <div style={{
+          position: 'relative',
+          width: '350px',
+          height: '450px',
+          flexShrink: 0
+        }}>
+          {features.map((feature, index) => (
+            <FeatureCard
+              key={feature.id}
+              {...feature}
+              handleShuffle={handleShuffle}
+              position={positions[index]}
+              onExpand={() => setIsExpanded(true)}
+              isExpanded={isExpanded}
+            />
+          ))}
+        </div>
+
+        <motion.div 
+          key={activeFeature.id}
+          initial={{ opacity: 0, x: 50, scale: 0.9 }}
+          animate={{ 
+            opacity: isExpanded ? 1 : 0, 
+            x: isExpanded ? 0 : 50,
+            scale: isExpanded ? 1 : 0.9,
+            pointerEvents: isExpanded ? 'auto' : 'none'
+          }}
+          transition={{ duration: 0.4, delay: isExpanded ? 0.2 : 0 }}
           style={{
-            position: 'absolute',
-            top: '1rem',
-            right: '1rem',
-            background: 'none',
-            border: 'none',
-            color: 'white',
-            fontSize: '1.5rem',
-            cursor: 'pointer',
-            opacity: 0.5
+            width: '100%',
+            maxWidth: '500px',
+            padding: '3rem',
+            borderRadius: '1.5rem',
+            border: '1px solid rgba(253, 186, 116, 0.2)',
+            background: 'rgba(20, 20, 20, 0.4)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            gap: '1.5rem',
+            position: 'relative'
           }}
         >
-          ×
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '2rem' }}>{activeFeature.icon}</span>
-          <h3 style={{ fontSize: '2rem', color: 'white', margin: 0 }}>{activeFeature.title}</h3>
-        </div>
-        <p style={{ fontSize: '1.125rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.6, margin: 0 }}>
-          {activeFeature.description}
-        </p>
+          <button 
+            onClick={() => setIsExpanded(false)}
+            style={{
+              position: 'absolute',
+              top: '1.5rem',
+              right: '1.5rem',
+              background: 'rgba(255,255,255,0.05)',
+              border: 'none',
+              color: 'white',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              opacity: 0.7
+            }}
+          >
+            ×
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <span style={{ fontSize: '3rem' }}>{activeFeature.icon}</span>
+            <h3 style={{ fontSize: '2.25rem', color: 'white', margin: 0, fontWeight: 700 }}>{activeFeature.title}</h3>
+          </div>
+          <p style={{ fontSize: '1.25rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.7, margin: 0 }}>
+            {activeFeature.description}
+          </p>
+        </motion.div>
       </motion.div>
     </div>
   );
