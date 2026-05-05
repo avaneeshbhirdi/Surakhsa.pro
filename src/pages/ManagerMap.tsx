@@ -3,7 +3,7 @@ import { useEventStore } from '@/stores/eventStore'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
-import { MapPin, Users, AlertTriangle } from 'lucide-react'
+import { MapPin, AlertTriangle } from 'lucide-react'
 
 export default function ManagerMap() {
   const { profile } = useAuthStore()
