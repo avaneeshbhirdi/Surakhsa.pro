@@ -178,7 +178,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .from('events')
         .select('id, status')
         .eq('pin', pin)
-        .in('status', ['ACTIVE', 'PAUSED'])
+        .in('status', ['ACTIVE', 'PAUSED', 'DRAFT'])
         .single()
 
       if (eventError || !event) {

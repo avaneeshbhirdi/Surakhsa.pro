@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
-import { Plus, Copy, Check, Megaphone, Activity } from 'lucide-react'
+import { Plus, Copy, Check, Megaphone, Activity, Play, Pause, Square } from 'lucide-react'
 import { LineChart, Line, XAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
 import './ManagerDashboard.css'
 
@@ -13,7 +13,7 @@ export default function ManagerDashboard() {
   const { profile } = useAuthStore()
   const {
     activeEvent, zones, alerts, staff, latestReadings, stewardUpdates,
-    loadEvent, acknowledgeAlert, clearEvent,
+    loadEvent, acknowledgeAlert, clearEvent, updateEventStatus,
   } = useEventStore()
 
   const [loading, setLoading] = useState(true)
@@ -23,6 +23,7 @@ export default function ManagerDashboard() {
 
   // Send Alert modal states
   const [showAlertModal, setShowAlertModal] = useState(false)
+  const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [alertType, setAlertType] = useState<'BROADCAST' | 'ZONE'>('BROADCAST')
   const [selectedTargetZone, setSelectedTargetZone] = useState('')
   const [alertMessage, setAlertMessage] = useState('')
@@ -110,6 +111,24 @@ export default function ManagerDashboard() {
     setTimeout(() => setPinCopied(false), 2500)
   }
 
+  const handleStartEvent = async () => {
+    if (!activeEvent) return
+    await updateEventStatus(activeEvent.id, 'ACTIVE')
+  }
+
+  const handlePauseEvent = async () => {
+    if (!activeEvent) return
+    await updateEventStatus(activeEvent.id, activeEvent.status === 'PAUSED' ? 'ACTIVE' : 'PAUSED')
+  }
+
+  const handleEndEvent = async () => {
+    if (!activeEvent) return
+    await updateEventStatus(activeEvent.id, 'ENDED')
+    setShowEndConfirm(false)
+    clearEvent()
+    navigate('/event/history')
+  }
+
   // Send manual broadcast alert
   const handleSendAlert = async () => {
     if (!activeEvent || !alertMessage.trim()) return
@@ -187,10 +206,38 @@ export default function ManagerDashboard() {
         <header className="virtus-header">
           <div style={{ display: 'flex', gap: '8px', marginRight: 'auto', alignItems: 'center' }}>
             <span style={{ fontWeight: 600 }}>{activeEvent.name}</span>
-            <button className="virtus-pill" onClick={handleCopyPin}>
+            {activeEvent.status === 'ACTIVE' && (
+              <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> LIVE</span>
+            )}
+            {activeEvent.status === 'PAUSED' && <span className="v-status-pill warning" style={{ marginLeft: '8px' }}>PAUSED</span>}
+            {activeEvent.status === 'DRAFT' && <span className="v-status-pill" style={{ marginLeft: '8px' }}>DRAFT</span>}
+            <button className="virtus-pill" onClick={handleCopyPin} style={{ marginLeft: '12px' }}>
               {pinCopied ? <Check size={14} color="#4dff4d" /> : <Copy size={14} />} PIN: {activeEvent.pin}
             </button>
           </div>
+          
+          {/* Status Controls */}
+          {activeEvent.status === 'DRAFT' && (
+            <button className="virtus-pill" onClick={handleStartEvent} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)' }}>
+              <Play size={14} /> Start Event
+            </button>
+          )}
+          {activeEvent.status === 'ACTIVE' && (
+            <button className="virtus-pill" onClick={handlePauseEvent}>
+              <Pause size={14} /> Pause
+            </button>
+          )}
+          {activeEvent.status === 'PAUSED' && (
+            <button className="virtus-pill" onClick={handlePauseEvent} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)' }}>
+              <Play size={14} /> Resume
+            </button>
+          )}
+          {activeEvent.status !== 'DRAFT' && (
+            <button className="virtus-pill" onClick={() => setShowEndConfirm(true)} style={{ color: 'var(--v-red)', borderColor: 'var(--v-red)' }}>
+              <Square size={14} /> End Event
+            </button>
+          )}
+
           <button className={`simulator-toggle ${isSimulating ? 'active' : 'inactive'}`} onClick={() => setIsSimulating(!isSimulating)}>
             <Activity size={14} /> {isSimulating ? 'Simulating...' : 'Simulate Data'}
           </button>
@@ -440,6 +487,26 @@ export default function ManagerDashboard() {
               <button className="btn" style={{ background: 'transparent' }} onClick={() => setShowAlertModal(false)}>Cancel</button>
               <button className="btn" style={{ background: 'var(--v-orange)', color: 'white', border: 'none' }} onClick={handleSendAlert} disabled={alertSending || (alertType === 'ZONE' && !selectedTargetZone)}>
                 {alertSending ? 'Sending...' : 'Issue Command'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* End Event Confirmation Modal */}
+      {showEndConfirm && (
+        <div className="modal-overlay" onClick={() => setShowEndConfirm(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '24px', maxWidth: '400px' }}>
+            <div className="modal__header" style={{ borderBottom: '1px solid var(--v-border)' }}>
+              <h2 className="modal__title">End Event?</h2>
+            </div>
+            <div className="modal__body">
+              <p className="text-secondary">This will end monitoring, disconnect all staff, and archive the event data. This action cannot be undone.</p>
+            </div>
+            <div className="modal__footer">
+              <button className="btn" style={{ background: 'transparent' }} onClick={() => setShowEndConfirm(false)}>Cancel</button>
+              <button className="btn" style={{ background: 'var(--v-red)', color: 'white', border: 'none' }} onClick={handleEndEvent}>
+                End Event
               </button>
             </div>
           </div>
