@@ -1,10 +1,34 @@
 import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, LogOut, Search, MapPin } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useEventStore } from '@/stores/eventStore'
 
 export default function ManagerSidebar() {
   const { logout, profile } = useAuthStore()
+  const { alerts } = useEventStore()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const activeAlerts = alerts.filter(a => a.status === 'TRIGGERED').length
+
+  const navItems = [
+    { icon: <Home size={18} />, label: 'Home', path: '/manager' },
+    { icon: <Calendar size={18} />, label: 'History', path: '/event/history' },
+    { icon: <Target size={18} />, label: 'Map', path: '/manager/map' },
+    { icon: <MapPin size={18} />, label: 'Zones', path: '/manager/zones' },
+    { icon: <Folder size={18} />, label: 'Analytics', path: '/manager/analytics' },
+    { icon: <MessageSquare size={18} />, label: 'Comms', path: '/manager/comms' },
+  ]
+
+  const bottomItems = [
+    { icon: <Bell size={18} />, label: 'Alerts', path: '/manager/alerts', badge: activeAlerts > 0 ? activeAlerts : null },
+    { icon: <Settings size={18} />, label: 'Settings', path: '/manager/settings' },
+  ]
+
+  const isActive = (path: string) => {
+    if (path === '/manager') return location.pathname === '/manager'
+    return location.pathname.startsWith(path)
+  }
 
   return (
     <aside className="virtus-sidebar">
@@ -21,44 +45,36 @@ export default function ManagerSidebar() {
       </div>
 
       <nav className="virtus-nav">
-        <button className="virtus-nav-item active" onClick={() => navigate('/manager')}>
-          <Home size={18} /> Home
-        </button>
-        <button className="virtus-nav-item" onClick={() => navigate('/event/history')}>
-          <Calendar size={18} /> History
-        </button>
-        <button className="virtus-nav-item">
-          <Target size={18} /> Map
-        </button>
-        <button className="virtus-nav-item" onClick={() => navigate('/manager/zones')}>
-          <MapPin size={18} /> Zones
-        </button>
-        <button className="virtus-nav-item">
-          <Folder size={18} /> Analytics
-        </button>
-        <button className="virtus-nav-item">
-          <MessageSquare size={18} /> Comms
-        </button>
+        {navItems.map(item => (
+          <button
+            key={item.path}
+            className={`virtus-nav-item ${isActive(item.path) ? 'active' : ''}`}
+            onClick={() => navigate(item.path)}
+          >
+            {item.icon} {item.label}
+          </button>
+        ))}
+
         <div className="virtus-nav-divider" />
-        <button className="virtus-nav-item">
-          <Bell size={18} /> Alerts
-          <span className="virtus-badge">!</span>
-        </button>
-        <button className="virtus-nav-item">
-          <Settings size={18} /> Settings
-        </button>
+
+        {bottomItems.map(item => (
+          <button
+            key={item.path}
+            className={`virtus-nav-item ${isActive(item.path) ? 'active' : ''}`}
+            onClick={() => navigate(item.path)}
+          >
+            {item.icon} {item.label}
+            {item.badge && (
+              <span className="virtus-badge" style={{ background: '#ff4d4d', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontSize: '10px', fontWeight: 700 }}>
+                {item.badge}
+              </span>
+            )}
+          </button>
+        ))}
       </nav>
 
       <div className="virtus-sidebar-footer">
-        <div className="virtus-profile-preview" style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '12px', 
-          padding: '12px', 
-          marginBottom: '12px',
-          background: 'rgba(255,255,255,0.03)',
-          borderRadius: '12px'
-        }}>
+        <div className="virtus-profile-preview" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', marginBottom: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
           <div className="v-avatar" style={{ width: '32px', height: '32px', fontSize: '12px' }}>
             {profile?.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'M'}
           </div>

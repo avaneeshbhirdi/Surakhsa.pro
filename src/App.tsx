@@ -10,6 +10,11 @@ import AdminDashboard from '@/pages/AdminDashboard'
 import CoordinatorApp from '@/pages/CoordinatorApp'
 import ManagerDashboard from '@/pages/ManagerDashboard'
 import ManagerZones from '@/pages/ManagerZones'
+import ManagerMap from '@/pages/ManagerMap'
+import ManagerAnalytics from '@/pages/ManagerAnalytics'
+import ManagerComms from '@/pages/ManagerComms'
+import ManagerAlerts from '@/pages/ManagerAlerts'
+import ManagerSettings from '@/pages/ManagerSettings'
 import GuestApp from '@/pages/GuestApp'
 import CreateEvent from '@/pages/CreateEvent'
 import EventHistory from '@/pages/EventHistory'
@@ -69,6 +74,31 @@ function App() {
       <Route path="/manager/zones" element={
         <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
           <ManagerZones />
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/map" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
+          <ManagerMap />
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/analytics" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
+          <ManagerAnalytics />
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/comms" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
+          <ManagerComms />
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/alerts" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
+          <ManagerAlerts />
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/settings" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
+          <ManagerSettings />
         </ProtectedRoute>
       } />
       <Route path="/coordinator" element={
