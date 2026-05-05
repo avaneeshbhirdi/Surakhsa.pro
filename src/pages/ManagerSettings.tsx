@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
-import { useEventStore } from '@/stores/eventStore'
 import ManagerSidebar from '@/components/ManagerSidebar'
-import { User, Calendar, Bell, Edit2, Check, X, LogOut } from 'lucide-react'
+import { User, Bell, Edit2, Check, X, LogOut } from 'lucide-react'
 
 export default function ManagerSettings() {
   const { profile, logout, updateProfile } = useAuthStore()
-  const { activeEvent } = useEventStore()
   const [notifSound, setNotifSound] = useState(true)
   const [criticalOnly, setCriticalOnly] = useState(false)
   const [isEditingProfile, setIsEditingProfile] = useState(false)

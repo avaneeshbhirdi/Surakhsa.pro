@@ -5,7 +5,7 @@ import { useEventStore } from '@/stores/eventStore'
 import { useUIStore } from '@/stores/uiStore'
 
 export default function ManagerSidebar() {
-  const { logout, profile } = useAuthStore()
+  const { profile } = useAuthStore()
   const { alerts } = useEventStore()
   const { isSidebarCollapsed, toggleSidebar } = useUIStore()
   const navigate = useNavigate()
@@ -34,14 +34,11 @@ export default function ManagerSidebar() {
 
   return (
     <aside className={`virtus-sidebar ${isSidebarCollapsed ? 'virtus-sidebar--collapsed' : ''}`}>
-      <div className="virtus-sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+      <div className="virtus-sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start', marginBottom: '32px' }}>
         <div className="virtus-logo-container" onClick={() => navigate('/')} style={{ cursor: 'pointer', margin: 0 }}>
           <img src="/main logo-png.png" alt="Logo" style={{ height: '24px', marginRight: isSidebarCollapsed ? '0' : '8px' }} />
           {!isSidebarCollapsed && <span className="virtus-logo-text">Suraksha<span style={{ color: 'var(--v-orange)' }}>.pro</span></span>}
         </div>
-        <button onClick={toggleSidebar} style={{ background: 'transparent', border: 'none', color: 'var(--v-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}>
-          {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
       </div>
 
 
@@ -88,8 +85,9 @@ export default function ManagerSidebar() {
             </div>
           )}
         </div>
-        <button className="virtus-nav-item logout" onClick={() => logout()}>
-          <LogOut size={18} /> {!isSidebarCollapsed && 'Logout'}
+        <button className="virtus-nav-item" onClick={toggleSidebar} style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
+          {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />} 
+          {!isSidebarCollapsed && <span className="nav-label">Collapse Menu</span>}
         </button>
       </div>
     </aside>
