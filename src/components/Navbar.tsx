@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
-import { Shield, LayoutDashboard, PlusCircle, Clock, LogOut } from 'lucide-react'
+import { LayoutDashboard, PlusCircle, Clock, LogOut } from 'lucide-react'
 
 export default function Navbar() {
   const navigate = useNavigate()
