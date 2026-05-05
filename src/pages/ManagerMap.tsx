@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useEventStore } from '@/stores/eventStore'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
@@ -82,7 +81,7 @@ export default function ManagerMap() {
 
         {/* Zone Grid Map */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-          {zones.map((z, i) => {
+          {zones.map((z) => {
             const reading = latestReadings[z.id]
             const density = reading?.density || 0
             const pct = z.capacity > 0 ? Math.min(100, Math.round((density / z.capacity) * 100)) : 0

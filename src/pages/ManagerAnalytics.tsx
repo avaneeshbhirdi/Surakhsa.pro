@@ -95,7 +95,7 @@ export default function ManagerAnalytics() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} domain={[0, 100]} unit="%" />
-                  <Tooltip contentStyle={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '8px' }} formatter={(v: number) => [`${v}%`, 'Density']} />
+                  <Tooltip contentStyle={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '8px' }} formatter={(v) => [`${v}%`, 'Density']} />
                   <Bar dataKey="density" fill="var(--v-orange)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
