@@ -137,28 +137,30 @@ export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardPr
       width: '100%',
       minHeight: '600px',
       padding: '4rem 2rem',
-      overflow: 'hidden',
+      position: 'relative'
     }}>
       <motion.div 
         animate={{ 
-          x: isExpanded ? -250 : 0,
+          x: isExpanded ? -150 : 0,
         }}
-        transition={{ duration: 0.5, ease: "anticipate" }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '4rem',
+          gap: '2rem',
           position: 'relative',
           width: '100%',
-          maxWidth: '1200px'
+          maxWidth: '1100px',
+          margin: '0 auto'
         }}
       >
         <div style={{
           position: 'relative',
           width: '350px',
           height: '450px',
-          flexShrink: 0
+          flexShrink: 0,
+          zIndex: 5
         }}>
           {features.map((feature, index) => (
             <FeatureCard
@@ -174,12 +176,12 @@ export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardPr
 
         <motion.div 
           key={activeFeature.id}
-          initial={{ opacity: 0, x: 50, scale: 0.9 }}
+          initial={{ opacity: 0, x: 20, scale: 0.95 }}
           animate={{ 
             opacity: isExpanded ? 1 : 0, 
-            x: isExpanded ? 0 : 50,
-            scale: isExpanded ? 1 : 0.9,
-            pointerEvents: isExpanded ? 'auto' : 'none'
+            x: isExpanded ? 0 : 20,
+            scale: isExpanded ? 1 : 0.95,
+            visibility: isExpanded ? 'visible' : 'hidden'
           }}
           transition={{ duration: 0.4, delay: isExpanded ? 0.2 : 0 }}
           style={{
@@ -188,14 +190,17 @@ export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardPr
             padding: '3rem',
             borderRadius: '1.5rem',
             border: '1px solid rgba(253, 186, 116, 0.2)',
-            background: 'rgba(20, 20, 20, 0.4)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
+            background: 'rgba(15, 15, 15, 0.8)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
             gap: '1.5rem',
-            position: 'relative'
+            position: 'relative',
+            zIndex: 10,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            pointerEvents: isExpanded ? 'auto' : 'none'
           }}
         >
           <button 
