@@ -7,14 +7,15 @@ import type { UserRole } from '@/lib/types'
 import type { Zone } from '@/lib/types'
 import './AuthPage.css'
 
-type AuthMode = 'login' | 'signup' | 'pin'
+type AuthMode = 'select' | 'login' | 'signup' | 'pin'
 
 export default function AuthPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { login, signup, loginWithGoogle, joinWithPin, isAuthenticated, role, isLoading, error, clearError } = useAuthStore()
 
-  const [mode, setMode] = useState<AuthMode>((searchParams.get('mode') as AuthMode) || 'login')
+  const [mode, setMode] = useState<AuthMode>((searchParams.get('mode') as AuthMode) || 'select')
+  const [userType, setUserType] = useState<'admin' | 'crowd' | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -136,8 +137,11 @@ export default function AuthPage() {
   return (
     <div className="auth">
       <div className="auth__bg" />
-      <div className="auth__card card-glass">
-        <button className="auth__back btn btn-ghost btn-sm" onClick={() => navigate('/')}>
+      <div className="auth__card auth__card--glass">
+        <button className="auth__back btn btn-ghost btn-sm" onClick={() => {
+          if (mode === 'select') navigate('/')
+          else setMode('select')
+        }}>
           <ArrowLeft size={16} /> Back
         </button>
 
@@ -150,12 +154,53 @@ export default function AuthPage() {
           <h1 className="auth__title">Suraksha<span className="text-gold">.pro</span></h1>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="tabs" style={{ marginBottom: 'var(--space-6)' }}>
-          <button className={`tab ${mode === 'login' ? 'tab--active' : ''}`} onClick={() => switchMode('login')}>Login</button>
-          <button className={`tab ${mode === 'signup' ? 'tab--active' : ''}`} onClick={() => switchMode('signup')}>Sign Up</button>
-          <button className={`tab ${mode === 'pin' ? 'tab--active' : ''}`} onClick={() => switchMode('pin')}>Join with PIN</button>
-        </div>
+        {/* Role Selection Screen */}
+        {mode === 'select' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', marginTop: '1rem' }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--color-text-secondary)', fontSize: 'var(--text-lg)' }}>
+              Select your access type
+            </h2>
+            <button 
+              className="btn btn-outline" 
+              style={{ padding: '1.25rem', fontSize: 'var(--text-lg)' }}
+              onClick={() => { setUserType('crowd'); switchMode('login'); }}
+            >
+              Public Access (Crowd)
+            </button>
+            <button 
+              className="btn btn-gold" 
+              style={{ padding: '1.25rem', fontSize: 'var(--text-lg)' }}
+              onClick={() => switchMode('pin')}
+            >
+              Staff / Coordinator (Event PIN)
+            </button>
+            <button 
+              className="btn btn-outline" 
+              style={{ padding: '1.25rem', fontSize: 'var(--text-lg)' }}
+              onClick={() => { setUserType('admin'); switchMode('login'); }}
+            >
+              Event Manager
+            </button>
+          </div>
+        )}
+
+        {/* Tab Switcher for Login/Signup */}
+        {(mode === 'login' || mode === 'signup') && (
+          <div className="tabs" style={{ marginBottom: 'var(--space-6)' }}>
+            <button className={`tab ${mode === 'login' ? 'tab--active' : ''}`} onClick={() => switchMode('login')}>
+              {userType === 'admin' ? 'Event Manager Login' : 'User Login'}
+            </button>
+            <button className={`tab ${mode === 'signup' ? 'tab--active' : ''}`} onClick={() => switchMode('signup')}>
+              Sign Up
+            </button>
+          </div>
+        )}
+
+        {mode === 'pin' && (
+          <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
+            <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 'bold' }}>Join Event via PIN</h2>
+          </div>
+        )}
 
         {displayError && (
           <div className="auth__error">{displayError}</div>
@@ -210,10 +255,10 @@ export default function AuthPage() {
               <input type="password" className="input" placeholder="••••••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
             </div>
             <p className="text-muted" style={{ fontSize: 'var(--text-xs)' }}>
-              Admin accounts require email verification.
+              Event Manager accounts require email verification.
             </p>
             <button type="submit" className="btn btn-gold w-full" disabled={isLoading}>
-              {isLoading ? <span className="spinner" /> : 'Create Admin Account'}
+              {isLoading ? <span className="spinner" /> : 'Create Event Manager Account'}
             </button>
 
             <div className="auth__separator">OR</div>

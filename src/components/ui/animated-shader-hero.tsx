@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { GlassButton, GlassFilter } from './liquid-glass';
 
 // Types for component props
 interface HeroProps {
@@ -381,6 +382,8 @@ const Hero: React.FC<HeroProps> = ({
         }
       `}</style>
       
+      <GlassFilter />
+      
       <canvas
         ref={canvasRef}
         style={{ 
@@ -516,32 +519,26 @@ const Hero: React.FC<HeroProps> = ({
               flexWrap: 'wrap'
             }}>
               {buttons.primary && (
-                <button 
+                <GlassButton 
                   onClick={buttons.primary.onClick}
-                  className="hero-btn"
                   style={{
-                    background: 'linear-gradient(to right, #f97316, #eab308)',
-                    color: 'black',
-                    border: 'none',
-                    boxShadow: '0 10px 25px rgba(249, 115, 22, 0.25)'
+                    background: 'linear-gradient(to right, rgba(249, 115, 22, 0.4), rgba(234, 179, 8, 0.4))',
+                    color: '#fff'
                   }}
                 >
                   {buttons.primary.text}
-                </button>
+                </GlassButton>
               )}
               {buttons.secondary && (
-                <button 
+                <GlassButton 
                   onClick={buttons.secondary.onClick}
-                  className="hero-btn"
                   style={{
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                    border: '1px solid rgba(253, 186, 116, 0.3)',
-                    color: '#ffedd5',
-                    backdropFilter: 'blur(4px)'
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#ffedd5'
                   }}
                 >
                   {buttons.secondary.text}
-                </button>
+                </GlassButton>
               )}
             </div>
           )}

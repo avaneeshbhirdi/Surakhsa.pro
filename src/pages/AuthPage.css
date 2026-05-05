@@ -10,6 +10,7 @@
 .auth__bg {
   position: fixed;
   inset: 0;
+  z-index: -1;
   background:
     radial-gradient(ellipse at 30% 20%, rgba(123, 28, 44, 0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 80%, rgba(201, 168, 76, 0.08) 0%, transparent 50%),
@@ -19,8 +20,18 @@
 .auth__card {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 500px;
   padding: var(--space-8);
+  z-index: 10;
+}
+
+.auth__card--glass {
+  background: rgba(13, 4, 8, 0.4);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-radius: var(--radius-lg);
 }
 
 .auth__back {

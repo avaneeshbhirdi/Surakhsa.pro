@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Shield, Radio, Brain } from 'lucide-react'
 import Hero from '@/components/ui/animated-shader-hero'
+import { ShuffleFeatureCards } from '@/components/ui/feature-cards'
 import './LandingPage.css'
 
 export default function LandingPage() {
@@ -51,71 +52,21 @@ export default function LandingPage() {
         }}
       />
 
-      {/* Problem Section */}
-      <section className="landing__section" id="problem">
-        <div className="container">
-          <h2 className="landing__section-title heading-display">Why This Matters</h2>
-          <p className="landing__section-subtitle text-secondary">
-            Crowd tragedies share one root cause: too little warning, too late.
-          </p>
-          <div className="landing__problem-grid">
-            {[
-              { year: '2021', title: 'Astroworld Festival', desc: 'Density thresholds crossed before anyone noticed. No early warning system in place.' },
-              { year: 'Recurring', title: 'Hajj Stampedes', desc: 'Security, medics, and command weren\'t on the same page. Siloed communication.' },
-              { year: '2010', title: 'Love Parade', desc: 'By the time the right person was informed, critical minutes were lost. Slow response.' },
-            ].map((item, i) => (
-              <div key={i} className="landing__problem-card card-glass">
-                <span className="landing__problem-year">{item.year}</span>
-                <h3 className="landing__problem-title">{item.title}</h3>
-                <p className="landing__problem-desc">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="landing__section landing__section--dark" id="how">
-        <div className="container">
-          <h2 className="landing__section-title heading-display">How It Works</h2>
-          <div className="landing__steps">
-            {[
-              { step: '01', icon: <Shield size={32} />, title: 'Monitor', desc: 'Real-time density tracking across all event zones with live heatmap visualization.' },
-              { step: '02', icon: <Brain size={32} />, title: 'Detect', desc: 'AI-powered risk detection identifies surges, bottlenecks, and stampede patterns 60 seconds early.' },
-              { step: '03', icon: <Radio size={32} />, title: 'Respond', desc: 'Instant push-to-talk communication and automated alerts reach the right people immediately.' },
-            ].map((item, i) => (
-              <div key={i} className="landing__step">
-                <div className="landing__step-number">{item.step}</div>
-                <div className="landing__step-icon text-gold">{item.icon}</div>
-                <h3 className="landing__step-title">{item.title}</h3>
-                <p className="landing__step-desc text-secondary">{item.desc}</p>
-                {i < 2 && <div className="landing__step-connector" />}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Features */}
       <section className="landing__section" id="features">
-        <div className="container">
-          <h2 className="landing__section-title heading-display">Key Features</h2>
-          <div className="landing__features-grid">
-            {[
-              { icon: '🗺️', title: 'Live Zone Heatmap', desc: 'See every zone at a glance with color-coded risk status updating every 5 seconds.' },
-              { icon: '🧠', title: 'Risk Detection Engine', desc: 'Automatic detection of surge, bottleneck, and stampede risk patterns with actionable recommendations.' },
-              { icon: '📡', title: 'WebRTC Walkie-Talkie', desc: 'Push-to-talk voice channels — global and per-zone — with sub-500ms latency.' },
-              { icon: '🚨', title: 'Smart Alert System', desc: 'Priority-based alerts with audio, vibration, and full-screen notifications for critical situations.' },
-              { icon: '📱', title: 'Steward Mobile App', desc: 'Gloves-friendly interface with 1-tap status reports and large touch targets.' },
-              { icon: '📊', title: 'Event Analytics', desc: 'Complete event timeline, risk history, and staff activity logs for post-event review.' },
-            ].map((item, i) => (
-              <div key={i} className="landing__feature-card card-glass">
-                <span className="landing__feature-icon">{item.icon}</span>
-                <h3 className="landing__feature-title">{item.title}</h3>
-                <p className="landing__feature-desc text-secondary">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+        <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h2 className="landing__section-title heading-display" style={{ marginBottom: '1rem' }}>Key Features</h2>
+          <p className="text-secondary" style={{ marginBottom: '1rem', fontSize: '1.125rem', textAlign: 'center' }}>Swipe through our interactive feature cards.</p>
+          <ShuffleFeatureCards 
+            features={[
+              { id: 1, icon: '🗺️', title: 'Live Zone Heatmap', description: 'See every zone at a glance with color-coded risk status updating every 5 seconds.' },
+              { id: 2, icon: '🧠', title: 'Risk Detection Engine', description: 'Automatic detection of surge, bottleneck, and stampede risk patterns with actionable recommendations.' },
+              { id: 3, icon: '📡', title: 'WebRTC Walkie-Talkie', description: 'Push-to-talk voice channels — global and per-zone — with sub-500ms latency.' },
+              { id: 4, icon: '🚨', title: 'Smart Alert System', description: 'Priority-based alerts with audio, vibration, and full-screen notifications for critical situations.' },
+              { id: 5, icon: '📱', title: 'Steward Mobile App', description: 'Gloves-friendly interface with 1-tap status reports and large touch targets.' },
+              { id: 6, icon: '📊', title: 'Event Analytics', description: 'Complete event timeline, risk history, and staff activity logs for post-event review.' },
+            ]}
+          />
         </div>
       </section>
 
