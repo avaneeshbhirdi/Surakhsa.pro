@@ -17,8 +17,9 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
   if (allowedRoles && role && !allowedRoles.includes(role)) {
     // Redirect to appropriate page based on role
     if (role === 'ADMIN') return <Navigate to="/dashboard" replace />
+    if (role === 'EVENT_MANAGER') return <Navigate to="/manager" replace />
     if (role === 'COORDINATOR') return <Navigate to="/coordinator" replace />
-    if (role === 'STEWARD') return <Navigate to="/steward" replace />
+    if (role === 'GUEST') return <Navigate to="/guest" replace />
     return <Navigate to="/" replace />
   }
 

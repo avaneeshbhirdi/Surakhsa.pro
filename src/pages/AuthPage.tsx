@@ -22,7 +22,7 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState('')
   const [pin, setPin] = useState('')
   const [displayName, setDisplayName] = useState('')
-  const [selectedRole, setSelectedRole] = useState<UserRole>('STEWARD')
+  const [selectedRole, setSelectedRole] = useState<UserRole>('COORDINATOR')
   const [selectedZone, setSelectedZone] = useState('')
   const [availableZones, setAvailableZones] = useState<Zone[]>([])
   const [pinValidated, setPinValidated] = useState(false)
@@ -326,8 +326,8 @@ export default function AuthPage() {
                 <button type="button" className={`auth__role-btn ${selectedRole === 'COORDINATOR' ? 'auth__role-btn--active' : ''}`} onClick={() => setSelectedRole('COORDINATOR')}>
                   Coordinator
                 </button>
-                <button type="button" className={`auth__role-btn ${selectedRole === 'STEWARD' ? 'auth__role-btn--active' : ''}`} onClick={() => setSelectedRole('STEWARD')}>
-                  Steward
+                <button type="button" className={`auth__role-btn ${selectedRole === 'GUEST' ? 'auth__role-btn--active' : ''}`} onClick={() => setSelectedRole('GUEST')}>
+                  Guest
                 </button>
               </div>
             </div>

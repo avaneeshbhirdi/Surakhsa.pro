@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Shield, 
@@ -11,7 +11,6 @@ import {
   LogOut 
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
-import { useNavigate } from 'react-router-dom'
 import './GuestApp.css'
 
 interface EmergencyModalProps {
@@ -78,8 +77,7 @@ function EmergencyModal({ type, onClose, onConfirm }: EmergencyModalProps) {
 }
 
 export default function GuestApp() {
-  const { logout, user } = useAuthStore()
-  const navigate = useNavigate()
+  const { logout } = useAuthStore()
   const [emergencyType, setEmergencyType] = useState<'POLICE' | 'AMBULANCE' | 'FIRE' | null>(null)
 
   // Simulated live data
