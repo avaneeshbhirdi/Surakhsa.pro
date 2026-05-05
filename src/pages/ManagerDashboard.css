@@ -1,14 +1,15 @@
 /* Virtus-style Dark Mode Dashboard */
 :root {
-  --v-bg-dark: #1A1A1A;
-  --v-sidebar-bg: #1A1A1A;
-  --v-card-bg: #222222;
-  --v-card-bg-light: #2A2A2A;
-  --v-orange: #E65A28; /* Primary Accent */
-  --v-orange-dim: rgba(230, 90, 40, 0.15);
-  --v-text-main: #FFFFFF;
-  --v-text-muted: #8E8E8E;
-  --v-border: #333333;
+  --v-bg-dark: var(--color-bg-primary, #0D0408);
+  --v-sidebar-bg: var(--color-bg-surface, #1A0A10);
+  --v-card-bg: var(--color-bg-elevated, #2A1018);
+  --v-card-bg-light: var(--color-bg-hover, #351320);
+  --v-orange: var(--color-gold, #C9A84C); /* Primary Accent */
+  --v-orange-dim: rgba(201, 168, 76, 0.15);
+  --v-text-main: var(--color-text-primary, #F5ECD5);
+  --v-text-muted: var(--color-text-secondary, #A08060);
+  --v-border: var(--color-border, #3D1A22);
+  --v-red: var(--color-danger-pulse, #FF1744);
 }
 
 body {
