@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { Shield, Radio, Brain, ArrowRight, ChevronDown } from 'lucide-react'
+import { Shield, Radio, Brain } from 'lucide-react'
+import Hero from '@/components/ui/animated-shader-hero'
 import './LandingPage.css'
 
 export default function LandingPage() {
@@ -8,7 +9,7 @@ export default function LandingPage() {
   return (
     <div className="landing">
       {/* Navigation */}
-      <nav className="landing__nav">
+      <nav className="landing__nav" style={{ zIndex: 100 }}>
         <div className="landing__nav-inner container">
           <div className="landing__logo">
             <img 
@@ -26,35 +27,29 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="landing__hero" id="hero">
-        <div className="landing__hero-bg" />
-        <div className="landing__hero-content container">
-          <div className="landing__hero-badge">
-            <span className="live-indicator">
-              <span className="live-indicator__dot" />
-              Real-time Crowd Safety
-            </span>
-          </div>
-          <h1 className="landing__hero-title heading-display">
-            From Chaos<br />to <span className="text-gold">Command</span>
-          </h1>
-          <p className="landing__hero-subtitle">
-            A real-time crowd control tower that predicts danger and coordinates response before chaos begins.
-            60 seconds of earlier warning is the difference between prevention and tragedy.
-          </p>
-          <div className="landing__hero-ctas">
-            <button className="btn btn-gold btn-lg" onClick={() => navigate('/auth?mode=signup')}>
-              Create Event <ArrowRight size={18} />
-            </button>
-            <button className="btn btn-outline btn-lg" onClick={() => navigate('/auth?mode=pin')}>
-              Join with PIN
-            </button>
-          </div>
-          <div className="landing__hero-scroll">
-            <ChevronDown size={24} className="text-secondary" />
-          </div>
-        </div>
-      </section>
+      <Hero
+        trustBadge={{
+          text: "Trusted by forward-thinking teams.",
+          icons: ["✨"]
+        }}
+        headline={{
+          line1: "From Chaos",
+          line2: "to Command"
+        }}
+        subtitle="A real-time crowd control tower that predicts danger and coordinates response before chaos begins. 60 seconds of earlier warning is the difference between prevention and tragedy."
+        buttons={{
+          primary: {
+            text: "Get Started",
+            onClick: () => navigate('/auth?mode=signup')
+          },
+          secondary: {
+            text: "Explore Features",
+            onClick: () => {
+              document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+            }
+          }
+        }}
+      />
 
       {/* Problem Section */}
       <section className="landing__section" id="problem">
