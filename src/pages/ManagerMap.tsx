@@ -85,6 +85,8 @@ export default function ManagerMap() {
     return 'SAFE'
   }
 
+  const maxCapacity = Math.max(...zones.map(z => z.capacity), 1)
+
   return (
     <div className="virtus-layout">
       <ManagerSidebar />
@@ -116,6 +118,9 @@ export default function ManagerMap() {
                 const color = getRiskColor(pct)
                 const riskLabel = getRiskLabel(pct)
                 const pos = PREDEFINED_POSITIONS[idx % PREDEFINED_POSITIONS.length]
+                const scale = maxCapacity > 0 ? 0.7 + (z.capacity / maxCapacity) * 0.8 : 1 // 0.7x to 1.5x scaling
+                const boxWidth = `${Math.round(200 * scale)}px`
+                const boxMinHeight = `${Math.round(100 * scale)}px`
 
                 return (
                   <div key={z.id} style={{
@@ -126,7 +131,8 @@ export default function ManagerMap() {
                     border: `1px solid ${color}`,
                     borderRadius: '8px',
                     padding: '12px 24px',
-                    width: '220px',
+                    width: boxWidth,
+                    minHeight: boxMinHeight,
                     boxShadow: `0 0 20px ${color}20`,
                     backdropFilter: 'blur(4px)',
                     display: 'flex',
