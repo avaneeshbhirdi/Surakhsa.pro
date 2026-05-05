@@ -1,4 +1,4 @@
-import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, LogOut, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useEventStore } from '@/stores/eventStore'
