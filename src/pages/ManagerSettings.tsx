@@ -2,13 +2,31 @@ import { useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
 import ManagerSidebar from '@/components/ManagerSidebar'
-import { User, Calendar, Bell, Info } from 'lucide-react'
+import { User, Calendar, Bell, Info, Edit2, Check, X } from 'lucide-react'
 
 export default function ManagerSettings() {
-  const { profile, logout } = useAuthStore()
+  const { profile, logout, updateProfile } = useAuthStore()
   const { activeEvent } = useEventStore()
   const [notifSound, setNotifSound] = useState(true)
   const [criticalOnly, setCriticalOnly] = useState(false)
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [editName, setEditName] = useState('')
+
+  const handleEditClick = () => {
+    setEditName(profile?.full_name || '')
+    setIsEditingProfile(true)
+  }
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) return
+    try {
+      await updateProfile({ full_name: editName.trim() })
+      setIsEditingProfile(false)
+    } catch (err) {
+      console.error('Failed to update profile', err)
+      alert('Failed to update profile')
+    }
+  }
 
   const Toggle = ({ value, onChange }: { value: boolean; onChange: () => void }) => (
     <button
@@ -37,21 +55,43 @@ export default function ManagerSettings() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           {/* Profile Section */}
           <div className="v-card">
-            <h3 className="v-text-title mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <User size={18} color="var(--v-orange)" /> Profile
-            </h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--v-bg-dark)', borderRadius: '12px', marginBottom: '20px', border: '1px solid var(--v-border)' }}>
-              <div className="v-avatar" style={{ width: '52px', height: '52px', fontSize: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 className="v-text-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <User size={18} color="var(--v-orange)" /> Profile
+              </h3>
+              {!isEditingProfile && (
+                <button 
+                  onClick={handleEditClick}
+                  style={{ background: 'transparent', border: '1px solid var(--v-border)', borderRadius: '6px', color: 'var(--v-text-main)', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}
+                >
+                  <Edit2 size={12} /> Edit
+                </button>
+              )}
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--v-bg-dark)', borderRadius: '12px', border: '1px solid var(--v-border)' }}>
+              <div className="v-avatar" style={{ width: '52px', height: '52px', fontSize: '20px', flexShrink: 0 }}>
                 {(profile?.full_name || 'M').substring(0, 2).toUpperCase()}
               </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '16px' }}>{profile?.full_name || 'Manager'}</div>
-                <div className="v-text-sm" style={{ opacity: 0.6 }}>{profile?.role?.replace('_', ' ') || 'Event Manager'}</div>
+              <div style={{ flex: 1 }}>
+                {isEditingProfile ? (
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      autoFocus
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--v-orange)', color: '#fff', borderRadius: '6px', padding: '6px 10px', fontSize: '14px', width: '100%', outline: 'none' }}
+                    />
+                    <button onClick={handleSaveProfile} style={{ background: '#4dff4d20', border: 'none', color: '#4dff4d', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex' }}><Check size={16} /></button>
+                    <button onClick={() => setIsEditingProfile(false)} style={{ background: '#ff4d4d20', border: 'none', color: '#ff4d4d', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex' }}><X size={16} /></button>
+                  </div>
+                ) : (
+                  <div style={{ fontWeight: 700, fontSize: '16px' }}>{profile?.full_name || 'Manager'}</div>
+                )}
+                <div className="v-text-sm" style={{ opacity: 0.6, marginTop: '4px' }}>{profile?.role?.replace('_', ' ') || 'Event Manager'}</div>
                 <div className="v-text-sm" style={{ opacity: 0.4, marginTop: '2px' }}>{profile?.id?.substring(0, 12)}...</div>
               </div>
-            </div>
-            <div style={{ opacity: 0.5, fontSize: '12px', fontStyle: 'italic', padding: '8px 0' }}>
-              Profile editing is managed by your Super Admin.
             </div>
           </div>
 

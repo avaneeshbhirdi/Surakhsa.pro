@@ -1,4 +1,4 @@
-import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, LogOut, Search, MapPin } from 'lucide-react'
+import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, LogOut, MapPin } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useEventStore } from '@/stores/eventStore'
@@ -39,10 +39,6 @@ export default function ManagerSidebar() {
         </div>
       </div>
 
-      <div className="virtus-search">
-        <Search size={16} />
-        <input type="text" placeholder="Search feature..." />
-      </div>
 
       <nav className="virtus-nav">
         {navItems.map(item => (

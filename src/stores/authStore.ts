@@ -32,6 +32,7 @@ interface AuthState {
   loginWithGoogle: () => Promise<void>
   joinWithPin: (pin: string, displayName: string, role: UserRole, zoneId?: string) => Promise<void>
   logout: () => Promise<void>
+  updateProfile: (updates: Partial<Profile>) => Promise<void>
   clearError: () => void
 }
 
@@ -254,6 +255,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: false,
         role: null,
       })
+    }
+  },
+
+  updateProfile: async (updates: Partial<Profile>) => {
+    const { user } = get()
+    if (!user) throw new Error('Not authenticated')
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('auth_user_id', user.id)
+      .select()
+      .single()
+      
+    if (error) throw error
+    if (data) {
+      set({ profile: data })
     }
   },
 
