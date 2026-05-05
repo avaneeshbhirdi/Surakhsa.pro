@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import type { EventStaff } from '@/lib/types'
 import { Plus, Copy, Check, Megaphone, Activity, Play, Pause, Square } from 'lucide-react'
-import { LineChart, Line, XAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
 import './ManagerDashboard.css'
 
 export default function ManagerDashboard() {
@@ -171,17 +171,19 @@ export default function ManagerDashboard() {
   const activeAlertsCount = alerts.filter(a => a.status === 'TRIGGERED').length
 
   const chartData = useMemo(() => {
-    const base = totalPeople || 50
-    return [
-      { name: 'Mon', density: Math.max(0, base - 20), prev: base - 10 },
-      { name: 'Tue', density: Math.max(0, base - 5), prev: base + 5 },
-      { name: 'Wed', density: base + 15, prev: base - 5 },
-      { name: 'Thu', density: base - 10, prev: base + 20 },
-      { name: 'Fri', density: base + 30, prev: base + 10 },
-      { name: 'Sat', density: base + 10, prev: base - 15 },
-      { name: 'Sun', density: totalPeople, prev: base },
-    ]
-  }, [totalPeople])
+    if (!zones || zones.length === 0) return []
+    return zones.map(z => {
+      const reading = latestReadings[z.id]
+      const currentPeople = reading?.density || 0
+      const densityPct = z.capacity > 0 ? Math.round((currentPeople / z.capacity) * 100) : 0
+      
+      return {
+        name: z.label,
+        density: densityPct,
+        people: currentPeople,
+      }
+    })
+  }, [zones, latestReadings])
 
   if (loading) {
     return <div className="virtus-layout"><div style={{ margin: 'auto' }}><div className="spinner spinner-lg" /></div></div>
@@ -285,28 +287,24 @@ export default function ManagerDashboard() {
             <div className="v-text-sm mt-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Needs attention</div>
           </div>
 
-          {/* Row 1: Awesome Performance (Line Chart) */}
+          {/* Row 1: Room Density (Bar Chart) */}
           <div className="v-card v-performance">
             <h3 className="v-text-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              Crowd Flow <div className="flex gap-4">
-                <span style={{ fontSize: '12px', color: 'var(--v-orange)' }}>● Today</span>
-                <span style={{ fontSize: '12px', color: 'var(--v-text-muted)' }}>● Yesterday</span>
+              Room Density (%) <div className="flex gap-4">
+                <span style={{ fontSize: '12px', color: 'var(--v-orange)' }}>● Current</span>
               </div>
             </h3>
             <div style={{ display: 'flex', gap: '32px', marginBottom: '16px' }}>
-              <div><span className="v-text-huge" style={{ fontSize: '32px' }}>{totalDensityPct}%</span></div>
-              <div><span className="v-text-huge" style={{ fontSize: '32px' }}>{Math.max(0, totalDensityPct - 12)}%</span></div>
-              <div><span className="v-text-huge" style={{ fontSize: '32px', color: 'var(--v-text-muted)' }}>{Math.max(0, totalDensityPct + 5)}%</span></div>
+              <div><span className="v-text-huge" style={{ fontSize: '32px' }}>{totalDensityPct}%</span> <span className="v-text-sm">Overall Avg</span></div>
             </div>
             <div style={{ height: '160px', width: '100%', marginLeft: '-20px' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
+                <BarChart data={chartData} barSize={24}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} dy={10} />
-                  <Tooltip contentStyle={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '8px' }} />
-                  <Line type="monotone" dataKey="density" stroke="var(--v-orange)" strokeWidth={3} dot={{ r: 4, fill: 'var(--v-orange)', strokeWidth: 0 }} />
-                  <Line type="monotone" dataKey="prev" stroke="var(--v-border)" strokeWidth={2} dot={false} />
-                </LineChart>
+                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '8px', color: 'var(--v-text-main)' }} />
+                  <Bar dataKey="density" fill="var(--v-orange)" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
