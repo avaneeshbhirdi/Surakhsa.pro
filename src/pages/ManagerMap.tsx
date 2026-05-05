@@ -3,14 +3,14 @@ import { useEventStore } from '@/stores/eventStore'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
-import { MapPin, AlertTriangle } from 'lucide-react'
+import { MapPin, AlertTriangle, RotateCw } from 'lucide-react'
 
 export default function ManagerMap() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, latestReadings, alerts, loadEvent } = useEventStore()
   const [loading, setLoading] = useState(true)
 
-  const [positions, setPositions] = useState<Record<string, {x: number, y: number}>>(() => {
+  const [positions, setPositions] = useState<Record<string, {x: number, y: number, r?: number}>>(() => {
     try {
       const saved = localStorage.getItem('virtus_zone_positions')
       if (saved) return JSON.parse(saved)
@@ -64,6 +64,17 @@ export default function ManagerMap() {
       draggingRef.current = null
       setDraggingZone(null)
     }
+  }
+
+  const handleRotate = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    setPositions(prev => {
+      const pos = prev[id] || { x: 0, y: 0, r: 0 }
+      const newPos = { ...pos, r: ((pos.r || 0) + 90) % 360 }
+      const newPositions = { ...prev, [id]: newPos }
+      localStorage.setItem('virtus_zone_positions', JSON.stringify(newPositions))
+      return newPositions
+    })
   }
 
   useEffect(() => {
@@ -209,7 +220,8 @@ export default function ManagerMap() {
                       gap: '4px',
                       cursor: draggingZone === z.id ? 'grabbing' : 'grab',
                       transition: draggingZone === z.id ? 'none' : 'box-shadow 0.2s',
-                      zIndex: draggingZone === z.id ? 10 : 1
+                      zIndex: draggingZone === z.id ? 10 : 1,
+                      transform: `rotate(${currentPos.r || 0}deg)`
                     }}
                   >
                     {hasAlert && (
@@ -221,6 +233,21 @@ export default function ManagerMap() {
                         boxShadow: '0 0 10px #ff1a1a'
                       }}><AlertTriangle size={14} /></span>
                     )}
+                    <button 
+                      onClick={(e) => handleRotate(e, z.id)}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      style={{
+                        position: 'absolute', top: '8px', left: '8px',
+                        background: 'transparent', border: 'none', color: 'var(--v-text-muted)',
+                        cursor: 'pointer', padding: '4px', display: 'flex', opacity: 0.5,
+                        transition: 'opacity 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+                      title="Rotate 90°"
+                    >
+                      <RotateCw size={14} />
+                    </button>
                     <span style={{ fontSize: '10px', color: 'var(--v-text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>{z.label}</span>
                     <span style={{ fontSize: '14px', fontWeight: 600, color: 'white' }}>{z.name}</span>
                     <span style={{ fontSize: '28px', fontWeight: 800, color, marginTop: '4px' }}>{pct}%</span>
