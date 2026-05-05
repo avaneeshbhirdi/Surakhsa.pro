@@ -1,0 +1,52 @@
+/* ============================================
+   Suraksha.pro — Responsive Breakpoints
+   ============================================ */
+
+/* Mobile-first: base styles target mobile */
+
+/* Small mobile (steward app) */
+@media (max-width: 480px) {
+  :root {
+    --header-height: 56px;
+  }
+  .hide-mobile { display: none !important; }
+  .dashboard-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Tablet portrait */
+@media (min-width: 481px) and (max-width: 768px) {
+  .hide-tablet { display: none !important; }
+  .dashboard-grid { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* Tablet landscape / small desktop */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-grid { grid-template-columns: repeat(3, 1fr) !important; }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  .hide-desktop { display: none !important; }
+  .container { max-width: var(--max-width); margin: 0 auto; }
+}
+
+/* Show/hide utilities */
+.show-mobile-only {
+  display: none !important;
+}
+@media (max-width: 768px) {
+  .show-mobile-only { display: block !important; }
+  .hide-on-mobile { display: none !important; }
+}
+
+/* Touch target enforcement */
+@media (pointer: coarse) {
+  .btn { min-height: 48px; }
+  .tab { min-height: 48px; }
+}
+
+/* Landscape orientation */
+@media (orientation: landscape) and (max-height: 500px) {
+  .steward-status-btn { height: 56px; }
+  .ptt-button { width: 64px; height: 64px; }
+}

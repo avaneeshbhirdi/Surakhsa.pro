@@ -1,0 +1,570 @@
+---
+
+# Suraksha.pro — Product Requirements Document (PRD)
+**Version:** 1.0 | **Status:** Draft | **Platform:** Web (PWA) + Android | **Last Updated:** May 2026
+
+---
+
+## 1. Executive Summary
+
+Suraksha.pro is a real-time crowd safety platform for large-scale events. It combines live crowd density monitoring, predictive risk detection, and instant multi-channel staff communication into a single unified system — a "crowd control tower" that gives admins full situational awareness, coordinators zone-level control, and stewards simple, actionable instructions, all in real time.
+
+**Tagline:** *"From chaos to command."*
+**Core Promise:** 60 seconds of earlier warning is the difference between prevention and tragedy.
+
+---
+
+## 2. Problem Statement
+
+### 2.1 Current Reality
+
+Large events rely on WhatsApp groups for coordination, physical walkie-talkies for communication, security guards' gut instinct for crowd assessment, and reactive responses once danger is already visible.
+
+### 2.2 Root Cause of Crowd Tragedies
+
+**No early warning** — density thresholds are crossed before anyone notices (Astroworld, 2021). **Siloed communication** — security, medics, and command aren't on the same page (Hajj stampedes). **Slow response** — by the time the right person is informed, minutes are lost (Love Parade, 2010).
+
+### 2.3 The Gap
+
+By the time a crowd surge is visible to the human eye, it is already in a dangerous phase. A system that detects abnormal density patterns 60–90 seconds earlier provides a critical intervention window.
+
+---
+
+## 3. Product Vision & Goals
+
+**Vision:** *"A real-time crowd control tower that predicts danger and coordinates response before chaos begins."*
+
+**P0 — Must Have (MVP):** Real-time crowd density monitoring across event zones, automated risk detection with actionable alerts, instant push-to-talk staff communication via WebRTC, admin dashboard with live zone heatmap, steward mobile interface with PIN-based access.
+
+**P1 — Should Have:** Coordinator-level zone assignment and reporting, zone-specific communication channels, risk history log and event analytics, broadcast commands from admin to all staff.
+
+**P2 — Nice to Have:** Historical risk pattern analysis across events, IoT sensor integration, post-event PDF report export.
+
+---
+
+## 4. Target Users & Personas
+
+**Raj — Event Safety Director (Admin).** Age 38. Sits in command van with laptop/tablet. Currently manages 5 WhatsApp groups simultaneously during events. Needs: complete visibility, fast override capability, ability to coordinate all teams. Goal: see every zone, know every risk, talk to anyone instantly.
+
+**Priya — Zone Coordinator.** Age 28. Assigned to Zone B (Entry Gates). Uses smartphone while walking her zone. Gets drowned in mass WhatsApp broadcasts irrelevant to her zone. Needs: zone-specific alerts, ability to report what she sees, clear instructions. Goal: know what's happening in her zone, nothing else.
+
+**Arjun — Ground Steward.** Age 22. Crowd control at Gate 3. Uses basic Android phone, sometimes wearing gloves. Misses instructions in noisy environments. Needs: simple interface, cannot afford to read long messages mid-crowd. Goal: get a clear 1–2 line instruction the moment something changes.
+
+---
+
+## 5. User Roles & Permissions
+
+**Admin (Command Room):** Full dashboard access. Creates and manages events. Sees all zones, risks, alerts. Sends broadcast commands. Manages staff.
+
+**Coordinator (Zone Manager):** Assigned to specific zones. Receives alerts for their zones. Can report ground reality. Views zone-level metrics.
+
+**Steward (On-Ground Staff):** Simple mobile UI. Joins via PIN. Receives instructions. Pushes 1-tap status updates. PTT access to zone channel.
+
+Permission matrix — Create/manage events: Admin only. View full dashboard: Admin only. View own zone dashboard: Admin + Coordinator. Receive alerts: Admin (all zones), Coordinator + Steward (own zone only). Send broadcast commands: Admin only. PTT: All roles. Join via PIN: Coordinator + Steward.
+
+---
+
+## 6. Functional Requirements
+
+### Authentication
+
+FR-AUTH-01: System shall support Email/Password login via Supabase Auth. FR-AUTH-02: System shall support role-based account types — Admin, Coordinator, Steward. FR-AUTH-03: Coordinators and Stewards shall be able to join events via Event PIN without requiring email signup. FR-AUTH-04: Admin account creation requires email verification. FR-AUTH-05: PIN-based sessions shall expire when the event ends or after 24 hours, whichever is earlier.
+
+### Event Management
+
+FR-EVT-01: Admin shall be able to create a new event with name, date, expected capacity, venue zones (A–Z), and per-zone capacity. FR-EVT-02: System shall auto-generate a unique 6-digit Event PIN upon event creation. FR-EVT-03: Admin shall be able to start, pause, and end an event. FR-EVT-04: Only one event per admin can be in "Active" status at a time. FR-EVT-05: Coordinators joining via PIN shall select their assigned zone(s). FR-EVT-06: System prevents duplicate coordinator assignment to the same zone.
+
+### Zone Monitoring
+
+FR-ZON-01: Dashboard shall display all event zones as a live heatmap grid. FR-ZON-02: Each zone shall display current density (people/m²), flow rate (movement speed), risk score (0–100), and active alert count. FR-ZON-03: Zone colors shall update in real time — Green (Safe), Yellow (Building Risk), Red (Critical). FR-ZON-04: Admin shall be able to tap any zone to view its detailed metrics panel. FR-ZON-05: Density and flow data shall refresh at a maximum interval of 5 seconds.
+
+### Risk Detection
+
+FR-RISK-01: System shall compute a Risk Score (0–100) per zone every 5 seconds. FR-RISK-02: System shall detect Surge (sudden density spike >15% in 30s), Bottleneck (high density + near-zero movement), and Stampede Risk (rapid density fluctuation, variance >3σ in 60s). FR-RISK-03: Each detected risk shall output Risk Type, Risk Score, Confidence Level, and a recommended action. FR-RISK-04: Risk history per zone shall be stored and accessible post-event.
+
+### Alert System
+
+FR-ALRT-01: Alerts shall be generated automatically when Risk Score exceeds threshold. FR-ALRT-02: Yellow alert at score ≥ 40; Red alert at score ≥ 70. FR-ALRT-03: Alerts pushed to Admin dashboard feed, Coordinator app (own zone), and Steward app (own zone). FR-ALRT-04: Each alert shall contain zone name, risk type, suggested action, and timestamp. FR-ALRT-05: Admin shall be able to acknowledge and resolve an alert manually. FR-ALRT-06: Unresolved red alerts shall trigger audio and vibration notification.
+
+### Communication (WebRTC)
+
+FR-COM-01: System shall provide push-to-talk (PTT) voice channels via WebRTC. FR-COM-02: Available channels — Global (all staff) and per-zone channels. FR-COM-03: Admin can broadcast to all channels simultaneously. FR-COM-04: Stewards are auto-subscribed to their zone channel and the global channel. FR-COM-05: Active speaker shall be visually indicated in the communication panel. FR-COM-06: Only one user may transmit at a time per channel (half-duplex PTT). FR-COM-07: PTT latency shall not exceed 500ms under normal network conditions.
+
+### Steward Quick Updates
+
+FR-STW-01: Stewards shall have 1-tap status report buttons — 🟢 All Clear, 🟡 Crowd Building, 🔴 Emergency. FR-STW-02: Steward updates shall appear in the admin alert feed with timestamp and zone. FR-STW-03: Steward UI shall require zero text input during active events.
+
+---
+
+## 7. Screen-by-Screen Specifications
+
+### Screen 1 — Splash Screen
+
+Shown to all users. Content: Suraksha.pro logo centered, tagline *"Prevent. Don't React."*, subtle animated background (pulsing heatmap motif). Auto-redirects to Auth Page after 2.5 seconds or on tap. Deep maroon background, gold logo. No interactive elements.
+
+### Screen 2 — Landing Page (Website Only)
+
+Shown to unauthenticated visitors. Five sections: (1) Hero — headline, sub-headline, two CTAs: [Create Event] and [Join Event with PIN]. (2) Problem — three reference cards (Astroworld, Hajj, Love Parade), handled respectfully with no imagery. (3) How It Works — three-step flow: Monitor → Detect → Respond. (4) Features strip — Real-time Heatmap, AI Risk Detection, WebRTC Walkie-Talkie. (5) Footer with login/signup links.
+
+### Screen 3 — Auth Page
+
+Three flows. Login: Email + Password fields, [Login] button, link to Sign Up. Signup (Admin only): Name, Email, Password, Confirm Password, role auto-set to Admin, email verification required. PIN Join (Coordinator / Steward): 6-digit PIN entry, role selector, zone selector (appears after PIN validation), [Join Event] button. Validation: invalid PIN shows "Event not found or PIN expired". Duplicate coordinator zone assignment shows warning.
+
+### Screen 4 — Admin Home Dashboard
+
+Four-panel layout on desktop, tab-based on mobile.
+
+**Panel A — Live Zone Map (Primary Focus).** Grid of zone cards. Each card shows zone label, density bar, risk score badge, and color state. Tap to expand Zone Detail Modal.
+
+**Panel B — Metrics Overview.** Total estimated headcount, active alerts count, highest-risk zone highlighted, staff online count.
+
+**Panel C — Alert Feed (Real-Time).** Scrollable chronological feed. Each item shows zone, risk type, recommended action, timestamp, and [Acknowledge] button. Unread alerts pulse. Filter by All / Unresolved / Zone.
+
+**Panel D — Communication Panel.** Channel list (Global, Zone A, Zone B, etc.), active channel indicator, PTT button (large, hold to talk), active speaker name display, Broadcast button (Admin only — pushes to all channels simultaneously).
+
+**Header bar:** Event name + LIVE indicator, active staff count, [End Event] button with confirmation modal.
+
+### Screen 5 — Zone Detail Modal (Admin)
+
+Triggered by tapping a zone card. Shows zone name and current status, live density graph (last 10 minutes), flow rate trend line, risk score arc gauge (0–100), risk type and confidence label, alert history for this zone (last 5 entries), [Talk to Zone] PTT button, and [Send Instruction] text broadcast button.
+
+### Screen 6 — Coordinator App
+
+Three tabs. (1) My Zone: zone name and risk status, density meter, flow rate indicator, latest alert card with recommended action, [Mark All Clear] / [Report Issue] toggle buttons. (2) Communicate: PTT button for zone channel, global channel access, text message input for non-urgent admin updates. (3) Alerts: chronological alert history for own zone, acknowledge button per alert.
+
+### Screen 7 — Steward App
+
+Single screen, no navigation required. Gloves-friendly design principle.
+
+Top section: Zone name and event name in large text. Center: Current instruction card — displays latest instruction from admin/coordinator, minimum 18px font, auto-scrolls if long. Bottom: Three full-width status report buttons — 🟢 ALL CLEAR, 🟡 CROWD BUILDING, 🔴 EMERGENCY (each 72px tall). PTT button: fixed bottom-right FAB, hold to talk. Notification banner: slides down from top on new alert.
+
+### Screen 8 — Create Event (Admin)
+
+Three-step wizard. Step 1 — Event Details: Event Name, Date & Time, Venue Name, Expected Total Capacity. Step 2 — Zone Setup: [+ Add Zone] button, per zone fields for Label (A, B, C…), Zone Name, and Capacity. Minimum 1 zone, maximum 26 zones. Step 3 — Review & Generate: summary card of all zones and capacities, [Create Event] button, success screen showing Event ID and PIN (large, copyable), share PIN option.
+
+### Screen 9 — Event History (Admin)
+
+List of past events with name, date, and duration. Tap to view event summary, peak risk moments timeline, full alert log, and staff activity. P2: export as PDF report.
+
+---
+
+## 8. Risk Detection Engine
+
+### Input Data Sources
+
+Manual steward status updates (discrete events, on tap), coordinator reports (on submit), simulated sensor feed for MVP (density and flow, every 5 seconds), historical zone baseline (static, per event setup).
+
+MVP Note: In v1.0, density and flow data will be simulated or manually entered. The architecture is designed to accept real IoT or camera-analytics feeds in future versions.
+
+### Risk Score Formula
+
+```
+Risk Score = (0.5 × DensityFactor) + (0.3 × FlowFactor) + (0.2 × VolatilityFactor)
+
+DensityFactor    = (current_density / zone_capacity) × 100
+FlowFactor       = inverse(flow_rate_normalized)   // low flow = high risk
+VolatilityFactor = stddev(density, last_6_readings) × 10
+```
+
+### Pattern Detection Rules
+
+**Surge:** Density increases >15% in 30 seconds → Risk Score +20, Confidence High.
+**Bottleneck:** Density >70% capacity AND flow rate <10% baseline → Risk Score +25, Confidence High.
+**Stampede Risk:** Density variance >3σ in 60 seconds → Risk Score +35, Confidence Medium.
+**Slow Build:** Steady density increase over 5+ minutes → Risk Score +10, Confidence Medium.
+
+### Output Object Per Zone (JSON)
+
+```json
+{
+  "zone_id": "B",
+  "timestamp": "2026-05-05T18:32:00Z",
+  "density": 340,
+  "capacity": 500,
+  "flow_rate": 1.2,
+  "risk_score": 74,
+  "risk_type": "BOTTLENECK",
+  "confidence": "HIGH",
+  "recommended_action": "Redirect inflow from Gate 2 immediately. Open overflow corridor C3.",
+  "color_state": "RED"
+}
+```
+
+---
+
+## 9. Alert System
+
+### Alert Lifecycle
+
+```
+DETECTED → TRIGGERED → ACKNOWLEDGED → RESOLVED
+```
+
+DETECTED: Risk score crosses threshold. TRIGGERED: Alert created in DB, pushed to relevant roles via Supabase Realtime. ACKNOWLEDGED: Admin or Coordinator marks it as seen. RESOLVED: Human confirms situation is controlled OR risk score drops below threshold for 2 consecutive readings.
+
+### Alert Message Template
+
+❌ Weak: *"High risk detected in Zone C."*
+
+✅ Strong: *"Zone C — Bottleneck forming at main entry. Density 68%. Redirect crowd to Gate 4. Close Gate 2 temporarily."*
+
+Template: `[ZONE NAME] — [RISK TYPE] detected. Density at [X]% capacity. [Flow condition]. ACTION: [Specific recommended action].`
+
+### Alert Priority Levels
+
+LOW (score 0–39): Green, no notification. MEDIUM (score 40–69): Yellow, silent push. HIGH (score 70–100): Red, audio + vibration. CRITICAL (score 85–100): Pulsing red, repeated audio + lock screen.
+
+### Alert Routing by Role
+
+MEDIUM: Admin feed only, Coordinator feed only, Steward banner only. HIGH: Admin feed + audio, Coordinator feed + audio + vibration, Steward full-screen banner. CRITICAL: All channels + persistent for Admin and Coordinator, full-screen + lock screen for Steward.
+
+---
+
+## 10. Communication System (WebRTC)
+
+### Channel Structure
+
+```
+Global Channel          ← All staff (Admin broadcasts here)
+├── Zone A Channel      ← Admin + Zone A Coordinator + Zone A Stewards
+├── Zone B Channel      ← Admin + Zone B Coordinator + Zone B Stewards
+└── Zone C Channel      ← (and so on)
+```
+
+### PTT Mechanics
+
+User holds the PTT button → audio starts transmitting. On release → transmission stops, channel opens for next speaker. If channel is occupied → transmit button shows "Channel Busy" and is non-tappable. Active speaker name and animated audio wave shown to all listeners.
+
+### Technical Requirements
+
+WebRTC peer connections managed via Supabase Realtime signaling. STUN/TURN servers required for devices behind NAT. Fallback: if WebRTC unavailable, show "Voice unavailable — use text alerts." Audio codec: Opus (low-latency, mobile-optimized). Max PTT latency: 500ms target, 1000ms acceptable maximum.
+
+### Text Broadcast (Admin)
+
+Admin can type and send a text message to any channel. Delivered to all members as an in-app notification and alert feed entry. Timestamp and sender role displayed.
+
+---
+
+## 11. Event Management System
+
+### Event States
+
+```
+DRAFT → ACTIVE → PAUSED → ENDED
+```
+
+DRAFT: Event created, PIN generated, no live monitoring. ACTIVE: Live monitoring on, staff can join, alerts enabled. PAUSED: Monitoring paused (break/intermission), alerts suppressed. ENDED: Read-only, data preserved for review.
+
+### PIN System
+
+6-digit numeric PIN, auto-generated. Unique per event. Valid only while event is ACTIVE or PAUSED. Admin can regenerate PIN at any time (invalidates previous PIN immediately).
+
+### Staff Join Flow
+
+```
+Enter PIN → Validate → Select Role → Select Zone → Enter Event
+```
+
+PIN validation is real-time via Supabase. Coordinators must select a zone (enforced). Stewards may select a zone or be auto-assigned. System prevents duplicate coordinator assignment to the same zone.
+
+---
+
+## 12. Non-Functional Requirements
+
+**Performance:** Dashboard refresh rate ≤5 seconds. Alert delivery latency ≤2 seconds. PTT voice latency ≤500ms. First contentful paint ≤2 seconds on 4G. Concurrent users per event: up to 200 (MVP).
+
+**Reliability:** System uptime target 99.5% during scheduled events. All alerts and zone logs stored permanently in Supabase. Graceful degradation: if WebRTC fails, text alerts remain fully functional.
+
+**Security:** All API calls require Supabase JWT authentication. Row-Level Security (RLS) enforced — users can only read data from their own event. Event PINs hashed in database, never stored in plaintext. Admin actions logged with timestamps.
+
+**Accessibility:** Minimum font size 16px body, 24px alert text on steward app. Touch targets minimum 48×48px. Color not used as sole indicator — icons accompany all color states. WCAG AA contrast compliance.
+
+---
+
+## 13. Technical Architecture
+
+### System Overview
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   CLIENT LAYER                       │
+│   React + Vite + TypeScript + Tailwind CSS           │
+│  ┌────────────┐  ┌─────────────────┐  ┌──────────┐  │
+│  │ Admin PWA  │  │ Coordinator PWA │  │ Steward  │  │
+│  │ Dashboard  │  │ Zone App        │  │ Mobile   │  │
+│  └────────────┘  └─────────────────┘  └──────────┘  │
+└──────────────────────┬───────────────────────────────┘
+                       │
+┌──────────────────────▼───────────────────────────────┐
+│                SUPABASE BACKEND                      │
+│  ┌──────────┐  ┌──────────┐  ┌───────────────────┐  │
+│  │   Auth   │  │ Postgres │  │ Realtime (WS)     │  │
+│  │  (JWT)   │  │    DB    │  │ Zone updates      │  │
+│  └──────────┘  └──────────┘  │ Alert feed        │  │
+│                               │ PTT signaling     │  │
+│                               └───────────────────┘  │
+└──────────────────────┬───────────────────────────────┘
+                       │
+┌──────────────────────▼───────────────────────────────┐
+│              WebRTC VOICE LAYER                      │
+│  STUN/TURN servers for NAT traversal                 │
+│  Signaling via Supabase Realtime channels            │
+│  Opus audio codec · Half-duplex PTT                  │
+└──────────────────────────────────────────────────────┘
+```
+
+### Technology Stack
+
+Frontend framework: React 18 + Vite. Language: TypeScript. Styling: Tailwind CSS. Backend: Supabase (Auth, DB, Realtime). Database: PostgreSQL via Supabase. Real-time sync: Supabase Realtime WebSockets. Voice: WebRTC with Opus codec. Mobile: PWA (no app store required). Hosting: Vercel or Netlify.
+
+### Supabase Realtime Channels
+
+`event:{eventId}:zones` — zone density and risk updates → Admin, Coordinators. `event:{eventId}:alerts` — new alert objects → Admin, Coordinators, Stewards. `event:{eventId}:staff` — staff join/leave events → Admin. `zone:{zoneId}:updates` — steward status taps → Admin, Zone Coordinator. `webrtc:{channelId}:signal` — WebRTC offer/answer/ICE → channel members.
+
+---
+
+## 14. Data Models
+
+### events
+
+```sql
+events (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_id      UUID REFERENCES users(id),
+  name          TEXT NOT NULL,
+  venue_name    TEXT,
+  event_date    TIMESTAMPTZ,
+  status        TEXT DEFAULT 'DRAFT',  -- DRAFT|ACTIVE|PAUSED|ENDED
+  pin           TEXT NOT NULL UNIQUE,
+  total_capacity INT,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+)
+```
+
+### zones
+
+```sql
+zones (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id      UUID REFERENCES events(id) ON DELETE CASCADE,
+  label         TEXT NOT NULL,   -- "A", "B", "C"
+  name          TEXT,            -- "North Gate", "Main Stage"
+  capacity      INT NOT NULL,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+)
+```
+
+### zone_readings
+
+```sql
+zone_readings (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  zone_id       UUID REFERENCES zones(id),
+  event_id      UUID REFERENCES events(id),
+  density       FLOAT,
+  flow_rate     FLOAT,
+  risk_score    INT,
+  risk_type     TEXT,  -- SURGE|BOTTLENECK|STAMPEDE_RISK|NORMAL
+  confidence    TEXT,  -- LOW|MEDIUM|HIGH
+  color_state   TEXT,  -- GREEN|YELLOW|RED
+  recorded_at   TIMESTAMPTZ DEFAULT NOW()
+)
+```
+
+### alerts
+
+```sql
+alerts (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id        UUID REFERENCES events(id),
+  zone_id         UUID REFERENCES zones(id),
+  risk_type       TEXT NOT NULL,
+  risk_score      INT,
+  priority        TEXT NOT NULL,  -- LOW|MEDIUM|HIGH|CRITICAL
+  message         TEXT NOT NULL,
+  action          TEXT,
+  status          TEXT DEFAULT 'TRIGGERED',  -- TRIGGERED|ACKNOWLEDGED|RESOLVED
+  acknowledged_by UUID REFERENCES users(id),
+  triggered_at    TIMESTAMPTZ DEFAULT NOW(),
+  resolved_at     TIMESTAMPTZ
+)
+```
+
+### event_staff
+
+```sql
+event_staff (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id      UUID REFERENCES events(id),
+  user_id       UUID REFERENCES users(id) NULLABLE,  -- NULL for PIN-only stewards
+  display_name  TEXT NOT NULL,
+  role          TEXT NOT NULL,  -- ADMIN|COORDINATOR|STEWARD
+  zone_id       UUID REFERENCES zones(id) NULLABLE,
+  session_token TEXT,
+  joined_at     TIMESTAMPTZ DEFAULT NOW(),
+  left_at       TIMESTAMPTZ
+)
+```
+
+### steward_updates
+
+```sql
+steward_updates (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id   UUID REFERENCES events(id),
+  zone_id    UUID REFERENCES zones(id),
+  staff_id   UUID REFERENCES event_staff(id),
+  status     TEXT NOT NULL,  -- ALL_CLEAR|CROWD_BUILDING|EMERGENCY
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
+```
+
+---
+
+## 15. UI/UX Design System
+
+### Color Palette (Mahabharata Theme)
+
+`--color-bg-primary: #0D0408` — Main app background. `--color-bg-surface: #1A0A10` — Card/panel backgrounds. `--color-bg-elevated: #2A1018` — Modals, dropdowns. `--color-maroon: #7B1C2C` — Primary brand color. `--color-maroon-dark: #4A0F1A` — Hover/pressed states. `--color-gold: #C9A84C` — Accents, icons, headings. `--color-gold-light: #E8C97A` — Highlight text. `--color-text-primary: #F5ECD5` — Body text (warm off-white). `--color-text-secondary: #A08060` — Labels, subtitles. `--color-safe: #2E7D32` — Zone Safe. `--color-warning: #F57F17` — Zone Building Risk. `--color-danger: #C62828` — Zone Critical. `--color-danger-pulse: #FF1744` — Critical alert animation. `--color-border: #3D1A22` — Subtle borders.
+
+### Typography
+
+App Title: Inter/Cinzel, 28px, weight 700. Section Heading: Inter, 20px, weight 600. Card Title: Inter, 16px, weight 600. Body: Inter, 14px, weight 400. Alert Text: Inter, 16px, weight 500. Steward Instructions: Inter, 18px, weight 600. Zone Labels: Inter Mono, 32px, weight 700.
+
+### Component Anatomy
+
+**Zone Card:**
+```
+┌────────────────────────┐
+│  ZONE B                │  ← Gold label
+│  ████████░░  68%       │  ← Density bar (color-coded)
+│  Flow: 1.2 m/min       │
+│  Risk: 74   [HIGH]     │  ← Red badge
+└────────────────────────┘
+```
+
+**Alert Card:**
+```
+┌──────────────────────────────────────────────────┐
+│  🔴 ZONE C — BOTTLENECK                          │
+│  Density 68% · Flow rate critical                │
+│  ► Redirect crowd to Gate 4. Close Gate 2.       │
+│                       18:32:04   [Acknowledge]   │
+└──────────────────────────────────────────────────┘
+```
+
+**PTT Button (Steward):** 80px circular button, gold border, microphone icon. Hold state: pulsing red ring + "TRANSMITTING" label. Channel busy: grey disabled + "BUSY" label.
+
+### Motion & Animation
+
+Zone color transitions: 600ms ease-in-out. Critical alert card: 2s pulse animation (border glow). PTT transmitting ring: 1s infinite pulse. New alert slide-in: 300ms from right. Risk score gauge update: 500ms smooth arc.
+
+---
+
+## 16. Android-Specific Requirements
+
+### Display
+
+Always show status bar — do not use fullscreen or immersive mode. Always show navigation bar — Android system buttons must not be hidden. All content rendered within safe area insets. Orientation: portrait-locked for steward app, landscape-capable for admin dashboard.
+
+### Touch Target Sizing
+
+PTT Button: 80×80px minimum. Steward Status Report Buttons: full width × 72px each. Zone Cards (Admin): minimum 120×100px. Navigation Tab Items: 48×48px. Alert Acknowledge button: 44×44px minimum.
+
+### PWA Manifest (Critical)
+
+```json
+{
+  "name": "Suraksha.pro",
+  "short_name": "Suraksha",
+  "display": "browser",
+  "orientation": "portrait",
+  "theme_color": "#7B1C2C",
+  "background_color": "#0D0408",
+  "start_url": "/"
+}
+```
+
+**Critical:** `"display": "browser"` is mandatory to keep Android system bars visible. Never use `"standalone"` or `"fullscreen"` — this is a hard requirement.
+
+### Network Resilience
+
+Service Worker caches core app shell for offline load. Network status indicator shown when offline. Steward status updates queued locally and sent on reconnect. PTT shows "No connection — voice unavailable" banner if WebRTC fails.
+
+---
+
+## 17. Demo Flow / Acceptance Scenario
+
+```
+T+0:00  Admin creates event "Navaratri 2026"
+        Zones: A (Entry), B (Main Stage), C (Food Court), D (Exit)
+        Capacity: 500 per zone. Event PIN generated: 847291
+
+T+0:02  Coordinator Priya joins via PIN → assigned Zone B
+        4 Stewards join, distributed across all zones
+
+T+0:05  Event goes ACTIVE. All zones GREEN on dashboard.
+
+T+0:15  Zone B crowd builds as concert approaches.
+        Density: 210 → 260 → 310 people
+        Risk score climbs: 28 → 42 → 58
+        Zone B card turns YELLOW.
+        Alert: "Zone B — Crowd build detected. Density at 62%."
+        Priya's coordinator app shows YELLOW with action guidance.
+
+T+0:18  Zone B density: 370 people. Flow rate drops to near-zero.
+        BOTTLENECK pattern detected. Risk score: 74.
+        Zone B turns RED. CRITICAL alert fires.
+        Audio alert triggers on admin dashboard.
+        Stewards in Zone B receive full-screen red banner.
+
+T+0:19  Admin speaks on Zone B PTT channel:
+        "Zone B team — open overflow Gate 3 now.
+         Redirect queue from Gate 1."
+        Priya acknowledges via coordinator app.
+        Steward Arjun taps [CROWD BUILDING] status update.
+
+T+0:21  Gate 3 opened. Crowd redistributes.
+        Density: 370 → 340 → 300 → 260 (over 2 minutes)
+        Flow rate recovers.
+        Risk score: 74 → 55 → 38
+        Zone B returns to YELLOW, then GREEN.
+        Admin resolves the alert manually.
+
+T+0:23  All zones GREEN. Event continues safely.
+        Full risk timeline logged to event history.
+```
+
+---
+
+## 18. Out of Scope (MVP v1.0)
+
+Physical IoT sensor or camera integration. AI/ML predictive modeling (current engine is rule-based). Native Android/iOS app (PWA only). Multi-event concurrent management by a single admin. Automated emergency services notification. PDF export of post-event reports. Multi-language support. Payment or subscription billing. Event ticketing integration. Facial recognition or biometric features (explicitly excluded for privacy).
+
+---
+
+## 19. Risks & Mitigations
+
+**WebRTC fails on poor network** (Severity: High, Likelihood: Medium) — Mitigation: fallback to text-only mode, show warning banner.
+
+**Supabase Realtime drops connection** (Severity: High, Likelihood: Low) — Mitigation: auto-reconnect logic, offline alert queue with local sync.
+
+**False positive risk alerts** (Severity: Medium, Likelihood: Medium) — Mitigation: configurable thresholds per event, admin can dismiss alerts with one tap.
+
+**Steward PIN shared externally** (Severity: Low, Likelihood: Medium) — Mitigation: PIN rate-limiting, admin can regenerate PIN instantly.
+
+**Admin dashboard flooded with alerts** (Severity: Medium, Likelihood: Medium) — Mitigation: alert deduplication logic, zone-level grouping, "zone mute" option.
+
+**Browser denies microphone for PTT** (Severity: High, Likelihood: Medium) — Mitigation: explicit microphone permission prompt on join, graceful fallback to text.
+
+**Android system bars hidden** (Severity: High, Likelihood: Low) — Mitigation: enforce `"display": "browser"` in PWA manifest, test on target device matrix before launch.
+
+---
+
+## 20. Glossary
+
+**Zone:** A defined physical area of the event venue with its own capacity and monitoring. **Risk Score:** A computed 0–100 value representing crowd danger level in a zone. **Surge:** A sudden spike in crowd density (>15% increase in 30 seconds). **Bottleneck:** High density combined with near-zero crowd movement. **Stampede Risk:** Rapid, oscillating density changes indicating unstable crowd behavior. **PTT:** Push-to-Talk — a voice communication mode where one user transmits at a time. **Event PIN:** A 6-digit code that allows Coordinators and Stewards to join an event. **Flow Rate:** The average movement speed of people within a zone. **Color State:** Visual zone indicator — Green (Safe), Yellow (Building), Red (Critical). **Confidence Level:** How certain the system is about a detected risk pattern — Low, Medium, or High. **PWA:** Progressive Web App — a web app installable on mobile without an app store. **Realtime Channel:** A Supabase WebSocket channel used to push live data to connected clients. **Half-duplex:** Communication where only one party can speak at a time (walkie-talkie style). **STUN/TURN:** Server infrastructure enabling WebRTC connections across firewalls and NAT. **RLS:** Row-Level Security — database policy ensuring users only access their own event data.
+
+---
+
+*Suraksha.pro PRD v1.0 — Draft | May 2026*

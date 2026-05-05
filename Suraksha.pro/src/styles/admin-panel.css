@@ -1,0 +1,220 @@
+/* ============================================
+   Suraksha.pro — Admin Panel Styles (Basic)
+   ============================================ */
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #111;
+  color: #e0e0e0;
+  font-family: var(--font-body);
+}
+
+.admin-sidebar {
+  width: 220px;
+  background: #1a1a1a;
+  border-right: 1px solid #333;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.admin-sidebar__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: #fff;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid #333;
+  margin-bottom: var(--space-2);
+}
+
+.admin-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: #aaa;
+  font-size: var(--text-sm);
+  transition: all 150ms;
+}
+
+.admin-sidebar__link:hover {
+  background: #252525;
+  color: #fff;
+}
+
+.admin-sidebar__link--active {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.admin-content {
+  flex: 1;
+  padding: var(--space-8);
+  overflow-y: auto;
+}
+
+.admin-page-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: #fff;
+  margin-bottom: var(--space-6);
+}
+
+/* ---- Admin Stat Cards ---- */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.admin-stat-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.admin-stat-card__label {
+  font-size: var(--text-sm);
+  color: #888;
+  margin-bottom: var(--space-2);
+}
+
+.admin-stat-card__value {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  color: #fff;
+}
+
+/* ---- Admin Tables ---- */
+.admin-table {
+  width: 100%;
+  border: 1px solid #333;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.admin-table th {
+  background: #1a1a1a;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: #888;
+  border-bottom: 1px solid #333;
+}
+
+.admin-table td {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  border-bottom: 1px solid #222;
+}
+
+.admin-table tr:hover td {
+  background: #1a1a1a;
+}
+
+/* ---- Admin Forms ---- */
+.admin-form {
+  max-width: 480px;
+}
+
+.admin-form .input-group {
+  margin-bottom: var(--space-4);
+}
+
+.admin-form .input {
+  background: #1a1a1a;
+  border-color: #333;
+  color: #e0e0e0;
+}
+
+.admin-form .input:focus {
+  border-color: #666;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.05);
+}
+
+.admin-form .btn-primary {
+  background: #333;
+  border: 1px solid #555;
+  color: #fff;
+}
+
+.admin-form .btn-primary:hover {
+  background: #444;
+}
+
+/* ---- Admin Actions ---- */
+.admin-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.admin-actions .btn-sm {
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-3);
+  min-height: 30px;
+}
+
+/* ---- Admin Login Page ---- */
+.admin-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #111;
+}
+
+.admin-login__card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  width: 100%;
+  max-width: 400px;
+}
+
+.admin-login__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: #fff;
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+/* ---- Pagination ---- */
+.admin-pagination {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+
+.admin-pagination__btn {
+  padding: var(--space-2) var(--space-3);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: var(--radius-sm);
+  color: #aaa;
+  font-size: var(--text-sm);
+}
+
+.admin-pagination__btn--active {
+  background: #333;
+  color: #fff;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    display: none;
+  }
+  .admin-content {
+    padding: var(--space-4);
+  }
+}

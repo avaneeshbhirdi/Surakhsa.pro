@@ -1,0 +1,17 @@
+{
+  "name": "Suraksha.pro",
+  "short_name": "Suraksha",
+  "description": "Real-time crowd safety platform — From chaos to command",
+  "display": "browser",
+  "orientation": "portrait",
+  "theme_color": "#7B1C2C",
+  "background_color": "#0D0408",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
