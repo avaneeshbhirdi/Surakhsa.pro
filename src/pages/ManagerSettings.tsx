@@ -141,9 +141,7 @@ export default function ManagerSettings() {
             </div>
           </div>
 
-          </div>
         </div>
-
         {/* Global Actions */}
         <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-start' }}>
           <button
