@@ -1,18 +1,54 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEventStore } from '@/stores/eventStore'
+import { useAuthStore } from '@/stores/authStore'
+import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { Plus, MapPin, AlertTriangle } from 'lucide-react'
 
 export default function ManagerZones() {
   const navigate = useNavigate()
-  const { activeEvent, zones, latestReadings, alerts, createZone } = useEventStore()
+  const { profile } = useAuthStore()
+  const { activeEvent, zones, latestReadings, alerts, createZone, loadEvent } = useEventStore()
   
+  const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newZoneLabel, setNewZoneLabel] = useState('')
   const [newZoneName, setNewZoneName] = useState('')
   const [newZoneCapacity, setNewZoneCapacity] = useState('')
   const [creating, setCreating] = useState(false)
+
+  useEffect(() => {
+    const loadActiveEvent = async () => {
+      if (!profile) { setLoading(false); return }
+      // If event already loaded in store, skip
+      if (activeEvent) { setLoading(false); return }
+      const { data: events } = await supabase
+        .from('events')
+        .select('*')
+        .eq('admin_id', profile.id)
+        .in('status', ['ACTIVE', 'PAUSED', 'DRAFT'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (events && events.length > 0) {
+        await loadEvent(events[0].id)
+      }
+      setLoading(false)
+    }
+    loadActiveEvent()
+  }, [profile])
+
+  if (loading) {
+    return (
+      <div className="virtus-layout">
+        <ManagerSidebar />
+        <main className="virtus-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="spinner spinner-lg" />
+        </main>
+      </div>
+    )
+  }
 
   if (!activeEvent) {
     return (
