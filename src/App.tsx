@@ -86,14 +86,15 @@ function App() {
         </ProtectedRoute>
       } />
 
-      {/* Admin Panel routes */}
-      <Route path="/1234/admin" element={<AdminPanelLogin />} />
+      {/* Admin Panel routes — hidden, not linked anywhere in UI */}
+      <Route path="/1234/admin/login" element={<AdminPanelLogin />} />
       <Route path="/1234/admin/setup" element={<AdminPanelSetup />} />
       <Route path="/1234/admin" element={
         <AdminPanelGuard>
           <AdminPanelLayout />
         </AdminPanelGuard>
       }>
+        <Route index element={<AdminPanelDashboard />} />
         <Route path="dashboard" element={<AdminPanelDashboard />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="events" element={<AdminEvents />} />

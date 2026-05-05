@@ -12,7 +12,7 @@ export default function AdminPanelSetup() {
   useEffect(() => {
     checkAdminExists().then(exists => {
       if (exists) {
-        navigate('/1234/admin')
+        navigate('/1234/admin/login')
       }
     })
   }, [])
@@ -28,7 +28,7 @@ export default function AdminPanelSetup() {
 
     try {
       await setupAdmin(email, password)
-      navigate('/1234/admin')
+      navigate('/1234/admin/login')
     } catch {
       // handled by store
     }

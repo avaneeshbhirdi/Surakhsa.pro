@@ -10,7 +10,7 @@ import MetricsPanel from '@/components/MetricsPanel'
 import AlertFeed from '@/components/AlertFeed'
 import CommunicationPanel from '@/components/CommunicationPanel'
 import type { Zone } from '@/lib/types'
-import { Play, Pause, Square, Plus } from 'lucide-react'
+import { Play, Pause, Square, Plus, Copy, Check, Megaphone, History, X } from 'lucide-react'
 import './ManagerDashboard.css'
 
 export default function ManagerDashboard() {
@@ -26,6 +26,15 @@ export default function ManagerDashboard() {
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  // Generate Event Code states
+  const [pinCopied, setPinCopied] = useState(false)
+
+  // Send Alert modal states
+  const [showAlertModal, setShowAlertModal] = useState(false)
+  const [alertMessage, setAlertMessage] = useState('')
+  const [alertSending, setAlertSending] = useState(false)
+  const [alertSent, setAlertSent] = useState(false)
+
   useEffect(() => {
     loadActiveEvent()
     return () => clearEvent()
@@ -33,7 +42,6 @@ export default function ManagerDashboard() {
 
   const loadActiveEvent = async () => {
     if (!profile) { setLoading(false); return }
-    // Find admin's active or most recent event
     const { data: events } = await supabase
       .from('events')
       .select('*')
@@ -79,6 +87,42 @@ export default function ManagerDashboard() {
     }
   }
 
+  // Copy event PIN to clipboard
+  const handleCopyPin = async () => {
+    if (!activeEvent) return
+    await navigator.clipboard.writeText(activeEvent.pin)
+    setPinCopied(true)
+    setTimeout(() => setPinCopied(false), 2500)
+  }
+
+  // Send manual broadcast alert
+  const handleSendAlert = async () => {
+    if (!activeEvent || !alertMessage.trim()) return
+    setAlertSending(true)
+    try {
+      await supabase.from('alerts').insert({
+        event_id: activeEvent.id,
+        zone_id: zones[0]?.id ?? null, // broadcast — attach to first zone or null
+        risk_type: 'NORMAL',
+        risk_score: 50,
+        priority: 'HIGH',
+        message: alertMessage.trim(),
+        recommended_action: 'Follow manager instructions.',
+        status: 'TRIGGERED',
+      })
+      setAlertSent(true)
+      setAlertMessage('')
+      setTimeout(() => {
+        setAlertSent(false)
+        setShowAlertModal(false)
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to send alert', err)
+    } finally {
+      setAlertSending(false)
+    }
+  }
+
   if (loading) {
     return <div className="page"><Navbar /><div className="page-centered"><div className="spinner spinner-lg" /></div></div>
   }
@@ -90,9 +134,14 @@ export default function ManagerDashboard() {
         <div className="page-centered">
           <h2 className="heading-display" style={{ fontSize: 'var(--text-2xl)', marginBottom: 'var(--space-4)' }}>No Active Event</h2>
           <p className="text-secondary mb-6">Create an event to get started with crowd monitoring.</p>
-          <button className="btn btn-gold btn-lg" onClick={() => navigate('/event/create')}>
-            <Plus size={18} /> Create Event
-          </button>
+          <div className="flex gap-3" style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button className="btn btn-gold btn-lg" onClick={() => navigate('/event/create')}>
+              <Plus size={18} /> Create Event
+            </button>
+            <button className="btn btn-outline btn-lg" onClick={() => navigate('/event/history')}>
+              <History size={18} /> View History
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -112,10 +161,36 @@ export default function ManagerDashboard() {
           {activeEvent.status === 'PAUSED' && <span className="badge badge-warning">PAUSED</span>}
           {activeEvent.status === 'DRAFT' && <span className="badge badge-info">DRAFT</span>}
         </div>
-        <div className="flex gap-2">
-          <span className="text-secondary hide-on-mobile" style={{ fontSize: 'var(--text-sm)', alignSelf: 'center' }}>
+        <div className="flex gap-2" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Event Code with Copy */}
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={handleCopyPin}
+            title="Copy event PIN to clipboard"
+            style={{ fontFamily: 'monospace', fontSize: 'var(--text-sm)', gap: '6px' }}
+          >
+            {pinCopied ? <Check size={14} color="var(--color-safe)" /> : <Copy size={14} />}
             PIN: {activeEvent.pin}
-          </span>
+          </button>
+
+          {/* History Quick-Link */}
+          <button
+            className="btn btn-ghost btn-sm hide-on-mobile"
+            onClick={() => navigate('/event/history')}
+            title="Event History"
+          >
+            <History size={14} /> History
+          </button>
+
+          {/* Send Manual Alert */}
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setShowAlertModal(true)}
+            style={{ borderColor: 'var(--color-warning)', color: 'var(--color-warning)' }}
+          >
+            <Megaphone size={14} /> Send Alert
+          </button>
+
           {activeEvent.status === 'DRAFT' && (
             <button className="btn btn-gold btn-sm" onClick={handleStartEvent}><Play size={14} /> Start</button>
           )}
@@ -175,6 +250,50 @@ export default function ManagerDashboard() {
           reading={latestReadings[selectedZone.id]}
           onClose={() => setSelectedZone(null)}
         />
+      )}
+
+      {/* Send Manual Alert Modal */}
+      {showAlertModal && (
+        <div className="modal-overlay" onClick={() => setShowAlertModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+            <div className="modal__header">
+              <h2 className="modal__title"><Megaphone size={16} /> Broadcast Alert</h2>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowAlertModal(false)}><X size={16} /></button>
+            </div>
+            <div className="modal__body">
+              <p className="text-secondary" style={{ marginBottom: 'var(--space-4)', fontSize: 'var(--text-sm)' }}>
+                This alert will be sent to all coordinators and appear in their alert feeds immediately.
+              </p>
+              <div className="input-group">
+                <label className="input-label">Alert Message</label>
+                <textarea
+                  className="input"
+                  rows={3}
+                  placeholder="e.g. Crowd building near Gate 3. Deploy additional staff."
+                  value={alertMessage}
+                  onChange={e => setAlertMessage(e.target.value)}
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+              {alertSent && (
+                <p style={{ color: 'var(--color-safe)', fontSize: '13px', marginTop: '8px' }}>
+                  ✅ Alert broadcasted successfully!
+                </p>
+              )}
+            </div>
+            <div className="modal__footer">
+              <button className="btn btn-ghost" onClick={() => setShowAlertModal(false)}>Cancel</button>
+              <button
+                className="btn btn-primary"
+                onClick={handleSendAlert}
+                disabled={!alertMessage.trim() || alertSending}
+                style={{ background: 'var(--color-warning)', borderColor: 'var(--color-warning)' }}
+              >
+                {alertSending ? <span className="spinner" /> : '📢 Broadcast'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* End Event Confirmation */}
