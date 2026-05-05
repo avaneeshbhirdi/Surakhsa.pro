@@ -1,7 +1,7 @@
 .crowd {
   min-height: 100vh;
-  background: var(--color-bg-main);
-  color: var(--color-text-main);
+  background: var(--color-bg-primary, #0D0408);
+  color: var(--color-text-primary, #F5ECD5);
   padding-bottom: 120px; /* Space for fixed footer */
   display: flex;
   flex-direction: column;
@@ -9,9 +9,9 @@
 
 .crowd__header {
   padding: var(--space-4) var(--space-6);
-  background: rgba(10, 10, 10, 0.8);
+  background: rgba(13, 4, 8, 0.8); /* var(--color-bg-primary) with opacity */
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--color-border, #3D1A22);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -44,8 +44,8 @@
 
 /* Heatmap Card */
 .crowd__map-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-bg-surface, #1A0A10);
+  border: 1px solid var(--color-border, #3D1A22);
   border-radius: var(--radius-xl);
   overflow: hidden;
   position: relative;
@@ -53,7 +53,7 @@
 
 .crowd__map-placeholder {
   height: 240px;
-  background: linear-gradient(45deg, #0f172a, #1e1b4b);
+  background: linear-gradient(45deg, var(--color-bg-elevated, #2A1018), var(--color-maroon-dark, #4A0F1A));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,13 +77,13 @@
 }
 
 .crowd__zone-item {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-bg-surface, #1A0A10);
   padding: var(--space-4);
   border-radius: var(--radius-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border, #3D1A22);
 }
 
 .crowd__zone-info {
@@ -121,7 +121,7 @@
 }
 
 .crowd__alert-item {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-bg-surface, #1A0A10);
   border-left: 4px solid var(--color-gold);
   padding: var(--space-4);
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
@@ -145,9 +145,9 @@
   left: 0;
   right: 0;
   padding: var(--space-4) var(--space-6) calc(var(--space-4) + env(safe-area-inset-bottom));
-  background: rgba(10, 10, 10, 0.9);
+  background: rgba(13, 4, 8, 0.9);
   backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--color-border, #3D1A22);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
@@ -196,13 +196,13 @@
 }
 
 .crowd__modal {
-  background: #1a1a1a;
+  background: var(--color-bg-elevated, #2A1018);
   width: 100%;
   max-width: 400px;
   border-radius: var(--radius-2xl);
   padding: var(--space-8);
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border, #3D1A22);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
@@ -249,7 +249,7 @@
 .crowd__modal-btn--cancel {
   background: transparent;
   color: var(--color-text-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border, #3D1A22);
   padding: var(--space-4);
   border-radius: var(--radius-lg);
   font-weight: 600;
