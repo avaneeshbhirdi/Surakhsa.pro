@@ -13,7 +13,7 @@ export default function ManagerDashboard() {
   const { profile } = useAuthStore()
   const {
     activeEvent, zones, alerts, staff, latestReadings, stewardUpdates,
-    loadEvent, clearEvent,
+    loadEvent, acknowledgeAlert, clearEvent,
   } = useEventStore()
 
   const [loading, setLoading] = useState(true)
@@ -23,7 +23,10 @@ export default function ManagerDashboard() {
 
   // Send Alert modal states
   const [showAlertModal, setShowAlertModal] = useState(false)
+  const [alertType, setAlertType] = useState<'BROADCAST' | 'ZONE'>('BROADCAST')
+  const [selectedTargetZone, setSelectedTargetZone] = useState('')
   const [alertMessage, setAlertMessage] = useState('')
+  const [alertPriority, setAlertPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'>('HIGH')
   const [alertSending, setAlertSending] = useState(false)
 
   // Simulation state
@@ -47,8 +50,9 @@ export default function ManagerDashboard() {
       let riskScore = Math.min(100, Math.floor(pct))
       let riskType = 'NORMAL'
       let colorState = 'GREEN'
-      if (pct > 90) { riskType = 'STAMPEDE_RISK'; riskScore = Math.max(90, riskScore); colorState = 'RED' }
-      else if (pct > 75) { riskType = 'BOTTLENECK'; riskScore = Math.max(75, riskScore); colorState = 'YELLOW' }
+      if (pct > 95) { riskType = 'STAMPEDE_RISK'; riskScore = Math.max(90, riskScore); colorState = 'RED' }
+      else if (pct > 80) { riskType = 'BOTTLENECK'; riskScore = Math.max(75, riskScore); colorState = 'YELLOW' }
+      else if (pct > 60) { riskType = 'SURGE'; riskScore = Math.max(50, riskScore); colorState = 'YELLOW' }
 
       await supabase.from('zone_readings').insert({
         event_id: activeEvent.id,
@@ -59,6 +63,19 @@ export default function ManagerDashboard() {
         risk_type: riskType,
         color_state: colorState,
       })
+
+      // Randomly trigger a simulated alert if density is high
+      if (pct > 85 && Math.random() > 0.7) {
+        await supabase.from('alerts').insert({
+          event_id: activeEvent.id,
+          zone_id: z.id,
+          risk_type: riskType,
+          risk_score: riskScore,
+          priority: pct > 95 ? 'CRITICAL' : 'HIGH',
+          message: `Automatic alert: High density detected in Zone ${z.label}!`,
+          status: 'TRIGGERED'
+        })
+      }
     }, 3000)
 
     return () => clearInterval(interval)
@@ -100,10 +117,10 @@ export default function ManagerDashboard() {
     try {
       await supabase.from('alerts').insert({
         event_id: activeEvent.id,
-        zone_id: zones[0]?.id ?? null, // broadcast — attach to first zone or null
+        zone_id: alertType === 'ZONE' && selectedTargetZone ? selectedTargetZone : null,
         risk_type: 'NORMAL',
-        risk_score: 50,
-        priority: 'HIGH',
+        risk_score: alertPriority === 'CRITICAL' ? 90 : alertPriority === 'HIGH' ? 70 : 40,
+        priority: alertPriority,
         message: alertMessage.trim(),
         recommended_action: 'Follow manager instructions.',
         status: 'TRIGGERED',
@@ -267,33 +284,67 @@ export default function ManagerDashboard() {
             </button>
           </div>
 
-          {/* Row 2: Staff Reports (Assignment for all team) */}
+          {/* Row 2: Staff & Alert Feed (Assignment for all team) */}
           <div className="v-card v-staff-reports">
-            <h3 className="v-text-title">Staff Updates</h3>
-            <div style={{ overflowY: 'auto', maxHeight: '240px', paddingRight: '8px' }}>
-              {stewardUpdates.length === 0 ? (
-                <p className="v-text-sm text-center">No reports yet.</p>
-              ) : (
-                stewardUpdates.slice(0, 4).map(update => {
-                  const s = staff.find(st => st.id === update.staff_id)
-                  const z = zones.find(zn => zn.id === update.zone_id)
-                  return (
-                    <div key={update.id} className="v-report-item">
+            <div className="flex flex-between mb-4">
+              <h3 className="v-text-title" style={{ margin: 0 }}>Command Feed</h3>
+              <div className="flex gap-2">
+                <span className="v-status-pill safe" style={{ fontSize: '10px' }}>{stewardUpdates.length} Reports</span>
+                <span className="v-status-pill danger" style={{ fontSize: '10px' }}>{activeAlertsCount} Alerts</span>
+              </div>
+            </div>
+            <div style={{ overflowY: 'auto', maxHeight: '280px', paddingRight: '8px' }}>
+              {/* Critical Alerts First */}
+              {alerts.filter(a => a.status === 'TRIGGERED').map(alert => {
+                const z = zones.find(zn => zn.id === alert.zone_id)
+                return (
+                  <div key={alert.id} className="v-report-item alert-urgent">
+                    <div className="flex flex-between w-full">
                       <div className="flex gap-3 align-center">
-                        <div className="v-avatar" style={{ width: '36px', height: '36px' }}>
-                          {s?.display_name ? s.display_name.substring(0, 2).toUpperCase() : 'S'}
+                        <div className="v-avatar danger" style={{ width: '36px', height: '36px', background: 'var(--v-red)' }}>
+                          !
                         </div>
                         <div>
-                          <div style={{ fontSize: '14px', fontWeight: 500 }}>{s?.display_name || 'Staff Member'}</div>
-                          <div className="v-text-sm">{z?.label ? `Zone ${z.label}` : 'Global'} • {new Date(update.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                          <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--v-red)' }}>CRITICAL ALERT</div>
+                          <div className="v-text-sm">{z?.label ? `Zone ${z.label}` : 'Global'} • {alert.message}</div>
                         </div>
                       </div>
-                      <div className={`v-status-pill ${update.status === 'EMERGENCY' ? 'danger' : update.status === 'CROWD_BUILDING' ? 'warning' : 'safe'}`}>
-                        {update.status.replace('_', ' ')}
+                      <button 
+                        className="v-status-pill danger" 
+                        style={{ cursor: 'pointer', border: 'none' }}
+                        onClick={() => acknowledgeAlert(alert.id, profile?.id || '')}
+                      >
+                        ACK
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Staff Reports */}
+              {stewardUpdates.slice(0, 10).map(update => {
+                const s = staff.find(st => st.id === update.staff_id)
+                const z = zones.find(zn => zn.id === update.zone_id)
+                return (
+                  <div key={update.id} className="v-report-item">
+                    <div className="flex gap-3 align-center">
+                      <div className="v-avatar" style={{ width: '36px', height: '36px' }}>
+                        {s?.display_name ? s.display_name.substring(0, 2).toUpperCase() : 'S'}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 500 }}>{s?.display_name || 'Staff Member'}</div>
+                        <div className="v-text-sm">{z?.label ? `Zone ${z.label}` : 'Global'} • {update.message || update.status.replace('_', ' ')}</div>
                       </div>
                     </div>
-                  )
-                })
+                    <div className={`v-status-pill ${update.status === 'EMERGENCY' ? 'danger' : update.status === 'CROWD_BUILDING' ? 'warning' : 'safe'}`}>
+                      {new Date(update.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {stewardUpdates.length === 0 && alerts.filter(a => a.status === 'TRIGGERED').length === 0 && (
+                <p className="v-text-sm text-center py-6 text-muted">System quiet. No active reports or alerts.</p>
               )}
             </div>
           </div>
@@ -313,27 +364,82 @@ export default function ManagerDashboard() {
         </div>
       </main>
 
-      {/* Modals from original logic */}
+      {/* Enhanced Send Alert Modal */}
       {showAlertModal && (
         <div className="modal-overlay" onClick={() => setShowAlertModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '24px' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '24px', maxWidth: '500px' }}>
             <div className="modal__header" style={{ borderBottom: '1px solid var(--v-border)' }}>
-              <h2 className="modal__title"><Megaphone size={16} /> Broadcast Alert</h2>
+              <h2 className="modal__title"><Megaphone size={16} /> Command Control</h2>
             </div>
-            <div className="modal__body">
-              <textarea
-                className="input"
-                rows={3}
-                placeholder="Type message..."
-                value={alertMessage}
-                onChange={e => setAlertMessage(e.target.value)}
-                style={{ background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)' }}
-              />
+            <div className="modal__body flex flex-col gap-4">
+              <div className="flex gap-2">
+                <button 
+                  className={`btn btn-sm ${alertType === 'BROADCAST' ? 'btn-gold' : 'btn-ghost'}`} 
+                  onClick={() => setAlertType('BROADCAST')}
+                  style={alertType === 'BROADCAST' ? { background: 'var(--v-orange)', color: '#fff' } : {}}
+                >
+                  Broadcast
+                </button>
+                <button 
+                  className={`btn btn-sm ${alertType === 'ZONE' ? 'btn-gold' : 'btn-ghost'}`} 
+                  onClick={() => setAlertType('ZONE')}
+                  style={alertType === 'ZONE' ? { background: 'var(--v-orange)', color: '#fff' } : {}}
+                >
+                  Specific Zone
+                </button>
+              </div>
+
+              {alertType === 'ZONE' && (
+                <div className="input-group">
+                  <label className="v-text-sm mb-1 block">Target Zone</label>
+                  <select 
+                    className="input" 
+                    value={selectedTargetZone} 
+                    onChange={e => setSelectedTargetZone(e.target.value)}
+                    style={{ background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)' }}
+                  >
+                    <option value="">-- Select Zone --</option>
+                    {zones.map(z => <option key={z.id} value={z.id}>Zone {z.label} {z.name ? `(${z.name})` : ''}</option>)}
+                  </select>
+                </div>
+              )}
+
+              <div className="input-group">
+                <label className="v-text-sm mb-1 block">Priority Level</label>
+                <div className="flex gap-2">
+                  {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const).map(p => (
+                    <button 
+                      key={p}
+                      className={`btn btn-xs ${alertPriority === p ? 'active' : ''}`}
+                      onClick={() => setAlertPriority(p)}
+                      style={{ 
+                        fontSize: '10px', 
+                        flex: 1,
+                        background: alertPriority === p ? (p === 'CRITICAL' ? 'var(--v-red)' : 'var(--v-orange)') : 'rgba(255,255,255,0.05)'
+                      }}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label className="v-text-sm mb-1 block">Message</label>
+                <textarea
+                  className="input"
+                  rows={3}
+                  placeholder="Type instruction or warning..."
+                  value={alertMessage}
+                  onChange={e => setAlertMessage(e.target.value)}
+                  style={{ background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)' }}
+                />
+              </div>
             </div>
             <div className="modal__footer">
               <button className="btn" style={{ background: 'transparent' }} onClick={() => setShowAlertModal(false)}>Cancel</button>
-              <button className="btn" style={{ background: 'var(--v-orange)', color: 'white', border: 'none' }} onClick={handleSendAlert} disabled={alertSending}>
-                {alertSending ? 'Sending...' : 'Broadcast'}
+              <button className="btn" style={{ background: 'var(--v-orange)', color: 'white', border: 'none' }} onClick={handleSendAlert} disabled={alertSending || (alertType === 'ZONE' && !selectedTargetZone)}>
+                {alertSending ? 'Sending...' : 'Issue Command'}
               </button>
             </div>
           </div>

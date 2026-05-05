@@ -4,7 +4,7 @@ import { useEventStore } from '@/stores/eventStore'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import AlertCard from '@/components/AlertCard'
-import { Mic, MicOff, Shield, Activity, AlertTriangle, MessageSquare, Send } from 'lucide-react'
+import { Mic, MicOff, Shield, Activity, AlertTriangle, MessageSquare, Send, Megaphone } from 'lucide-react'
 import type { Event } from '@/lib/types'
 
 export default function CoordinatorApp() {
@@ -127,13 +127,21 @@ export default function CoordinatorApp() {
             {eventDetails.status}
           </span>
           {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length > 0 && (
-            <span
+            <div
               className="badge badge-danger"
-              style={{ fontSize: '10px', animation: 'pulse 1.5s infinite' }}
+              style={{ 
+                marginLeft: 'auto', 
+                fontSize: '10px', 
+                animation: 'pulse 1.5s infinite',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
               onClick={() => setActiveTab('alerts')}
             >
-              📢 {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length} broadcast alert(s)
-            </span>
+              <Megaphone size={10} /> {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length} URGENT
+            </div>
           )}
         </div>
       )}
@@ -177,8 +185,8 @@ export default function CoordinatorApp() {
               {/* Density Meter */}
               <div className="mt-4">
                 <div className="flex flex-between mb-2">
-                  <span className="text-secondary" style={{ fontSize: 'var(--text-sm)' }}>Density</span>
-                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', color: riskColor }}>{percentage}%</span>
+                  <span className="text-secondary" style={{ fontSize: 'var(--text-sm)' }}>Live Occupancy</span>
+                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', color: riskColor }}>{percentage}% ({myReading?.density || 0} people)</span>
                 </div>
                 <div className="density-bar" style={{ height: '12px' }}>
                   <div

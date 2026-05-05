@@ -116,6 +116,7 @@ export interface StewardUpdate {
   zone_id: string
   staff_id: string
   status: StewardStatus
+  message?: string
   created_at: string
   // Joined
   staff?: EventStaff
