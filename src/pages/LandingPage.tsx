@@ -11,7 +11,11 @@ export default function LandingPage() {
       <nav className="landing__nav">
         <div className="landing__nav-inner container">
           <div className="landing__logo">
-            <Shield size={24} className="text-gold" />
+            <img 
+              src="/main logo-png.png" 
+              alt="Suraksha.pro" 
+              style={{ height: '32px', width: 'auto', marginRight: '10px' }}
+            />
             <span className="landing__logo-text">Suraksha<span className="text-gold">.pro</span></span>
           </div>
           <div className="landing__nav-actions">
@@ -125,7 +129,11 @@ export default function LandingPage() {
         <div className="container">
           <div className="landing__footer-inner">
             <div className="landing__footer-brand">
-              <Shield size={20} className="text-gold" />
+              <img 
+                src="/main logo-png.png" 
+                alt="Suraksha.pro" 
+                style={{ height: '24px', width: 'auto', marginRight: '8px' }}
+              />
               <span>Suraksha<span className="text-gold">.pro</span></span>
             </div>
             <p className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>

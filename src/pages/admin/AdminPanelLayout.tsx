@@ -23,7 +23,12 @@ export default function AdminPanelLayout() {
     <div className="admin-layout">
       <aside className="admin-sidebar">
         <div className="admin-sidebar__title">
-          Suraksha Admin
+          <img 
+            src="/main logo-png.png" 
+            alt="Suraksha" 
+            style={{ height: '40px', width: 'auto', marginBottom: '12px' }}
+          />
+          <div style={{ fontSize: '1.2rem', color: 'var(--color-gold)' }}>Suraksha Admin</div>
           <div style={{ fontSize: 'var(--text-xs)', color: '#888', fontWeight: 'normal', marginTop: '4px' }}>
             {adminEmail}
           </div>

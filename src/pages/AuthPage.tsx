@@ -142,7 +142,11 @@ export default function AuthPage() {
         </button>
 
         <div className="auth__header">
-          <Shield size={32} className="text-gold" />
+          <img 
+            src="/main logo-png.png" 
+            alt="Suraksha.pro Logo" 
+            style={{ width: '100px', height: 'auto', marginBottom: 'var(--space-4)' }}
+          />
           <h1 className="auth__title">Suraksha<span className="text-gold">.pro</span></h1>
         </div>
 

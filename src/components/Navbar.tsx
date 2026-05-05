@@ -18,7 +18,11 @@ export default function Navbar() {
   return (
     <div className="header">
       <div className="header__left">
-        <Shield size={20} className="text-gold" />
+        <img 
+          src="/main logo-png.png" 
+          alt="Suraksha.pro" 
+          style={{ height: '28px', width: 'auto', marginRight: '8px' }}
+        />
         <span className="header__title" style={{ fontSize: 'var(--text-base)' }}>
           Suraksha<span className="text-gold">.pro</span>
         </span>
