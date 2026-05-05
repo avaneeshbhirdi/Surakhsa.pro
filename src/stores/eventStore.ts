@@ -29,6 +29,7 @@ interface EventState {
     total_capacity: number
     zones: { label: string; name?: string; capacity: number }[]
   }, adminProfileId: string) => Promise<Event>
+  createZone: (eventId: string, label: string, name: string | null, capacity: number) => Promise<void>
   loadEvent: (eventId: string) => Promise<void>
   updateEventStatus: (eventId: string, status: EventStatus) => Promise<void>
   acknowledgeAlert: (alertId: string, profileId: string) => Promise<void>
@@ -160,6 +161,18 @@ export const useEventStore = create<EventState>((set, get) => ({
       const message = err instanceof Error ? err.message : 'Failed to load event'
       set({ isLoading: false, error: message })
     }
+  },
+
+  createZone: async (eventId, label, name, capacity) => {
+    const { error } = await supabase
+      .from('zones')
+      .insert({ event_id: eventId, label, name, capacity })
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    // The new zone will be added via realtime subscription, 
+    // but we can also optimistically update it here if needed.
   },
 
   updateEventStatus: async (eventId: string, status: EventStatus) => {

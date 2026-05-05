@@ -333,7 +333,7 @@ export default function ManagerDashboard() {
                 )
               })}
             </div>
-            <button className="btn mt-auto" style={{ background: 'transparent', border: '1px solid var(--v-border)', width: '100%', borderRadius: '12px', marginTop: '24px' }}>
+            <button className="btn mt-auto" onClick={() => navigate('/manager/zones')} style={{ background: 'transparent', border: '1px solid var(--v-border)', width: '100%', borderRadius: '12px', marginTop: '24px' }}>
               View All Zones
             </button>
           </div>

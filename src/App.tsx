@@ -9,6 +9,7 @@ import AuthPage from '@/pages/AuthPage'
 import AdminDashboard from '@/pages/AdminDashboard'
 import CoordinatorApp from '@/pages/CoordinatorApp'
 import ManagerDashboard from '@/pages/ManagerDashboard'
+import ManagerZones from '@/pages/ManagerZones'
 import GuestApp from '@/pages/GuestApp'
 import CreateEvent from '@/pages/CreateEvent'
 import EventHistory from '@/pages/EventHistory'
@@ -63,6 +64,11 @@ function App() {
       <Route path="/manager" element={
         <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
           <ManagerDashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/zones" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
+          <ManagerZones />
         </ProtectedRoute>
       } />
       <Route path="/coordinator" element={

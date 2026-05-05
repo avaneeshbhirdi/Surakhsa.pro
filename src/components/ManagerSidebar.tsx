@@ -1,4 +1,4 @@
-import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, LogOut, Search } from 'lucide-react'
+import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, LogOut, Search, MapPin } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useNavigate } from 'react-router-dom'
 
@@ -29,6 +29,9 @@ export default function ManagerSidebar() {
         </button>
         <button className="virtus-nav-item">
           <Target size={18} /> Map
+        </button>
+        <button className="virtus-nav-item" onClick={() => navigate('/manager/zones')}>
+          <MapPin size={18} /> Zones
         </button>
         <button className="virtus-nav-item">
           <Folder size={18} /> Analytics
