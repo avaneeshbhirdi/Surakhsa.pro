@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
 import ManagerSidebar from '@/components/ManagerSidebar'
-import { User, Calendar, Bell, Info, Edit2, Check, X } from 'lucide-react'
+import { User, Calendar, Bell, Edit2, Check, X, LogOut } from 'lucide-react'
 
 export default function ManagerSettings() {
   const { profile, logout, updateProfile } = useAuthStore()
@@ -141,31 +141,25 @@ export default function ManagerSettings() {
             </div>
           </div>
 
-          {/* App Info */}
-          <div className="v-card">
-            <h3 className="v-text-title mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Info size={18} color="var(--v-orange)" /> About
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {[
-                { label: 'App', value: 'Suraksha.pro' },
-                { label: 'Version', value: '1.0.0' },
-                { label: 'Build', value: 'Vite + React + Supabase' },
-              ].map(r => (
-                <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--v-bg-dark)', borderRadius: '10px', border: '1px solid var(--v-border)' }}>
-                  <span className="v-text-sm" style={{ opacity: 0.6 }}>{r.label}</span>
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>{r.value}</span>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => logout()}
-              style={{ marginTop: '24px', width: '100%', padding: '12px', background: '#ff4d4d20', border: '1px solid #ff4d4d50', color: '#ff4d4d', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '14px' }}
-            >
-              Logout
-            </button>
           </div>
+        </div>
+
+        {/* Global Actions */}
+        <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-start' }}>
+          <button
+            onClick={() => logout()}
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '12px 24px', background: '#ff4d4d15', border: '1px solid #ff4d4d30', 
+              color: '#ff4d4d', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', fontSize: '14px',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#ff4d4d25'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#ff4d4d15'}
+          >
+            <LogOut size={16} />
+            Logout from Suraksha.pro
+          </button>
         </div>
       </main>
     </div>
