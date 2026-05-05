@@ -58,10 +58,6 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <Hero
-        trustBadge={{
-          text: "Trusted by forward-thinking teams.",
-          icons: ["✨"]
-        }}
         headline={{
           line1: "From Chaos",
           line2: "to Command"
