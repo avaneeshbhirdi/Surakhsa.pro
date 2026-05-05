@@ -12,7 +12,7 @@ export interface FeatureCardProps {
   isExpanded: boolean;
 }
 
-export function FeatureCard({ handleShuffle, icon, title, description, position, onExpand, isExpanded }: FeatureCardProps) {
+export function FeatureCard({ handleShuffle, icon, title, position, onExpand, isExpanded }: FeatureCardProps) {
   const dragRef = useRef(0);
   const isFront = position === "front";
   const isHidden = position.startsWith("hidden");
@@ -54,16 +54,16 @@ export function FeatureCard({ handleShuffle, icon, title, description, position,
         right: 0,
         bottom: 0
       }}
-      onDragStart={(e, info) => {
+      onDragStart={(_, info) => {
         dragRef.current = info.point.x;
       }}
-      onDragEnd={(e, info) => {
+      onDragEnd={(_, info) => {
         if (Math.abs(dragRef.current - info.point.x) > 100) {
           handleShuffle();
         }
         dragRef.current = 0;
       }}
-      onClick={(e) => {
+      onClick={(_) => {
         if (isFront && !isExpanded && Math.abs(dragRef.current) < 5) {
           onExpand();
         }

@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { Shield, Radio, Brain } from 'lucide-react'
 import Hero from '@/components/ui/animated-shader-hero'
 import { ShuffleFeatureCards } from '@/components/ui/feature-cards'
 import './LandingPage.css'
