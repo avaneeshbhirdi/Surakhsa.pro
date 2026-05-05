@@ -84,15 +84,16 @@ export default function AdminUsers() {
                   <td style={{ fontFamily: 'monospace', fontSize: '12px' }}>{u.auth_user_id?.substring(0, 8) || 'PIN-Only'}...</td>
                   <td>
                     {editingId === u.id ? (
-                      <select 
-                        value={editForm.role} 
-                        onChange={e => setEditForm({...editForm, role: e.target.value})}
-                        style={{ background: '#2A1018', border: '1px solid #3D1A22', color: '#fff', padding: '4px' }}
-                      >
-                        <option value="ADMIN">ADMIN</option>
-                        <option value="COORDINATOR">COORDINATOR</option>
-                        <option value="STEWARD">STEWARD</option>
-                      </select>
+                        <select 
+                          value={editForm.role} 
+                          onChange={e => setEditForm({...editForm, role: e.target.value})}
+                          style={{ background: '#2A1018', border: '1px solid #3D1A22', color: '#fff', padding: '4px' }}
+                        >
+                          <option value="ADMIN">ADMIN</option>
+                          <option value="EVENT_MANAGER">EVENT_MANAGER</option>
+                          <option value="COORDINATOR">COORDINATOR</option>
+                          <option value="GUEST">GUEST</option>
+                        </select>
                     ) : (
                       u.role
                     )}
