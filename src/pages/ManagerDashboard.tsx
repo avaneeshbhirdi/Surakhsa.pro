@@ -311,7 +311,12 @@ export default function ManagerDashboard() {
 
           {/* Row 2: Zone Capacities (Main Goal) */}
           <div className="v-card v-zone-capacities">
-            <h3 className="v-text-title">Zone Occupancy</h3>
+            <div className="flex flex-between mb-4">
+              <h3 className="v-text-title" style={{ margin: 0 }}>Zone Occupancy</h3>
+              <button className="btn-icon" onClick={() => navigate('/manager/zones')} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: '6px', borderRadius: '8px', cursor: 'pointer', color: 'var(--v-text-main)' }}>
+                <Plus size={16} />
+              </button>
+            </div>
             <div className="flex flex-col gap-4">
               {zones.slice(0, 3).map(z => {
                 const reading = latestReadings[z.id]
