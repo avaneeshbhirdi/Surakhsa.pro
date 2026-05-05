@@ -1,238 +1,205 @@
-import React, { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface FeatureCardProps {
   id: string | number;
   icon: React.ReactNode;
   title: string;
   description: string;
-  position: string;
-  handleShuffle: () => void;
-  onExpand: () => void;
-  isExpanded: boolean;
+  isActive: boolean;
+  onClick: () => void;
 }
 
-export function FeatureCard({ handleShuffle, icon, title, position, onExpand, isExpanded }: FeatureCardProps) {
-  const dragRef = useRef(0);
-  const isFront = position === "front";
-  const isHidden = position.startsWith("hidden");
-
+export function FeatureCard({ icon, title, isActive, onClick }: FeatureCardProps) {
   return (
     <motion.div
+      onClick={onClick}
+      whileHover={{ y: -10, transition: { duration: 0.2 } }}
+      whileTap={{ scale: 0.95 }}
       style={{
-        zIndex: position === "front" ? 3 : position === "middle" ? 2 : position === "back" ? 1 : 0,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '350px',
-        height: '450px',
+        width: '280px',
+        height: '380px',
+        flexShrink: 0,
         display: 'grid',
         placeContent: 'center',
         padding: '2rem',
-        borderRadius: '1rem',
-        border: '1px solid rgba(253, 186, 116, 0.2)',
-        background: 'rgba(20, 20, 20, 0.65)',
+        borderRadius: '1.25rem',
+        border: isActive ? '2px solid #facc15' : '1px solid rgba(253, 186, 116, 0.2)',
+        background: isActive ? 'rgba(253, 186, 116, 0.1)' : 'rgba(20, 20, 20, 0.6)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-        userSelect: 'none',
-        pointerEvents: isHidden ? 'none' : 'auto',
-        opacity: isHidden ? 0 : 1,
-        cursor: isFront ? (isExpanded ? 'grab' : 'pointer') : 'auto',
+        boxShadow: isActive ? '0 0 30px rgba(250, 204, 21, 0.2)' : '0 10px 30px rgba(0,0,0,0.3)',
+        cursor: 'pointer',
+        textAlign: 'center',
+        transition: 'all 0.3s ease',
+        position: 'relative',
+        overflow: 'hidden'
       }}
-      animate={{
-        rotate: position === "front" ? "-4deg" : position === "middle" ? "0deg" : position === "back" ? "4deg" : "0deg",
-        x: position === "front" ? "0%" : position === "middle" ? "20%" : position === "back" ? "40%" : "20%",
-        y: position === "front" ? "0%" : position === "middle" ? "5%" : position === "back" ? "10%" : "5%",
-        scale: position === "front" ? 1 : position === "middle" ? 0.95 : position === "back" ? 0.9 : 0.8,
-      }}
-      drag={isFront ? "x" : false}
-      dragElastic={0.35}
-      dragConstraints={{
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-      }}
-      onDragStart={(_, info) => {
-        dragRef.current = info.point.x;
-      }}
-      onDragEnd={(_, info) => {
-        if (Math.abs(dragRef.current - info.point.x) > 100) {
-          handleShuffle();
-        }
-        dragRef.current = 0;
-      }}
-      onClick={(_) => {
-        if (isFront && !isExpanded && Math.abs(dragRef.current) < 5) {
-          onExpand();
-        }
-      }}
-      whileTap={isFront ? { scale: 0.98 } : {}}
-      transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', textAlign: 'center' }}>
+      {isActive && (
+        <motion.div 
+          layoutId="active-glow"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'radial-gradient(circle at center, rgba(250, 204, 21, 0.1) 0%, transparent 70%)',
+            pointerEvents: 'none'
+          }}
+        />
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem' }}>
         <div style={{ 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
-          width: '100px', 
-          height: '100px', 
+          width: '90px', 
+          height: '90px', 
           borderRadius: '50%', 
           background: 'rgba(253, 186, 116, 0.1)', 
           border: '1px solid rgba(253, 186, 116, 0.3)',
-          fontSize: '3rem'
+          fontSize: '2.5rem'
         }}>
           {icon}
         </div>
-        <h3 style={{ fontSize: '1.75rem', fontWeight: 600, color: 'white', margin: 0 }}>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'white', margin: 0 }}>
           {title}
         </h3>
-        
-        {isFront && !isExpanded && (
-          <div style={{ 
-            marginTop: '2rem', 
-            fontSize: '0.875rem', 
-            color: '#facc15', 
-            opacity: 0.8,
-            animation: 'pulse 2s infinite'
-          }}>
-            Click to View Details or Swipe to Shuffle
-          </div>
-        )}
+        <div style={{ 
+          fontSize: '0.875rem', 
+          color: isActive ? '#facc15' : 'rgba(255, 255, 255, 0.4)',
+          fontWeight: 500
+        }}>
+          {isActive ? 'Active' : 'Click to View'}
+        </div>
       </div>
     </motion.div>
   );
 }
 
-export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardProps, 'position' | 'handleShuffle' | 'onExpand' | 'isExpanded'>[] }) {
-  const initialPositions = features.map((_, index) => {
-    if (index === 0) return "front";
-    if (index === 1) return "middle";
-    if (index === 2) return "back";
-    return `hidden${index}`;
-  });
-
-  const [positions, setPositions] = useState(initialPositions);
+export function ShuffleFeatureCards({ features }: { features: Omit<FeatureCardProps, 'isActive' | 'onClick'>[] }) {
+  const [activeIndex, setActiveIndex] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleShuffle = () => {
-    setIsExpanded(false);
-    setPositions((prev) => {
-      const newPositions = [...prev];
-      const front = newPositions.shift();
-      if (front) newPositions.push(front);
-      return newPositions;
-    });
+  const handleCardClick = (index: number) => {
+    setActiveIndex(index);
+    setIsExpanded(true);
   };
 
-  const activeIndex = positions.indexOf("front");
-  const activeFeature = features[activeIndex !== -1 ? activeIndex : 0];
+  const activeFeature = features[activeIndex];
 
   return (
     <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
       width: '100%',
-      minHeight: '600px',
-      padding: '4rem 2rem',
-      position: 'relative'
+      padding: '4rem 0',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '4rem'
     }}>
-      <motion.div 
-        animate={{ 
-          x: isExpanded ? -150 : 0,
-        }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '2rem',
-          position: 'relative',
-          width: '100%',
-          maxWidth: '1100px',
-          margin: '0 auto'
-        }}
-      >
+      {/* Scrollable Container */}
+      <div style={{
+        width: '100%',
+        overflowX: 'auto',
+        padding: '2rem',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        display: 'flex',
+        justifyContent: features.length <= 3 ? 'center' : 'flex-start',
+        gap: '2rem'
+      }}>
         <div style={{
-          position: 'relative',
-          width: '350px',
-          height: '450px',
-          flexShrink: 0,
-          zIndex: 5
+          display: 'flex',
+          gap: '2rem',
+          padding: '0 2rem'
         }}>
           {features.map((feature, index) => (
             <FeatureCard
               key={feature.id}
               {...feature}
-              handleShuffle={handleShuffle}
-              position={positions[index]}
-              onExpand={() => setIsExpanded(true)}
-              isExpanded={isExpanded}
+              isActive={activeIndex === index}
+              onClick={() => handleCardClick(index)}
             />
           ))}
         </div>
+      </div>
 
-        <motion.div 
-          key={activeFeature.id}
-          initial={{ opacity: 0, x: 20, scale: 0.95 }}
-          animate={{ 
-            opacity: isExpanded ? 1 : 0, 
-            x: isExpanded ? 0 : 20,
-            scale: isExpanded ? 1 : 0.95,
-            visibility: isExpanded ? 'visible' : 'hidden'
-          }}
-          transition={{ duration: 0.4, delay: isExpanded ? 0.2 : 0 }}
-          style={{
-            width: '100%',
-            maxWidth: '500px',
-            padding: '3rem',
-            borderRadius: '1.5rem',
-            border: '1px solid rgba(253, 186, 116, 0.2)',
-            background: 'rgba(15, 15, 15, 0.8)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            gap: '1.5rem',
-            position: 'relative',
-            zIndex: 10,
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-            pointerEvents: isExpanded ? 'auto' : 'none'
-          }}
-        >
-          <button 
-            onClick={() => setIsExpanded(false)}
+      {/* Description Panel */}
+      <AnimatePresence mode="wait">
+        {isExpanded && (
+          <motion.div 
+            key={activeFeature.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
             style={{
-              position: 'absolute',
-              top: '1.5rem',
-              right: '1.5rem',
-              background: 'rgba(255,255,255,0.05)',
-              border: 'none',
-              color: 'white',
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
+              width: '90%',
+              maxWidth: '900px',
+              padding: '3.5rem',
+              borderRadius: '2rem',
+              border: '1px solid rgba(253, 186, 116, 0.2)',
+              background: 'rgba(15, 15, 15, 0.8)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: '3rem',
+              position: 'relative',
+              boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
+              flexWrap: 'wrap'
+            }}
+          >
+            <button 
+              onClick={() => setIsExpanded(false)}
+              style={{
+                position: 'absolute',
+                top: '2rem',
+                right: '2rem',
+                background: 'rgba(255,255,255,0.05)',
+                border: 'none',
+                color: 'white',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '1.25rem'
+              }}
+            >
+              ×
+            </button>
+            
+            <div style={{ 
+              fontSize: '4rem',
+              background: 'rgba(253, 186, 116, 0.1)',
+              width: '120px',
+              height: '120px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer',
-              opacity: 0.7
-            }}
-          >
-            ×
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <span style={{ fontSize: '3rem' }}>{activeFeature.icon}</span>
-            <h3 style={{ fontSize: '2.25rem', color: 'white', margin: 0, fontWeight: 700 }}>{activeFeature.title}</h3>
-          </div>
-          <p style={{ fontSize: '1.25rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.7, margin: 0 }}>
-            {activeFeature.description}
-          </p>
-        </motion.div>
-      </motion.div>
+              borderRadius: '2rem',
+              border: '1px solid rgba(253, 186, 116, 0.2)'
+            }}>
+              {activeFeature.icon}
+            </div>
+
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              <h3 style={{ fontSize: '2.5rem', color: 'white', margin: '0 0 1rem 0', fontWeight: 700 }}>
+                {activeFeature.title}
+              </h3>
+              <p style={{ fontSize: '1.35rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.6, margin: 0 }}>
+                {activeFeature.description}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

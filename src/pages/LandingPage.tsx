@@ -1,6 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import Hero from '@/components/ui/animated-shader-hero'
 import { ShuffleFeatureCards } from '@/components/ui/feature-cards'
+import { 
+  Map as MapIcon, 
+  Brain, 
+  Radio, 
+  Bell, 
+  Smartphone, 
+  BarChart3 
+} from 'lucide-react'
 import './LandingPage.css'
 
 export default function LandingPage() {
@@ -58,12 +66,42 @@ export default function LandingPage() {
           <p className="text-secondary" style={{ marginBottom: '1rem', fontSize: '1.125rem', textAlign: 'center' }}>Swipe through our interactive feature cards.</p>
           <ShuffleFeatureCards 
             features={[
-              { id: 1, icon: '🗺️', title: 'Live Zone Heatmap', description: 'See every zone at a glance with color-coded risk status updating every 5 seconds.' },
-              { id: 2, icon: '🧠', title: 'Risk Detection Engine', description: 'Automatic detection of surge, bottleneck, and stampede risk patterns with actionable recommendations.' },
-              { id: 3, icon: '📡', title: 'WebRTC Walkie-Talkie', description: 'Push-to-talk voice channels — global and per-zone — with sub-500ms latency.' },
-              { id: 4, icon: '🚨', title: 'Smart Alert System', description: 'Priority-based alerts with audio, vibration, and full-screen notifications for critical situations.' },
-              { id: 5, icon: '📱', title: 'Steward Mobile App', description: 'Gloves-friendly interface with 1-tap status reports and large touch targets.' },
-              { id: 6, icon: '📊', title: 'Event Analytics', description: 'Complete event timeline, risk history, and staff activity logs for post-event review.' },
+              { 
+                id: 1, 
+                icon: <MapIcon size={48} strokeWidth={1.5} color="#facc15" />, 
+                title: 'Live Zone Heatmap', 
+                description: 'See every zone at a glance with color-coded risk status updating every 5 seconds.' 
+              },
+              { 
+                id: 2, 
+                icon: <Brain size={48} strokeWidth={1.5} color="#facc15" />, 
+                title: 'Risk Detection Engine', 
+                description: 'Automatic detection of surge, bottleneck, and stampede risk patterns with actionable recommendations.' 
+              },
+              { 
+                id: 3, 
+                icon: <Radio size={48} strokeWidth={1.5} color="#facc15" />, 
+                title: 'WebRTC Walkie-Talkie', 
+                description: 'Push-to-talk voice channels — global and per-zone — with sub-500ms latency.' 
+              },
+              { 
+                id: 4, 
+                icon: <Bell size={48} strokeWidth={1.5} color="#facc15" />, 
+                title: 'Smart Alert System', 
+                description: 'Priority-based alerts with audio, vibration, and full-screen notifications for critical situations.' 
+              },
+              { 
+                id: 5, 
+                icon: <Smartphone size={48} strokeWidth={1.5} color="#facc15" />, 
+                title: 'Steward Mobile App', 
+                description: 'Gloves-friendly interface with 1-tap status reports and large touch targets.' 
+              },
+              { 
+                id: 6, 
+                icon: <BarChart3 size={48} strokeWidth={1.5} color="#facc15" />, 
+                title: 'Event Analytics', 
+                description: 'Complete event timeline, risk history, and staff activity logs for post-event review.' 
+              },
             ]}
           />
         </div>
