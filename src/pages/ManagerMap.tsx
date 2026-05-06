@@ -52,6 +52,7 @@ export default function ManagerMap() {
     setPositions(prev => ({
       ...prev,
       [id]: {
+        ...(prev[id] || {}),
         x: Math.max(0, Math.min(90, initialPctX + deltaPctX)),
         y: Math.max(0, Math.min(90, initialPctY + deltaPctY))
       }

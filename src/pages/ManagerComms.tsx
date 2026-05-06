@@ -34,8 +34,23 @@ export default function ManagerComms() {
     if (!message.trim() || !activeEvent || !profile) return
     setSending(true)
     try {
-      const zoneId = selectedZone === 'all' ? null : selectedZone
-      await sendInstruction(activeEvent.id, zoneId, profile.id, message.trim(), selectedZone === 'all')
+      let zoneId: string | null = null
+      let isBroadcast = false
+      let finalMessage = message.trim()
+
+      if (selectedZone === 'all') {
+        isBroadcast = true
+      } else if (selectedZone.startsWith('staff_')) {
+        const staffId = selectedZone.replace('staff_', '')
+        const targetStaff = staff.find(s => s.id === staffId)
+        zoneId = targetStaff?.zone_id || null
+        if (!zoneId) isBroadcast = true // fallback to broadcast if they have no zone
+        finalMessage = `[Direct: ${targetStaff?.display_name || 'Coordinator'}] ${message.trim()}`
+      } else {
+        zoneId = selectedZone
+      }
+
+      await sendInstruction(activeEvent.id, zoneId, profile.id, finalMessage, isBroadcast)
       setSent(true)
       setMessage('')
       setTimeout(() => setSent(false), 2000)
@@ -99,10 +114,19 @@ export default function ManagerComms() {
                     onChange={e => setSelectedZone(e.target.value)}
                     style={{ width: '100%', background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', color: 'var(--v-text-main)', borderRadius: '10px', padding: '10px 14px', fontSize: '14px' }}
                   >
-                    <option value="all">📣 All Coordinators (Broadcast)</option>
-                    {zones.map(z => (
-                      <option key={z.id} value={z.id}>📍 Zone {z.label}{z.name ? ` - ${z.name}` : ''}</option>
-                    ))}
+                    <optgroup label="Broadcast">
+                      <option value="all">📣 All Coordinators (Broadcast)</option>
+                    </optgroup>
+                    <optgroup label="Specific Zones">
+                      {zones.map(z => (
+                        <option key={z.id} value={z.id}>📍 Zone {z.label}{z.name ? ` - ${z.name}` : ''}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Personal Message (Coordinators)">
+                      {staff.map(s => (
+                        <option key={`staff_${s.id}`} value={`staff_${s.id}`}>👤 {s.display_name || 'Coordinator'}</option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
 
@@ -139,12 +163,12 @@ export default function ManagerComms() {
                 </div>
               </div>
 
-              {/* Active Staff */}
+              {/* Active Coordinators */}
               <div className="v-card">
-                <h3 className="v-text-title mb-3" style={{ fontSize: '14px' }}>👥 Active Staff ({staff.filter(s => s.is_online).length})</h3>
+                <h3 className="v-text-title mb-3" style={{ fontSize: '14px' }}>👥 Active Coordinators ({staff.filter(s => s.is_online).length})</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {staff.filter(s => s.is_online).length === 0 && (
-                    <p className="v-text-sm" style={{ opacity: 0.4 }}>No staff online</p>
+                    <p className="v-text-sm" style={{ opacity: 0.4 }}>No coordinators online</p>
                   )}
                   {staff.filter(s => s.is_online).map(s => (
                     <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', background: 'var(--v-bg-dark)', borderRadius: '8px' }}>
