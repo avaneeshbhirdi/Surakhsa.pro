@@ -338,7 +338,7 @@ export default function ManagerDashboard() {
                 )
               })}
             </div>
-            <button className="btn mt-auto" onClick={() => navigate('/manager/map')} style={{ background: 'transparent', border: '1px solid var(--v-border)', width: '100%', borderRadius: '12px', marginTop: '24px' }}>
+            <button className="btn mt-auto" onClick={() => navigate('/manager/zones')} style={{ background: 'transparent', border: '1px solid var(--v-border)', width: '100%', borderRadius: '12px', marginTop: '24px' }}>
               View All Zones
             </button>
           </div>
@@ -385,7 +385,7 @@ export default function ManagerDashboard() {
                 const s = staff.find(st => st.id === update.staff_id)
                 const z = zones.find(zn => zn.id === update.zone_id)
                 return (
-                  <div key={update.id} className="v-report-item">
+                  <div key={update.id} className="v-report-item" style={{ cursor: 'pointer' }} onClick={() => navigate('/manager/comms')}>
                     <div className="flex gap-3 align-center">
                       <div className="v-avatar" style={{ width: '36px', height: '36px' }}>
                         {s?.display_name ? s.display_name.substring(0, 2).toUpperCase() : 'S'}

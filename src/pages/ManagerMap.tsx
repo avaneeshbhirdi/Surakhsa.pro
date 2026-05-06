@@ -8,7 +8,7 @@ import { MapPin, AlertTriangle, RotateCw } from 'lucide-react'
 export default function ManagerMap() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, latestReadings, alerts, loadEvent } = useEventStore()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!activeEvent) // skip loading if event already in store
 
   const [positions, setPositions] = useState<Record<string, {x: number, y: number, r?: number}>>(() => {
     try {

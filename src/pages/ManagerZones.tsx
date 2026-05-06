@@ -11,7 +11,7 @@ export default function ManagerZones() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, latestReadings, alerts, createZone, updateZone, loadEvent } = useEventStore()
   
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!activeEvent) // skip loading if event already in store
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newZoneLabel, setNewZoneLabel] = useState('')
   const [newZoneName, setNewZoneName] = useState('')
@@ -139,10 +139,10 @@ export default function ManagerZones() {
             const pct = z.capacity > 0 ? Math.min(100, Math.round((density / z.capacity) * 100)) : 0
             const zoneAlerts = alerts.filter(a => a.zone_id === z.id && a.status === 'TRIGGERED').length
             
-            let color = 'var(--v-orange)'
-            if (reading?.color_state === 'RED') color = 'var(--v-red)'
-            else if (reading?.color_state === 'YELLOW') color = 'orange'
-            else if (reading?.color_state === 'GREEN') color = '#4dff4d'
+            // Derive color from LIVE pct rather than stored color_state (which becomes stale after capacity edits)
+            let color = '#4dff4d' // GREEN
+            if (pct >= 85) color = 'var(--v-red)'
+            else if (pct >= 60) color = 'orange'
 
             return (
               <div key={z.id} className="v-card" style={{ padding: '24px', border: '1px solid var(--v-border)' }}>

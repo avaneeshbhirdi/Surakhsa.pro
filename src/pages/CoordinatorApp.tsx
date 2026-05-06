@@ -4,7 +4,7 @@ import { useEventStore } from '@/stores/eventStore'
 import { supabase } from '@/lib/supabase'
 import CoordinatorSidebar from '@/components/CoordinatorSidebar'
 import AlertCard from '@/components/AlertCard'
-import { Mic, MicOff, Activity, Send, Megaphone } from 'lucide-react'
+import { Mic, MicOff, Activity, Send, Megaphone, ChevronDown } from 'lucide-react'
 import type { Event } from '@/lib/types'
 
 export default function CoordinatorApp() {
@@ -16,8 +16,19 @@ export default function CoordinatorApp() {
   const [messageSent, setMessageSent] = useState(false)
   const [eventDetails, setEventDetails] = useState<Event | null>(null)
 
+  // Zone selector: default to coordinator's assigned zone, but they can switch
+  const [selectedZoneId, setSelectedZoneId] = useState<string>('')
+
+  // Track which zone just had a status sent (for feedback)
+  const [lastReportedStatus, setLastReportedStatus] = useState<string | null>(null)
+  const [reportSent, setReportSent] = useState(false)
+
+  // Per-button click counters and animation triggers
+  const [reportCounts, setReportCounts] = useState<Record<string, number>>({ ALL_CLEAR: 0, CROWD_BUILDING: 0, EMERGENCY: 0 })
+  const [animatingButton, setAnimatingButton] = useState<string | null>(null)
+
   const eventId = pinSession?.eventId || ''
-  const zoneId = pinSession?.zoneId || ''
+  const assignedZoneId = pinSession?.zoneId || ''
 
   useEffect(() => {
     if (eventId) {
@@ -26,36 +37,57 @@ export default function CoordinatorApp() {
     }
   }, [eventId])
 
+  // Set default selected zone to assigned zone once zones load
+  useEffect(() => {
+    if (!selectedZoneId && zones.length > 0) {
+      setSelectedZoneId(assignedZoneId || zones[0].id)
+    }
+  }, [zones, assignedZoneId, selectedZoneId])
+
   const loadEventDetails = async (id: string) => {
     const { data } = await supabase.from('events').select('*').eq('id', id).single()
     if (data) setEventDetails(data)
   }
 
-  const myZone = zones.find(z => z.id === zoneId)
-  const myReading = zoneId ? latestReadings[zoneId] : undefined
+  // Use selected zone (not just assigned zone)
+  const selectedZone = zones.find(z => z.id === selectedZoneId)
+  const selectedReading = selectedZoneId ? latestReadings[selectedZoneId] : undefined
 
-  // Show zone-specific alerts AND broadcast alerts (zone_id is null = from manager)
-  const myAlerts = alerts.filter(a => a.zone_id === zoneId || a.zone_id === null)
+  // Show all alerts for any zone the coordinator can see + broadcasts
   const broadcastAlerts = alerts.filter(a => a.zone_id === null)
-  const unreadCount = myAlerts.filter(a => a.status === 'TRIGGERED').length
+  const allZoneAlerts = alerts.filter(a => a.zone_id !== null && a.status === 'TRIGGERED')
+  const unreadCount = broadcastAlerts.filter(a => a.status === 'TRIGGERED').length + allZoneAlerts.length
 
   const profileId = profile?.id || ''
 
-  const percentage = myZone && myZone.capacity > 0
-    ? Math.min(100, Math.round(((myReading?.density || 0) / myZone.capacity) * 100))
+  const percentage = selectedZone && selectedZone.capacity > 0
+    ? Math.min(100, Math.round(((selectedReading?.density || 0) / selectedZone.capacity) * 100))
     : 0
-  const riskScore = myReading?.risk_score || 0
-  const colorState = myReading?.color_state || 'GREEN'
-  const riskColor = colorState === 'RED'
-    ? 'var(--color-danger-pulse)'
-    : colorState === 'YELLOW'
-    ? 'var(--color-warning)'
-    : 'var(--color-safe)'
+
+  // Compute color from live percentage (same as ManagerZones fix)
+  let riskColor = 'var(--color-safe)'
+  let progressColor = 'var(--v-orange)'
+  if (percentage >= 85) {
+    riskColor = 'var(--color-danger-pulse)'
+    progressColor = 'var(--color-danger-pulse)'
+  } else if (percentage >= 60) {
+    riskColor = 'var(--color-warning)'
+    progressColor = 'var(--color-warning)'
+  }
+
+  const riskScore = selectedReading?.risk_score || 0
 
   const handleReport = async (status: 'ALL_CLEAR' | 'CROWD_BUILDING' | 'EMERGENCY') => {
-    if (!pinSession) return
+    if (!pinSession || !selectedZoneId) return
+    // Trigger animation
+    setAnimatingButton(status)
+    setTimeout(() => setAnimatingButton(null), 600)
     try {
-      await sendStewardMessage(eventId, zoneId, pinSession.staffId, status)
+      await sendStewardMessage(eventId, selectedZoneId, pinSession.staffId, status)
+      setReportCounts(prev => ({ ...prev, [status]: (prev[status] || 0) + 1 }))
+      setLastReportedStatus(status)
+      setReportSent(true)
+      setTimeout(() => setReportSent(false), 2500)
     } catch (err) {
       console.error('Failed to send status update')
     }
@@ -64,7 +96,7 @@ export default function CoordinatorApp() {
   const handleSendMessage = async () => {
     if (!textMessage.trim() || !pinSession) return
     try {
-      await sendStewardMessage(eventId, zoneId || null, pinSession.staffId, 'ALL_CLEAR', textMessage.trim())
+      await sendStewardMessage(eventId, selectedZoneId || null, pinSession.staffId, 'ALL_CLEAR', textMessage.trim())
       setTextMessage('')
       setMessageSent(true)
       setTimeout(() => setMessageSent(false), 2500)
@@ -74,15 +106,18 @@ export default function CoordinatorApp() {
   }
 
   const handleSendEmergencyAlert = async () => {
-    if (!pinSession || !eventId) return
+    if (!pinSession || !eventId || !selectedZoneId) return
+    setAnimatingButton('EMERGENCY')
+    setTimeout(() => setAnimatingButton(null), 600)
     try {
-      await sendStewardMessage(eventId, zoneId || null, pinSession.staffId, 'EMERGENCY')
+      await sendStewardMessage(eventId, selectedZoneId, pinSession.staffId, 'EMERGENCY')
+      setReportCounts(prev => ({ ...prev, EMERGENCY: (prev.EMERGENCY || 0) + 1 }))
       await triggerAlert(
         eventId,
-        zoneId || null,
-        'OTHER', // mapped as STAMPEDE/EMERGENCY
+        selectedZoneId,
+        'OTHER',
         'CRITICAL',
-        `🚨 Emergency reported by ${pinSession.displayName} at Zone ${myZone?.label || '?'}`,
+        `🚨 Emergency reported by ${pinSession.displayName} at Zone ${selectedZone?.label || '?'}`,
         pinSession.staffId
       )
     } catch (err) {
@@ -95,6 +130,35 @@ export default function CoordinatorApp() {
       <CoordinatorSidebar activeTab={activeTab} setActiveTab={setActiveTab} unreadCount={unreadCount} />
 
       <main className="virtus-main">
+        {/* Animation keyframes injected inline */}
+        <style>{`
+          @keyframes btn-ripple {
+            0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.8; }
+            70% { box-shadow: 0 0 0 18px transparent; opacity: 0; }
+            100% { box-shadow: 0 0 0 0 transparent; opacity: 0; }
+          }
+          @keyframes badge-pop {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.55); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+          }
+          .report-btn { position: relative; transition: transform 0.12s, opacity 0.15s; }
+          .report-btn:active { transform: scale(0.97); }
+          .report-btn.animating { animation: btn-ripple 0.6s ease-out; }
+          .report-badge {
+            position: absolute;
+            top: -8px; right: -8px;
+            min-width: 22px; height: 22px;
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800;
+            line-height: 1; padding: 0 5px;
+            border: 2px solid var(--v-bg-dark);
+            pointer-events: none;
+          }
+          .report-badge.popping { animation: badge-pop 0.4s ease; }
+        `}</style>
         {/* Event Info Header */}
         <header className="virtus-header" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -136,13 +200,53 @@ export default function CoordinatorApp() {
           {/* My Zone Tab */}
           {activeTab === 'zone' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+              {/* Zone Selector */}
+              <div className="v-card" style={{ padding: '16px 20px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--v-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: '10px', display: 'block' }}>
+                  Reporting for Zone
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <select
+                    value={selectedZoneId}
+                    onChange={e => setSelectedZoneId(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'var(--v-bg-dark)',
+                      border: '1px solid var(--v-border)',
+                      color: 'var(--v-text-main)',
+                      borderRadius: '10px',
+                      padding: '12px 40px 12px 16px',
+                      fontSize: '15px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                    }}
+                  >
+                    {zones.map(z => (
+                      <option key={z.id} value={z.id}>
+                        Zone {z.label}{z.name ? ` — ${z.name}` : ''}{z.id === assignedZoneId ? ' (My Zone)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5 }} />
+                </div>
+                {selectedZoneId !== assignedZoneId && (
+                  <p style={{ fontSize: '11px', marginTop: '8px', color: 'var(--color-warning)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    ⚠️ Reporting for a different zone. Your assigned zone is {zones.find(z => z.id === assignedZoneId)?.label || '—'}.
+                  </p>
+                )}
+              </div>
+
+              {/* Zone Stats Card */}
               <div className="v-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--v-orange)', marginBottom: '4px' }}>
-                      Zone {myZone?.label || '?'}
+                      Zone {selectedZone?.label || '?'}
                     </h2>
-                    {myZone?.name && <p style={{ color: 'var(--v-text-main)', opacity: 0.7, fontSize: '14px' }}>{myZone.name}</p>}
+                    {selectedZone?.name && <p style={{ color: 'var(--v-text-main)', opacity: 0.7, fontSize: '14px' }}>{selectedZone.name}</p>}
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '32px', fontWeight: 800, color: riskColor }}>{riskScore}</div>
@@ -154,14 +258,16 @@ export default function CoordinatorApp() {
                 <div style={{ marginTop: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <span style={{ fontSize: '14px', color: 'var(--v-text-main)', opacity: 0.7 }}>Live Occupancy</span>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: riskColor }}>{percentage}% ({myReading?.density || 0} people)</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: riskColor }}>
+                      {percentage}% ({selectedReading?.density || 0} / {selectedZone?.capacity || 0} people)
+                    </span>
                   </div>
                   <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
                     <div
-                      style={{ 
-                        height: '100%', 
+                      style={{
+                        height: '100%',
                         width: `${percentage}%`,
-                        background: colorState === 'RED' ? 'var(--color-danger-pulse)' : colorState === 'YELLOW' ? 'var(--color-warning)' : 'var(--v-orange)',
+                        background: progressColor,
                         transition: 'width 0.5s ease-out, background-color 0.5s ease'
                       }}
                     />
@@ -175,12 +281,12 @@ export default function CoordinatorApp() {
                     Flow Rate
                   </span>
                   <span style={{ fontSize: '14px', fontWeight: 700 }}>
-                    {(myReading?.flow_rate || 0).toFixed(1)} m/min
+                    {(selectedReading?.flow_rate || 0).toFixed(1)} m/min
                   </span>
                 </div>
 
                 {/* Risk Type */}
-                {myReading?.risk_type && myReading.risk_type !== 'NORMAL' && (
+                {selectedReading?.risk_type && selectedReading.risk_type !== 'NORMAL' && (
                   <div style={{
                     marginTop: '20px',
                     padding: '12px',
@@ -193,31 +299,65 @@ export default function CoordinatorApp() {
                   }}>
                     <Megaphone size={16} color="var(--color-danger-pulse)" />
                     <span style={{ fontWeight: 600, color: 'var(--color-danger-pulse)', fontSize: '14px' }}>
-                      {myReading.risk_type.replace('_', ' ')}
+                      {selectedReading.risk_type.replace('_', ' ')}
                     </span>
                   </div>
                 )}
               </div>
 
+              {/* Report Sent Feedback */}
+              {reportSent && (
+                <div style={{
+                  padding: '12px 16px',
+                  background: 'rgba(77,255,77,0.1)',
+                  border: '1px solid rgba(77,255,77,0.3)',
+                  borderRadius: '10px',
+                  color: '#4dff4d',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  textAlign: 'center'
+                }}>
+                  ✅ Status "{lastReportedStatus?.replace('_', ' ')}" sent to manager for Zone {selectedZone?.label}
+                </div>
+              )}
+
               {/* Quick Report Buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-                <button 
+                <button
                   onClick={() => handleReport('ALL_CLEAR')}
-                  style={{ background: 'rgba(77, 255, 77, 0.1)', color: '#4dff4d', border: '1px solid rgba(77, 255, 77, 0.3)', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  className={`report-btn${animatingButton === 'ALL_CLEAR' ? ' animating' : ''}`}
+                  style={{ background: 'rgba(77, 255, 77, 0.1)', color: '#4dff4d', border: '1px solid rgba(77, 255, 77, 0.3)', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                   ✅ Mark All Clear
+                  {reportCounts.ALL_CLEAR > 0 && (
+                    <span className={`report-badge${animatingButton === 'ALL_CLEAR' ? ' popping' : ''}`} style={{ background: '#4dff4d', color: '#000' }}>
+                      {reportCounts.ALL_CLEAR}
+                    </span>
+                  )}
                 </button>
-                <button 
+                <button
                   onClick={() => handleReport('CROWD_BUILDING')}
-                  style={{ background: 'rgba(255, 170, 0, 0.1)', color: '#ffaa00', border: '1px solid rgba(255, 170, 0, 0.3)', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  className={`report-btn${animatingButton === 'CROWD_BUILDING' ? ' animating' : ''}`}
+                  style={{ background: 'rgba(255, 170, 0, 0.1)', color: '#ffaa00', border: '1px solid rgba(255, 170, 0, 0.3)', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                   ⚠️ Crowd Building
+                  {reportCounts.CROWD_BUILDING > 0 && (
+                    <span className={`report-badge${animatingButton === 'CROWD_BUILDING' ? ' popping' : ''}`} style={{ background: '#ffaa00', color: '#000' }}>
+                      {reportCounts.CROWD_BUILDING}
+                    </span>
+                  )}
                 </button>
                 <button
                   onClick={handleSendEmergencyAlert}
-                  style={{ background: 'var(--color-danger-pulse)', color: '#fff', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '12px' }}
+                  className={`report-btn${animatingButton === 'EMERGENCY' ? ' animating' : ''}`}
+                  style={{ background: 'var(--color-danger-pulse)', color: '#fff', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '12px' }}
                 >
                   🚨 Send Emergency Alert to Manager
+                  {reportCounts.EMERGENCY > 0 && (
+                    <span className={`report-badge${animatingButton === 'EMERGENCY' ? ' popping' : ''}`} style={{ background: '#fff', color: 'var(--color-danger-pulse)' }}>
+                      {reportCounts.EMERGENCY}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
@@ -299,17 +439,16 @@ export default function CoordinatorApp() {
               )}
 
               <h4 style={{ fontSize: '12px', color: 'var(--v-text-main)', opacity: 0.5, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
-                Zone Alerts
+                All Zone Alerts
               </h4>
 
-              {/* Zone-specific alerts */}
-              {myAlerts.filter(a => a.zone_id === zoneId).length === 0 ? (
+              {allZoneAlerts.length === 0 ? (
                 <div className="v-card" style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.6 }}>
-                  <p style={{ fontSize: '14px' }}>No alerts for your zone.</p>
+                  <p style={{ fontSize: '14px' }}>No active zone alerts.</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {myAlerts.filter(a => a.zone_id === zoneId).map(a => (
+                  {allZoneAlerts.map(a => (
                     <AlertCard
                       key={a.id}
                       alert={a}
