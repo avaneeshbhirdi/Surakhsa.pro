@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  AlertTriangle, MapPin, LogOut, Phone, HeartPulse, Flame,
+  AlertTriangle, MapPin, LogOut,
   Users, Activity, Megaphone, ShieldCheck, Clock,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
@@ -10,99 +10,16 @@ import { useLang } from '@/contexts/LanguageContext'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import './GuestApp.css'
 
-interface EmergencyModalProps {
-  type: 'POLICE' | 'AMBULANCE' | 'FIRE' | null
-  onClose: () => void
-  onConfirm: () => void
-}
-
-function EmergencyModal({ type, onClose, onConfirm }: EmergencyModalProps) {
-  const { t } = useLang()
-  if (!type) return null
-
-  const config = {
-    POLICE: {
-      title: t('guestCallPolice'),
-      icon: <Phone size={36} />,
-      color: '#3b82f6',
-      glow: 'rgba(59,130,246,0.35)',
-      text: t('guestPoliceText'),
-    },
-    AMBULANCE: {
-      title: t('guestCallAmbulance'),
-      icon: <HeartPulse size={36} />,
-      color: '#ef4444',
-      glow: 'rgba(239,68,68,0.35)',
-      text: t('guestAmbulanceText'),
-    },
-    FIRE: {
-      title: t('guestCallFire'),
-      icon: <Flame size={36} />,
-      color: '#f97316',
-      glow: 'rgba(249,115,22,0.35)',
-      text: t('guestFireText'),
-    },
-  }
-
-  const active = config[type]
-
-  return (
-    <motion.div
-      className="g-modal-overlay"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
-      <motion.div
-        className="g-modal"
-        initial={{ scale: 0.88, y: 24 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.88, y: 24 }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="g-modal-icon" style={{ background: active.color, boxShadow: `0 0 32px ${active.glow}` }}>
-          {active.icon}
-        </div>
-        <h2 className="g-modal-title">{active.title}</h2>
-        <p className="g-modal-text">{active.text}</p>
-        <button className="g-modal-confirm" style={{ background: active.color, boxShadow: `0 4px 20px ${active.glow}` }} onClick={onConfirm}>
-          {t('guestConfirmEmergency')}
-        </button>
-        <button className="g-modal-cancel" onClick={onClose}>{t('cancel')}</button>
-      </motion.div>
-    </motion.div>
-  )
-}
-
 export default function GuestApp() {
   const { logout, pinSession } = useAuthStore()
   const { zones, alerts, latestReadings, loadEvent, triggerAlert, activeEvent } = useEventStore()
   const { t } = useLang()
-  const [emergencyType, setEmergencyType] = useState<'POLICE' | 'AMBULANCE' | 'FIRE' | null>(null)
-  const [emergencySent, setEmergencySent] = useState(false)
 
   useEffect(() => {
     if (pinSession?.eventId) loadEvent(pinSession.eventId)
   }, [pinSession?.eventId])
 
-  const handleEmergencyCall = async () => {
-    if (!emergencyType || !pinSession?.eventId) return
-    const typeMap = { POLICE: 'POLICE', AMBULANCE: 'MEDICAL', FIRE: 'FIRE' } as const
-    try {
-      await triggerAlert(
-        pinSession.eventId, null,
-        typeMap[emergencyType], 'CRITICAL',
-        `🆘 Guest triggered a ${emergencyType} emergency call.`,
-        'GUEST'
-      )
-      setEmergencyType(null)
-      setEmergencySent(true)
-      setTimeout(() => setEmergencySent(false), 4000)
-    } catch {
-      alert(t('error'))
-    }
-  }
+
 
   // Overall crowd level
   const totalPeople = Object.values(latestReadings).reduce((acc, r) => acc + (r.density || 0), 0)
@@ -152,15 +69,6 @@ export default function GuestApp() {
             <span className="g-ring-pct" style={{ color: overallColor }}>{overallPct}%</span>
           </div>
         </div>
-
-        {/* Emergency sent toast */}
-        <AnimatePresence>
-          {emergencySent && (
-            <motion.div className="g-toast" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
-              <ShieldCheck size={18} /> {t('guestEmergencySent')}
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* ── Active Alerts strip ── */}
         {activeAlerts.length > 0 && (
@@ -248,37 +156,7 @@ export default function GuestApp() {
           <ShieldCheck size={15} />
           <span>{t('guestSafetyTip')}</span>
         </div>
-
       </main>
-
-      {/* ── Emergency Footer ── */}
-      <footer className="g-footer">
-        <div className="g-footer-label">🆘 {t('guestEmergency')}</div>
-        <div className="g-emergency-row">
-          <button className="g-em-btn g-em-btn--police" onClick={() => setEmergencyType('POLICE')}>
-            <div className="g-em-icon"><Phone size={22} /></div>
-            <span>{t('guestPolice')}</span>
-          </button>
-          <button className="g-em-btn g-em-btn--ambulance" onClick={() => setEmergencyType('AMBULANCE')}>
-            <div className="g-em-icon"><HeartPulse size={22} /></div>
-            <span>{t('guestAmbulance')}</span>
-          </button>
-          <button className="g-em-btn g-em-btn--fire" onClick={() => setEmergencyType('FIRE')}>
-            <div className="g-em-icon"><Flame size={22} /></div>
-            <span>{t('guestFire')}</span>
-          </button>
-        </div>
-      </footer>
-
-      <AnimatePresence>
-        {emergencyType && (
-          <EmergencyModal
-            type={emergencyType}
-            onClose={() => setEmergencyType(null)}
-            onConfirm={handleEmergencyCall}
-          />
-        )}
-      </AnimatePresence>
     </div>
   )
 }
