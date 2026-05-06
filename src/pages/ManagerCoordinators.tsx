@@ -11,7 +11,7 @@ import RealtimeStatus from '@/components/RealtimeStatus'
 export default function ManagerCoordinators() {
   const navigate = useNavigate()
   const { profile } = useAuthStore()
-  const { activeEvent, zones, staff, loadEvent } = useEventStore()
+  const { activeEvent, zones, staff, loadEvent, removeStaff } = useEventStore()
   const { t } = useLang()
 
   const [loading, setLoading] = useState(!activeEvent)
@@ -53,13 +53,7 @@ export default function ManagerCoordinators() {
     if (!confirmRemove) return
     setRemoving(true)
     try {
-      const { error } = await supabase
-        .from('event_staff')
-        .update({ left_at: new Date().toISOString() })
-        .eq('id', confirmRemove.id)
-      if (error) throw error
-      // Refresh staff list from DB
-      if (activeEvent) await loadEvent(activeEvent.id)
+      await removeStaff(confirmRemove.id)
       setConfirmRemove(null)
     } catch (err: any) {
       alert(err.message || 'Failed to remove coordinator')

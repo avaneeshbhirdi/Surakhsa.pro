@@ -39,7 +39,8 @@ interface EventState {
   resolveAlert: (alertId: string) => Promise<void>
   sendInstruction: (eventId: string, zoneId: string | null, senderId: string, message: string, isBroadcast?: boolean) => Promise<void>
   triggerAlert: (eventId: string, zoneId: string | null, type: 'POLICE' | 'MEDICAL' | 'FIRE' | 'CROWD' | 'OTHER', severity: 'WARNING' | 'CRITICAL', message: string, reportedBy?: string) => Promise<void>
-  sendStewardMessage: (eventId: string, zoneId: string | null, staffId: string, status: 'ALL_CLEAR' | 'CROWD_BUILDING' | 'EMERGENCY', message?: string, recipientStaffId?: string) => Promise<void>
+  sendStewardMessage: (eventId: string, zone_id: string | null, staffId: string, status: 'ALL_CLEAR' | 'CROWD_BUILDING' | 'EMERGENCY', message?: string, recipientStaffId?: string) => Promise<void>
+  removeStaff: (staffId: string) => Promise<void>
   subscribeToRealtime: (eventId: string) => void
   unsubscribeAll: () => void
   clearEvent: () => void
@@ -298,6 +299,22 @@ export const useEventStore = create<EventState>((set, get) => ({
       ...(recipientStaffId ? { recipient_staff_id: recipientStaffId } : {}),
     })
     if (error) throw new Error(error.message)
+    // Realtime will handle the update
+  },
+
+  removeStaff: async (staffId: string) => {
+    // We soft-delete by setting left_at so we keep history
+    const { error } = await supabase
+      .from('event_staff')
+      .update({ left_at: new Date().toISOString() })
+      .eq('id', staffId)
+
+    if (error) throw new Error(error.message)
+    
+    // Optimistically remove from local state
+    set(state => ({
+      staff: state.staff.filter(s => s.id !== staffId)
+    }))
   },
 
   subscribeToRealtime: (eventId: string) => {
@@ -415,12 +432,22 @@ export const useEventStore = create<EventState>((set, get) => ({
         filter: `event_id=eq.${eventId}`,
       }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          set(state => ({ staff: [...state.staff, payload.new as EventStaff] }))
+          const newStaff = payload.new as EventStaff
+          if (!newStaff.left_at) {
+            set(state => ({ staff: [...state.staff, newStaff] }))
+          }
         } else if (payload.eventType === 'UPDATE') {
           const updated = payload.new as EventStaff
-          set(state => ({
-            staff: state.staff.map(s => s.id === updated.id ? updated : s),
-          }))
+          if (updated.left_at) {
+            // Remove if they have left
+            set(state => ({ staff: state.staff.filter(s => s.id !== updated.id) }))
+          } else {
+            set(state => ({
+              staff: state.staff.map(s => s.id === updated.id ? updated : s),
+            }))
+          }
+        } else if (payload.eventType === 'DELETE') {
+          set(state => ({ staff: state.staff.filter(s => s.id !== payload.old.id) }))
         }
       })
       .subscribe((status) => {
