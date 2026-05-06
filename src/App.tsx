@@ -46,7 +46,7 @@ function SimulationRunner() {
   readingsRef.current = latestReadings
 
   useEffect(() => {
-    if (!isSimulating || !activeEvent || zonesRef.current.length === 0) return
+    if (!isSimulating || !activeEvent) return
 
     const interval = setInterval(async () => {
       const zList = zonesRef.current
@@ -81,7 +81,7 @@ function SimulationRunner() {
     }, 2000)
 
     return () => clearInterval(interval)
-  }, [isSimulating, activeEvent?.id])
+  }, [isSimulating, activeEvent?.id, zones.length > 0])
 
   return null
 }
