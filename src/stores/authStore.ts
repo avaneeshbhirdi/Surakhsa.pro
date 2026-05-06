@@ -138,6 +138,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth`,
           data: {
             full_name: fullName,
             role: role || 'GUEST',

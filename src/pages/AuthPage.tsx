@@ -58,6 +58,20 @@ export default function AuthPage() {
   const [localError, setLocalError] = useState('')
   const [emailError, setEmailError] = useState('')
   const [signupSuccess, setSignupSuccess] = useState(false)
+  const [verificationSuccess, setVerificationSuccess] = useState(false)
+
+  useEffect(() => {
+    // Check for email verification success in URL hash or query
+    const isReturningFromAuth = window.location.hash.includes('access_token') || 
+                                searchParams.get('type') === 'signup'
+    
+    if (isReturningFromAuth) {
+      setVerificationSuccess(true)
+      setMode('login')
+      // Clear the hash/params to prevent repeated messages
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (isAuthenticated && role) {
@@ -261,6 +275,12 @@ export default function AuthPage() {
 
         {displayError && (
           <div className="auth__error">{displayError}</div>
+        )}
+
+        {verificationSuccess && !displayError && (
+          <div className="auth__success" style={{ marginBottom: 'var(--space-4)', border: '1px solid #4dff4d', color: '#4dff4d', background: 'rgba(77, 255, 77, 0.1)' }}>
+            ✅ Email verified successfully! You can now log in.
+          </div>
         )}
 
         {/* Login Form */}
