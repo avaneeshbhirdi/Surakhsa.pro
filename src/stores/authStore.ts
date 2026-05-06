@@ -126,8 +126,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: false })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed'
-      set({ isLoading: false, error: message })
-      throw err
+      const friendly = message.toLowerCase().includes('429') || message.toLowerCase().includes('too many')
+        ? 'Too many login attempts. Please wait a few minutes and try again.'
+        : message
+      set({ isLoading: false, error: friendly })
+      throw new Error(friendly)
     }
   },
 
@@ -157,8 +160,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: false })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Signup failed'
-      set({ isLoading: false, error: message })
-      throw err
+      // Handle rate limiting gracefully
+      const friendly = message.toLowerCase().includes('429') || message.toLowerCase().includes('too many')
+        ? 'Too many signup attempts. Please wait a few minutes and try again.'
+        : message
+      set({ isLoading: false, error: friendly })
+      throw new Error(friendly)
     }
   },
 
