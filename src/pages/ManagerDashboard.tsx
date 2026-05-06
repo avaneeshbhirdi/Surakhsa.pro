@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
+import { useUIStore } from '@/stores/uiStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import type { EventStaff } from '@/lib/types'
@@ -12,6 +13,7 @@ import './ManagerDashboard.css'
 export default function ManagerDashboard() {
   const navigate = useNavigate()
   const { profile } = useAuthStore()
+  const { isSimulating, toggleSimulation } = useUIStore()
   const {
     activeEvent, zones, alerts, staff, latestReadings, stewardUpdates,
     loadEvent, acknowledgeAlert, clearEvent, updateEventStatus,
@@ -31,57 +33,6 @@ export default function ManagerDashboard() {
   const [alertPriority, setAlertPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'>('HIGH')
   const [alertSending, setAlertSending] = useState(false)
 
-  // Simulation state
-  const [isSimulating, setIsSimulating] = useState(false)
-
-  // Simulation interval
-  useEffect(() => {
-    if (!isSimulating || !activeEvent || zones.length === 0) return
-    const interval = setInterval(async () => {
-      // Pick a random zone
-      const z = zones[Math.floor(Math.random() * zones.length)]
-      const currentReading = latestReadings[z.id]
-      // current density or start at 20%
-      const currentDensity = currentReading?.density || Math.floor(z.capacity * 0.2)
-      
-      // Fluctuate randomly (-5 to +20 people)
-      const diff = Math.floor(Math.random() * 25) - 5
-      const newDensity = Math.max(0, Math.min(z.capacity * 1.5, currentDensity + diff)) // max cap 150%
-      
-      const pct = z.capacity > 0 ? (newDensity / z.capacity) * 100 : 0
-      let riskScore = Math.min(100, Math.floor(pct))
-      let riskType = 'NORMAL'
-      let colorState = 'GREEN'
-      if (pct > 95) { riskType = 'STAMPEDE_RISK'; riskScore = Math.max(90, riskScore); colorState = 'RED' }
-      else if (pct > 80) { riskType = 'BOTTLENECK'; riskScore = Math.max(75, riskScore); colorState = 'YELLOW' }
-      else if (pct > 60) { riskType = 'SURGE'; riskScore = Math.max(50, riskScore); colorState = 'YELLOW' }
-
-      await supabase.from('zone_readings').insert({
-        event_id: activeEvent.id,
-        zone_id: z.id,
-        density: newDensity,
-        flow_rate: Math.random() * 5 + 1,
-        risk_score: riskScore,
-        risk_type: riskType,
-        color_state: colorState,
-      })
-
-      // Randomly trigger a simulated alert if density is high
-      if (pct > 85 && Math.random() > 0.7) {
-        await supabase.from('alerts').insert({
-          event_id: activeEvent.id,
-          zone_id: z.id,
-          risk_type: riskType,
-          risk_score: riskScore,
-          priority: pct > 95 ? 'CRITICAL' : 'HIGH',
-          message: `Automatic alert: High density detected in Zone ${z.label}!`,
-          status: 'TRIGGERED'
-        })
-      }
-    }, 2000)
-
-    return () => clearInterval(interval)
-  }, [isSimulating, activeEvent, zones, latestReadings])
 
   useEffect(() => {
     // Re-run when profile becomes available (avoids race on first mount)
@@ -274,7 +225,7 @@ export default function ManagerDashboard() {
             </button>
           )}
 
-          <button className={`simulator-toggle ${isSimulating ? 'active' : 'inactive'}`} onClick={() => setIsSimulating(!isSimulating)}>
+          <button className={`simulator-toggle ${isSimulating ? 'active' : 'inactive'}`} onClick={toggleSimulation}>
             <Activity size={14} /> {isSimulating ? 'Simulating...' : 'Simulate Data'}
           </button>
           <button className="virtus-pill" onClick={() => setShowAlertModal(true)}>
@@ -449,7 +400,7 @@ export default function ManagerDashboard() {
           {/* Row 3: Active Staff & Coordinators */}
           <div className="v-card v-active-staff" style={{ gridColumn: 'span 12' }}>
             <div className="flex flex-between mb-4">
-              <h3 className="v-text-title" style={{ margin: 0 }}>Active Coordinators & Staff</h3>
+              <h3 className="v-text-title" style={{ margin: 0 }}>Active Coordinators</h3>
               <div className="flex gap-2">
                 <span className="v-status-pill safe" style={{ fontSize: '10px' }}>
                   {staff.length} Online

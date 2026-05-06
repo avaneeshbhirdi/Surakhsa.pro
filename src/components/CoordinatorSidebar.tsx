@@ -2,6 +2,7 @@ import { Shield, MessageSquare, AlertTriangle, LogOut, ChevronLeft, ChevronRight
 import { useAuthStore } from '@/stores/authStore'
 import { useNavigate } from 'react-router-dom'
 import { useUIStore } from '@/stores/uiStore'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 interface CoordinatorSidebarProps {
   activeTab: 'zone' | 'comms' | 'alerts'
@@ -76,6 +77,11 @@ export default function CoordinatorSidebar({ activeTab, setActiveTab, unreadCoun
           <LogOut size={18} /> {!isSidebarCollapsed && <span className="nav-label">Log Out</span>}
         </button>
         
+        {!isSidebarCollapsed && (
+          <div style={{ padding: '8px 12px' }}>
+            <LanguageSwitcher />
+          </div>
+        )}
         <button className="virtus-nav-item" onClick={toggleSidebar} style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
           {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />} 
           {!isSidebarCollapsed && <span className="nav-label">Collapse Menu</span>}

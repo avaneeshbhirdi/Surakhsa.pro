@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useEventStore } from '@/stores/eventStore'
 import { useUIStore } from '@/stores/uiStore'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function ManagerSidebar() {
   const { profile } = useAuthStore()
@@ -85,6 +86,11 @@ export default function ManagerSidebar() {
             </div>
           )}
         </div>
+        {!isSidebarCollapsed && (
+          <div style={{ padding: '8px 12px' }}>
+            <LanguageSwitcher />
+          </div>
+        )}
         <button className="virtus-nav-item" onClick={toggleSidebar} style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
           {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />} 
           {!isSidebarCollapsed && <span className="nav-label">Collapse Menu</span>}

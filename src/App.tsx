@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import { useUIStore } from '@/stores/uiStore'
+import { useEventStore } from '@/stores/eventStore'
+import { supabase } from '@/lib/supabase'
 
 // Pages
 import SplashScreen from '@/pages/SplashScreen'
@@ -32,6 +35,56 @@ import AdminAnalytics from '@/pages/admin/AdminAnalytics'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminPanelGuard from '@/components/AdminPanelGuard'
 
+// ── Global simulation runner — survives page navigation ──
+function SimulationRunner() {
+  const { isSimulating } = useUIStore()
+  const { activeEvent, zones, latestReadings } = useEventStore()
+  const zonesRef = useRef(zones)
+  const readingsRef = useRef(latestReadings)
+  zonesRef.current = zones
+  readingsRef.current = latestReadings
+
+  useEffect(() => {
+    if (!isSimulating || !activeEvent || zonesRef.current.length === 0) return
+
+    const interval = setInterval(async () => {
+      const zList = zonesRef.current
+      if (zList.length === 0) return
+      const z = zList[Math.floor(Math.random() * zList.length)]
+      const currentDensity = readingsRef.current[z.id]?.density ?? Math.floor(z.capacity * 0.2)
+      const diff = Math.floor(Math.random() * 25) - 5
+      const newDensity = Math.max(0, Math.min(z.capacity * 1.5, currentDensity + diff))
+      const pct = z.capacity > 0 ? (newDensity / z.capacity) * 100 : 0
+      let riskScore = Math.min(100, Math.floor(pct))
+      let riskType = 'NORMAL'
+      let colorState = 'GREEN'
+      if (pct > 95) { riskType = 'STAMPEDE_RISK'; riskScore = Math.max(90, riskScore); colorState = 'RED' }
+      else if (pct > 80) { riskType = 'BOTTLENECK'; riskScore = Math.max(75, riskScore); colorState = 'YELLOW' }
+      else if (pct > 60) { riskType = 'SURGE'; riskScore = Math.max(50, riskScore); colorState = 'YELLOW' }
+
+      await supabase.from('zone_readings').insert({
+        event_id: activeEvent.id, zone_id: z.id,
+        density: newDensity, flow_rate: Math.random() * 5 + 1,
+        risk_score: riskScore, risk_type: riskType, color_state: colorState,
+      })
+
+      if (pct > 85 && Math.random() > 0.7) {
+        await supabase.from('alerts').insert({
+          event_id: activeEvent.id, zone_id: z.id,
+          risk_type: riskType, risk_score: riskScore,
+          priority: pct > 95 ? 'CRITICAL' : 'HIGH',
+          message: `Auto alert: High density in Zone ${z.label}!`,
+          status: 'TRIGGERED',
+        })
+      }
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [isSimulating, activeEvent?.id])
+
+  return null
+}
+
 function App() {
   const { initialize, isLoading } = useAuthStore()
   const [showSplash, setShowSplash] = useState(true)
@@ -55,7 +108,9 @@ function App() {
   }
 
   return (
-    <Routes>
+    <>
+      <SimulationRunner />
+      <Routes>
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/auth" element={<AuthPage />} />
@@ -140,6 +195,7 @@ function App() {
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }
 

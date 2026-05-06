@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft } from 'lucide-react'
+import { useLang } from '@/contexts/LanguageContext'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import type { UserRole } from '@/lib/types'
 import type { Zone } from '@/lib/types'
 import './AuthPage.css'
@@ -13,6 +15,7 @@ export default function AuthPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { login, signup, loginWithGoogle, joinWithPin, isAuthenticated, role, isLoading, error, clearError } = useAuthStore()
+  const { t } = useLang()
 
   // Handle Google OAuth return: apply pending role if one was saved before redirect
   useEffect(() => {
@@ -191,8 +194,9 @@ export default function AuthPage() {
           if (mode === 'select') navigate('/')
           else setMode('select')
         }}>
-          <ArrowLeft size={16} /> Back
+          <ArrowLeft size={16} /> {t('back')}
         </button>
+        <div style={{ marginLeft: 'auto' }}><LanguageSwitcher compact /></div>
 
         <div className="auth__header">
           <img 
@@ -207,7 +211,7 @@ export default function AuthPage() {
         {mode === 'select' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', marginTop: '1rem' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '0.5rem', color: 'var(--color-text-secondary)', fontSize: 'var(--text-lg)' }}>
-              Welcome to Suraksha.pro
+              {t('authWelcome')}
             </h2>
             
             {/* Primary Action for Guests/Staff */}
@@ -221,7 +225,7 @@ export default function AuthPage() {
               }}
               onClick={() => switchMode('pin')}
             >
-              JOIN EVENT VIA PIN
+              {t('authJoinPin')}
             </button>
 
             <div className="auth__separator">OR</div>
@@ -232,7 +236,7 @@ export default function AuthPage() {
               style={{ padding: '1rem', fontSize: 'var(--text-base)', opacity: 0.8 }}
               onClick={() => { setUserType('EVENT_MANAGER'); switchMode('login'); }}
             >
-              Event Manager Login
+              {t('authManagerLogin')}
             </button>
           </div>
         )}
@@ -241,10 +245,10 @@ export default function AuthPage() {
         {(mode === 'login' || mode === 'signup') && (
           <div className="tabs" style={{ marginBottom: 'var(--space-6)' }}>
             <button className={`tab ${mode === 'login' ? 'tab--active' : ''}`} onClick={() => switchMode('login')}>
-              Manager Login
+              {t('authManagerLogin')}
             </button>
             <button className={`tab ${mode === 'signup' ? 'tab--active' : ''}`} onClick={() => switchMode('signup')}>
-              Manager Sign Up
+              {t('authManagerSignup')}
             </button>
           </div>
         )}
@@ -263,7 +267,7 @@ export default function AuthPage() {
         {mode === 'login' && (
           <form onSubmit={handleLogin} className="auth__form">
             <div className="input-group">
-              <label className="input-label">Email</label>
+              <label className="input-label">{t('authEmail')}</label>
               <input
                 type="email" className="input"
                 placeholder="admin@example.com"
@@ -274,11 +278,11 @@ export default function AuthPage() {
               />
             </div>
             <div className="input-group">
-              <label className="input-label">Password</label>
+              <label className="input-label">{t('authPassword')}</label>
               <input type="password" className="input" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
             <button type="submit" className="btn btn-gold w-full" disabled={isLoading}>
-              {isLoading ? <span className="spinner" /> : 'Login'}
+              {isLoading ? <span className="spinner" /> : t('authLogin')}
             </button>
 
             <div className="auth__separator">OR</div>
@@ -299,7 +303,7 @@ export default function AuthPage() {
         {mode === 'signup' && !signupSuccess && (
           <form onSubmit={handleSignup} className="auth__form">
             <div className="input-group">
-              <label className="input-label">Full Name</label>
+              <label className="input-label">{t('authFullName')}</label>
               <input type="text" className="input" placeholder="Raj Sharma" value={fullName} onChange={e => setFullName(e.target.value)} required />
             </div>
             <div className="input-group">
@@ -330,7 +334,7 @@ export default function AuthPage() {
               Manager accounts require email verification.
             </p>
             <button type="submit" className="btn btn-gold w-full" disabled={isLoading}>
-              {isLoading ? <span className="spinner" /> : 'Create Manager Account'}
+              {isLoading ? <span className="spinner" /> : t('authCreateAccount')}
             </button>
 
             <div className="auth__separator">OR</div>
@@ -349,8 +353,8 @@ export default function AuthPage() {
 
         {mode === 'signup' && signupSuccess && (
           <div className="auth__success">
-            <p>✅ Account created! Check your email for verification link.</p>
-            <button className="btn btn-outline w-full mt-4" onClick={() => switchMode('login')}>Go to Login</button>
+            <p>{t('authAccountCreated')}</p>
+            <button className="btn btn-outline w-full mt-4" onClick={() => switchMode('login')}>{t('authGoToLogin')}</button>
           </div>
         )}
 
@@ -369,7 +373,7 @@ export default function AuthPage() {
               />
             </div>
             <button className="btn btn-gold w-full" onClick={handleValidatePin} disabled={pin.length !== 6}>
-              Validate PIN
+              {t('authValidatePin')}
             </button>
           </div>
         )}
@@ -380,17 +384,17 @@ export default function AuthPage() {
               Joining: <strong>{eventName}</strong>
             </div>
             <div className="input-group">
-              <label className="input-label">Your Name</label>
+              <label className="input-label">{t('authYourName')}</label>
               <input type="text" className="input" placeholder="Arjun Kumar" value={displayName} onChange={e => setDisplayName(e.target.value)} required />
             </div>
             <div className="input-group">
-              <label className="input-label">Your Role</label>
+              <label className="input-label">{t('authYourRole')}</label>
               <div className="auth__role-selector">
                 <button type="button" className={`auth__role-btn ${selectedRole === 'COORDINATOR' ? 'auth__role-btn--active' : ''}`} onClick={() => setSelectedRole('COORDINATOR')}>
-                  Coordinator
+                  {t('authCoordinator')}
                 </button>
                 <button type="button" className={`auth__role-btn ${selectedRole === 'GUEST' ? 'auth__role-btn--active' : ''}`} onClick={() => setSelectedRole('GUEST')}>
-                  Guest
+                  {t('authGuest')}
                 </button>
               </div>
             </div>
@@ -406,7 +410,7 @@ export default function AuthPage() {
               </div>
             )}
             <button type="submit" className="btn btn-gold w-full" disabled={isLoading}>
-              {isLoading ? <span className="spinner" /> : 'Join Event'}
+              {isLoading ? <span className="spinner" /> : t('authJoinEvent')}
             </button>
           </form>
         )}

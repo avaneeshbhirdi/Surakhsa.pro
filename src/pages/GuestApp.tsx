@@ -1,20 +1,13 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  AlertTriangle,
-  MapPin,
-  LogOut,
-  Phone,
-  HeartPulse,
-  Flame,
-  Users,
-  Activity,
-  Megaphone,
-  ShieldCheck,
-  Clock,
+  AlertTriangle, MapPin, LogOut, Phone, HeartPulse, Flame,
+  Users, Activity, Megaphone, ShieldCheck, Clock,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
+import { useLang } from '@/contexts/LanguageContext'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import './GuestApp.css'
 
 interface EmergencyModalProps {
@@ -24,29 +17,30 @@ interface EmergencyModalProps {
 }
 
 function EmergencyModal({ type, onClose, onConfirm }: EmergencyModalProps) {
+  const { t } = useLang()
   if (!type) return null
 
   const config = {
     POLICE: {
-      title: 'Call Police',
+      title: t('guestCallPolice'),
       icon: <Phone size={36} />,
       color: '#3b82f6',
       glow: 'rgba(59,130,246,0.35)',
-      text: 'This will immediately alert security and notify local police. Only use in a genuine emergency.',
+      text: t('guestPoliceText'),
     },
     AMBULANCE: {
-      title: 'Medical Emergency',
+      title: t('guestCallAmbulance'),
       icon: <HeartPulse size={36} />,
       color: '#ef4444',
       glow: 'rgba(239,68,68,0.35)',
-      text: 'This will dispatch medical staff to your location. Only use if someone needs urgent medical help.',
+      text: t('guestAmbulanceText'),
     },
     FIRE: {
-      title: 'Fire Emergency',
+      title: t('guestCallFire'),
       icon: <Flame size={36} />,
       color: '#f97316',
       glow: 'rgba(249,115,22,0.35)',
-      text: 'This will trigger the fire response protocol immediately. Only use if you see fire or smell smoke.',
+      text: t('guestFireText'),
     },
   }
 
@@ -73,9 +67,9 @@ function EmergencyModal({ type, onClose, onConfirm }: EmergencyModalProps) {
         <h2 className="g-modal-title">{active.title}</h2>
         <p className="g-modal-text">{active.text}</p>
         <button className="g-modal-confirm" style={{ background: active.color, boxShadow: `0 4px 20px ${active.glow}` }} onClick={onConfirm}>
-          ⚡ Confirm Emergency
+          {t('guestConfirmEmergency')}
         </button>
-        <button className="g-modal-cancel" onClick={onClose}>Cancel</button>
+        <button className="g-modal-cancel" onClick={onClose}>{t('cancel')}</button>
       </motion.div>
     </motion.div>
   )
@@ -84,6 +78,7 @@ function EmergencyModal({ type, onClose, onConfirm }: EmergencyModalProps) {
 export default function GuestApp() {
   const { logout, pinSession } = useAuthStore()
   const { zones, alerts, latestReadings, loadEvent, triggerAlert, activeEvent } = useEventStore()
+  const { t } = useLang()
   const [emergencyType, setEmergencyType] = useState<'POLICE' | 'AMBULANCE' | 'FIRE' | null>(null)
   const [emergencySent, setEmergencySent] = useState(false)
 
@@ -105,7 +100,7 @@ export default function GuestApp() {
       setEmergencySent(true)
       setTimeout(() => setEmergencySent(false), 4000)
     } catch {
-      alert('Failed to send emergency alert.')
+      alert(t('error'))
     }
   }
 
@@ -113,7 +108,7 @@ export default function GuestApp() {
   const totalPeople = Object.values(latestReadings).reduce((acc, r) => acc + (r.density || 0), 0)
   const totalCap = zones.reduce((acc, z) => acc + z.capacity, 0)
   const overallPct = totalCap > 0 ? Math.min(100, Math.round((totalPeople / totalCap) * 100)) : 0
-  const overallStatus = overallPct >= 85 ? 'CROWDED' : overallPct >= 60 ? 'MODERATE' : 'COMFORTABLE'
+  const overallStatus = overallPct >= 85 ? t('guestCrowded') : overallPct >= 60 ? t('guestModerate') : t('guestComfortable')
   const overallColor = overallPct >= 85 ? '#ef4444' : overallPct >= 60 ? '#f97316' : '#22c55e'
 
   const activeAlerts = alerts.filter(a => a.status === 'TRIGGERED')
@@ -132,7 +127,8 @@ export default function GuestApp() {
             <span>{activeEvent.name}</span>
           </div>
         )}
-        <button className="g-logout-btn" onClick={() => logout()} title="Leave event">
+        <LanguageSwitcher compact />
+        <button className="g-logout-btn" onClick={() => logout()} title={t('logout')}>
           <LogOut size={16} />
         </button>
       </header>
@@ -142,9 +138,9 @@ export default function GuestApp() {
         {/* ── Hero Status Banner ── */}
         <div className="g-hero" style={{ borderColor: overallColor + '44', background: `linear-gradient(135deg, ${overallColor}11 0%, ${overallColor}05 100%)` }}>
           <div className="g-hero-left">
-            <div className="g-hero-label">Overall Venue Status</div>
+            <div className="g-hero-label">{t('guestVenueStatus')}</div>
             <div className="g-hero-status" style={{ color: overallColor }}>{overallStatus}</div>
-            <div className="g-hero-sub">{totalPeople.toLocaleString()} people · {overallPct}% capacity</div>
+            <div className="g-hero-sub">{totalPeople.toLocaleString()} {t('guestPeople')} · {overallPct}% {t('guestCapacity')}</div>
           </div>
           <div className="g-hero-ring" style={{ '--ring-color': overallColor } as React.CSSProperties}>
             <svg viewBox="0 0 80 80" className="g-ring-svg">
@@ -161,7 +157,7 @@ export default function GuestApp() {
         <AnimatePresence>
           {emergencySent && (
             <motion.div className="g-toast" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
-              <ShieldCheck size={18} /> Emergency alert sent — help is on the way!
+              <ShieldCheck size={18} /> {t('guestEmergencySent')}
             </motion.div>
           )}
         </AnimatePresence>
@@ -170,7 +166,7 @@ export default function GuestApp() {
         {activeAlerts.length > 0 && (
           <div className="g-alert-strip">
             <AlertTriangle size={15} className="g-alert-strip-icon" />
-            <span><strong>{activeAlerts.length} active alert{activeAlerts.length > 1 ? 's' : ''}</strong> — Follow staff instructions and stay calm.</span>
+            <span><strong>{activeAlerts.length} {activeAlerts.length > 1 ? t('guestActiveAlertsPlural') : t('guestActiveAlerts')}</strong> — {t('guestFollowStaff')}</span>
           </div>
         )}
 
@@ -178,16 +174,16 @@ export default function GuestApp() {
         <section>
           <div className="g-section-header">
             <MapPin size={14} />
-            <span>Live Zone Occupancy</span>
+            <span>{t('guestZoneOccupancy')}</span>
           </div>
           <div className="g-zones-grid">
             {zones.length === 0 ? (
-              <div className="g-empty">No zones available yet.</div>
+              <div className="g-empty">{t('guestNoZones')}</div>
             ) : zones.map(z => {
               const reading = latestReadings[z.id]
               const pct = z.capacity > 0 ? Math.min(100, Math.round(((reading?.density || 0) / z.capacity) * 100)) : 0
               const color = pct >= 85 ? '#ef4444' : pct >= 60 ? '#f97316' : '#22c55e'
-              const label = pct >= 85 ? 'Crowded' : pct >= 60 ? 'Filling Up' : 'Available'
+              const label = pct >= 85 ? t('guestCrowded') : pct >= 60 ? t('guestFillingUp') : t('guestAvailable')
 
               return (
                 <div key={z.id} className="g-zone-card">
@@ -202,8 +198,8 @@ export default function GuestApp() {
                     <div className="g-zone-bar-fill" style={{ width: `${pct}%`, background: color }} />
                   </div>
                   <div className="g-zone-meta">
-                    <span><Users size={11} /> {reading?.density || 0} people</span>
-                    <span><Activity size={11} /> Risk: {reading?.risk_score || 0}</span>
+                    <span><Users size={11} /> {reading?.density || 0} {t('guestPeople')}</span>
+                    <span><Activity size={11} /> {t('guestRisk')}: {reading?.risk_score || 0}</span>
                   </div>
                 </div>
               )
@@ -215,11 +211,11 @@ export default function GuestApp() {
         <section>
           <div className="g-section-header">
             <Megaphone size={14} />
-            <span>Announcements</span>
+            <span>{t('guestAnnouncements')}</span>
           </div>
           <div className="g-announcements">
             {alerts.length === 0 ? (
-              <div className="g-empty">All clear — no announcements yet.</div>
+              <div className="g-empty">{t('guestNoAnnouncements')}</div>
             ) : (
               alerts.slice(0, 6).map((a, i) => {
                 const isUrgent = a.priority === 'CRITICAL' || a.priority === 'HIGH'
@@ -239,7 +235,7 @@ export default function GuestApp() {
                         {new Date(a.triggered_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
-                    {isUrgent && <span className="g-announce-badge">URGENT</span>}
+                    {isUrgent && <span className="g-announce-badge">{t('guestUrgent')}</span>}
                   </motion.div>
                 )
               })
@@ -250,26 +246,26 @@ export default function GuestApp() {
         {/* ── Safety Tips ── */}
         <div className="g-safety-tip">
           <ShieldCheck size={15} />
-          <span>Stay near exits · Follow staff instructions · Keep moving if crowded</span>
+          <span>{t('guestSafetyTip')}</span>
         </div>
 
       </main>
 
       {/* ── Emergency Footer ── */}
       <footer className="g-footer">
-        <div className="g-footer-label">🆘 Emergency Services</div>
+        <div className="g-footer-label">🆘 {t('guestEmergency')}</div>
         <div className="g-emergency-row">
           <button className="g-em-btn g-em-btn--police" onClick={() => setEmergencyType('POLICE')}>
             <div className="g-em-icon"><Phone size={22} /></div>
-            <span>Police</span>
+            <span>{t('guestPolice')}</span>
           </button>
           <button className="g-em-btn g-em-btn--ambulance" onClick={() => setEmergencyType('AMBULANCE')}>
             <div className="g-em-icon"><HeartPulse size={22} /></div>
-            <span>Ambulance</span>
+            <span>{t('guestAmbulance')}</span>
           </button>
           <button className="g-em-btn g-em-btn--fire" onClick={() => setEmergencyType('FIRE')}>
             <div className="g-em-icon"><Flame size={22} /></div>
-            <span>Fire</span>
+            <span>{t('guestFire')}</span>
           </button>
         </div>
       </footer>
