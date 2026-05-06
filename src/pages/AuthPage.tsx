@@ -102,9 +102,9 @@ export default function AuthPage() {
     setLocalError('')
     setEmailError('')
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     if (!emailRegex.test(email)) {
-      setEmailError('Please enter a valid email address')
+      setEmailError('Invalid email format')
       return
     }
 
@@ -129,9 +129,17 @@ export default function AuthPage() {
       return
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    const disposableDomains = ['mailinator.com', 'yopmail.com', 'tempmail.com', 'guerrillamail.com', '10minutemail.com']
+    
     if (!emailRegex.test(email)) {
-      setEmailError('Please enter a valid email address')
+      setEmailError('Invalid email format (e.g., user@example.com)')
+      return
+    }
+    
+    const domain = email.split('@')[1]?.toLowerCase()
+    if (disposableDomains.includes(domain)) {
+      setEmailError('Please use a permanent email address, not a temporary one.')
       return
     }
 
