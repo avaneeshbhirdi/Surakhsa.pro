@@ -28,6 +28,12 @@
   
   /* Tables */
   .admin-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  
+  /* Landing Page Nav Fixes */
+  .landing__nav-inner { height: 56px; padding: 0 var(--space-4); }
+  .landing__logo-text { font-size: var(--text-md); }
+  .landing__nav-actions { gap: var(--space-1); }
+  .landing__nav-actions .btn-ghost { display: none; } /* Hide 'Login' text to save space */
 }
 
 /* Tablet portrait */
@@ -87,6 +93,11 @@
   /* Coordinator/Steward specific */
   .g-content { padding: var(--space-4) var(--space-3) !important; }
   .g-zones-grid { grid-template-columns: 1fr !important; }
+  
+  /* Logo hiding on tiny screens */
+  @media (max-width: 360px) {
+    .landing__logo-text, .header__title { display: none !important; }
+  }
 }
 
 /* Touch target enforcement */

@@ -4,7 +4,7 @@ import { useEventStore } from '@/stores/eventStore'
 import { supabase } from '@/lib/supabase'
 import CoordinatorSidebar from '@/components/CoordinatorSidebar'
 import AlertCard from '@/components/AlertCard'
-import { Mic, MicOff, Activity, Send, Megaphone, ChevronDown } from 'lucide-react'
+import { Mic, MicOff, Activity, Send, Megaphone, ChevronDown, LogOut } from 'lucide-react'
 import type { Event } from '@/lib/types'
 import { useLang } from '@/contexts/LanguageContext'
 import RealtimeStatus from '@/components/RealtimeStatus'
@@ -217,7 +217,6 @@ export default function CoordinatorApp() {
             {eventDetails?.status === 'ACTIVE' && (
               <span className="live-indicator"><span className="live-indicator__dot" /> {t('live')}</span>
             )}
-            {eventDetails?.status === 'PAUSED' && (
               <span style={{ fontSize: '10px', background: 'var(--color-warning)', color: '#000', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
                 PAUSED
               </span>
@@ -225,27 +224,37 @@ export default function CoordinatorApp() {
             <RealtimeStatus />
           </div>
           
-          {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length > 0 && (
-            <button
-              style={{
-                background: 'rgba(255, 60, 60, 0.1)',
-                border: '1px solid var(--color-danger-pulse)',
-                color: 'var(--color-danger-pulse)',
-                padding: '4px 12px',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                animation: 'pulse 2s infinite'
-              }}
-              onClick={() => setActiveTab('alerts')}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length > 0 && (
+              <button
+                style={{
+                  background: 'rgba(255, 60, 60, 0.1)',
+                  border: '1px solid var(--color-danger-pulse)',
+                  color: 'var(--color-danger-pulse)',
+                  padding: '4px 12px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  animation: 'pulse 2s infinite'
+                }}
+                onClick={() => setActiveTab('alerts')}
+              >
+                <Megaphone size={14} /> <span className="hide-mobile">{broadcastAlerts.filter(a => a.status === 'TRIGGERED').length} {t('coordUrgent')}</span>
+              </button>
+            )}
+            
+            <button 
+              className="btn btn-ghost btn-sm" 
+              onClick={() => logout()}
+              style={{ padding: '6px', minWidth: 'auto' }}
             >
-              <Megaphone size={14} /> {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length} {t('coordUrgent')}
+              <LogOut size={18} />
             </button>
-          )}
+          </div>
         </header>
 
         <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
