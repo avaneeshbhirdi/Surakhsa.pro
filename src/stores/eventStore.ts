@@ -30,6 +30,7 @@ interface EventState {
     zones: { label: string; name?: string; capacity: number }[]
   }, adminProfileId: string) => Promise<Event>
   createZone: (eventId: string, label: string, name: string | null, capacity: number) => Promise<void>
+  updateZone: (zoneId: string, label: string, name: string | null, capacity: number) => Promise<void>
   loadEvent: (eventId: string) => Promise<void>
   updateEventStatus: (eventId: string, status: EventStatus) => Promise<void>
   acknowledgeAlert: (alertId: string, profileId: string) => Promise<void>
@@ -173,6 +174,17 @@ export const useEventStore = create<EventState>((set, get) => ({
     if (error) throw new Error(error.message)
     // The new zone will be added via realtime subscription, 
     // but we can also optimistically update it here if needed.
+  },
+
+  updateZone: async (zoneId, label, name, capacity) => {
+    const { error } = await supabase
+      .from('zones')
+      .update({ label, name, capacity })
+      .eq('id', zoneId)
+
+    if (error) throw new Error(error.message)
+    
+    // Realtime subscription will handle updating the UI state
   },
 
   updateEventStatus: async (eventId: string, status: EventStatus) => {

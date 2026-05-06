@@ -4,12 +4,12 @@ import { useEventStore } from '@/stores/eventStore'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
-import { Plus, MapPin, AlertTriangle } from 'lucide-react'
+import { Plus, MapPin, AlertTriangle, Edit2 } from 'lucide-react'
 
 export default function ManagerZones() {
   const navigate = useNavigate()
   const { profile } = useAuthStore()
-  const { activeEvent, zones, latestReadings, alerts, createZone, loadEvent } = useEventStore()
+  const { activeEvent, zones, latestReadings, alerts, createZone, updateZone, loadEvent } = useEventStore()
   
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -17,6 +17,12 @@ export default function ManagerZones() {
   const [newZoneName, setNewZoneName] = useState('')
   const [newZoneCapacity, setNewZoneCapacity] = useState('')
   const [creating, setCreating] = useState(false)
+
+  const [editingZoneId, setEditingZoneId] = useState<string | null>(null)
+  const [editZoneLabel, setEditZoneLabel] = useState('')
+  const [editZoneName, setEditZoneName] = useState('')
+  const [editZoneCapacity, setEditZoneCapacity] = useState('')
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     const loadActiveEvent = async () => {
@@ -85,6 +91,28 @@ export default function ManagerZones() {
     }
   }
 
+  const handleEditClick = (z: any) => {
+    setEditingZoneId(z.id)
+    setEditZoneLabel(z.label)
+    setEditZoneName(z.name || '')
+    setEditZoneCapacity(z.capacity.toString())
+  }
+
+  const handleUpdateZone = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingZoneId || !editZoneLabel.trim() || !editZoneCapacity) return
+    
+    setUpdating(true)
+    try {
+      await updateZone(editingZoneId, editZoneLabel.trim(), editZoneName.trim() || null, parseInt(editZoneCapacity, 10))
+      setEditingZoneId(null)
+    } catch (err: any) {
+      alert(err.message || 'Failed to update zone')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   return (
     <div className="virtus-layout">
       <ManagerSidebar />
@@ -121,6 +149,13 @@ export default function ManagerZones() {
                 <div className="flex flex-between mb-4">
                   <h3 className="v-text-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <MapPin size={18} color={color} /> {z.label} {z.name ? `- ${z.name}` : ''}
+                    <button 
+                      onClick={() => handleEditClick(z)}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--v-text-muted)', cursor: 'pointer', display: 'flex', padding: '4px', opacity: 0.7 }}
+                      title="Edit Zone"
+                    >
+                      <Edit2 size={14} />
+                    </button>
                   </h3>
                   {zoneAlerts > 0 && (
                     <span className="v-status-pill danger" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -217,6 +252,65 @@ export default function ManagerZones() {
                 </button>
                 <button type="submit" className="btn" style={{ background: 'var(--v-orange)', color: 'white', border: 'none' }} disabled={creating}>
                   {creating ? 'Creating...' : 'Create Zone'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Zone Modal */}
+      {editingZoneId && (
+        <div className="modal-overlay" onClick={() => !updating && setEditingZoneId(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '24px', maxWidth: '400px' }}>
+            <div className="modal__header" style={{ borderBottom: '1px solid var(--v-border)' }}>
+              <h2 className="modal__title">Edit Zone</h2>
+            </div>
+            <form onSubmit={handleUpdateZone}>
+              <div className="modal__body flex flex-col gap-4">
+                <div className="input-group">
+                  <label className="v-text-sm mb-1 block">Zone Label (e.g., A, B, North Gate)</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={editZoneLabel}
+                    onChange={e => setEditZoneLabel(e.target.value)}
+                    placeholder="Label"
+                    required
+                    style={{ background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)' }}
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="v-text-sm mb-1 block">Zone Name (Optional)</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={editZoneName}
+                    onChange={e => setEditZoneName(e.target.value)}
+                    placeholder="Main Stage"
+                    style={{ background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)' }}
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="v-text-sm mb-1 block">Maximum Capacity</label>
+                  <input
+                    type="number"
+                    className="input"
+                    value={editZoneCapacity}
+                    onChange={e => setEditZoneCapacity(e.target.value)}
+                    placeholder="e.g., 500"
+                    required
+                    min="1"
+                    style={{ background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)' }}
+                  />
+                </div>
+              </div>
+              <div className="modal__footer">
+                <button type="button" className="btn" style={{ background: 'transparent' }} onClick={() => setEditingZoneId(null)} disabled={updating}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn" style={{ background: 'var(--v-orange)', color: 'white', border: 'none' }} disabled={updating}>
+                  {updating ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>

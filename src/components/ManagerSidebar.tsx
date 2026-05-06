@@ -19,7 +19,7 @@ export default function ManagerSidebar() {
     { icon: <Target size={18} />, label: 'Map', path: '/manager/map' },
     { icon: <MessageSquare size={18} />, label: 'Comms', path: '/manager/comms' },
     { icon: <Folder size={18} />, label: 'Analytics', path: '/manager/analytics' },
-    { icon: <Calendar size={18} />, label: 'History', path: '/event/history' },
+    { icon: <Calendar size={18} color="var(--v-orange)" strokeWidth={2.5} />, label: 'History', path: '/event/history' },
   ]
 
   const bottomItems = [
