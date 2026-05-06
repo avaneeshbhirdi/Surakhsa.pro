@@ -6,10 +6,12 @@ import CoordinatorSidebar from '@/components/CoordinatorSidebar'
 import AlertCard from '@/components/AlertCard'
 import { Mic, MicOff, Activity, Send, Megaphone, ChevronDown } from 'lucide-react'
 import type { Event } from '@/lib/types'
+import { useLang } from '@/contexts/LanguageContext'
 
 export default function CoordinatorApp() {
   const { pinSession, profile } = useAuthStore()
   const { zones, alerts, staff, stewardUpdates, instructions, latestReadings, loadEvent, acknowledgeAlert, sendStewardMessage, triggerAlert } = useEventStore()
+  const { t } = useLang()
   const [activeTab, setActiveTab] = useState<'zone' | 'comms' | 'alerts'>('zone')
   const [commsView, setCommsView] = useState<'send' | 'inbox'>('send')
   const [isPTTActive, setIsPTTActive] = useState(false)
@@ -199,9 +201,9 @@ export default function CoordinatorApp() {
         {/* Event Info Header */}
         <header className="virtus-header" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontWeight: 600 }}>{eventDetails?.name ?? 'Loading Event...'}</span>
+            <span style={{ fontWeight: 600 }}>{eventDetails?.name ?? t('loading')}</span>
             {eventDetails?.status === 'ACTIVE' && (
-              <span className="live-indicator"><span className="live-indicator__dot" /> LIVE</span>
+              <span className="live-indicator"><span className="live-indicator__dot" /> {t('live')}</span>
             )}
             {eventDetails?.status === 'PAUSED' && (
               <span style={{ fontSize: '10px', background: 'var(--color-warning)', color: '#000', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
@@ -228,7 +230,7 @@ export default function CoordinatorApp() {
               }}
               onClick={() => setActiveTab('alerts')}
             >
-              <Megaphone size={14} /> {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length} URGENT
+              <Megaphone size={14} /> {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length} {t('coordUrgent')}
             </button>
           )}
         </header>
@@ -241,7 +243,7 @@ export default function CoordinatorApp() {
               {/* Zone Selector */}
               <div className="v-card" style={{ padding: '16px 20px' }}>
                 <label style={{ fontSize: '12px', color: 'var(--v-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: '10px', display: 'block' }}>
-                  Reporting for Zone
+                  {t('coordReportingForZone')}
                 </label>
                 <div style={{ position: 'relative' }}>
                   <select
@@ -287,16 +289,16 @@ export default function CoordinatorApp() {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '32px', fontWeight: 800, color: riskColor }}>{riskScore}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--v-text-main)', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Risk Score</div>
+                    <div style={{ fontSize: '12px', color: 'var(--v-text-main)', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('coordRiskScore')}</div>
                   </div>
                 </div>
 
                 {/* Density Meter */}
                 <div style={{ marginTop: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '14px', color: 'var(--v-text-main)', opacity: 0.7 }}>Live Occupancy</span>
+                    <span style={{ fontSize: '14px', color: 'var(--v-text-main)', opacity: 0.7 }}>{t('coordLiveOccupancy')}</span>
                     <span style={{ fontSize: '14px', fontWeight: 700, color: riskColor }}>
-                      {percentage}% ({selectedReading?.density || 0} / {selectedZone?.capacity || 0} people)
+                      {percentage}% ({selectedReading?.density || 0} / {selectedZone?.capacity || 0} {t('guestPeople')})
                     </span>
                   </div>
                   <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
@@ -315,7 +317,7 @@ export default function CoordinatorApp() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--v-border)' }}>
                   <span style={{ fontSize: '14px', color: 'var(--v-text-main)', opacity: 0.7, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Activity size={16} />
-                    Flow Rate
+                    {t('coordFlowRate')}
                   </span>
                   <span style={{ fontSize: '14px', fontWeight: 700 }}>
                     {(selectedReading?.flow_rate || 0).toFixed(1)} m/min
@@ -365,7 +367,7 @@ export default function CoordinatorApp() {
                   className={`report-btn${animatingButton === 'ALL_CLEAR' ? ' animating' : ''}`}
                   style={{ background: 'rgba(77, 255, 77, 0.1)', color: '#4dff4d', border: '1px solid rgba(77, 255, 77, 0.3)', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                  ✅ Mark All Clear
+                  ✅ {t('coordMarkAllClear')}
                   {reportCounts.ALL_CLEAR > 0 && (
                     <span className={`report-badge${animatingButton === 'ALL_CLEAR' ? ' popping' : ''}`} style={{ background: '#4dff4d', color: '#000' }}>
                       {reportCounts.ALL_CLEAR}
@@ -377,7 +379,7 @@ export default function CoordinatorApp() {
                   className={`report-btn${animatingButton === 'CROWD_BUILDING' ? ' animating' : ''}`}
                   style={{ background: 'rgba(255, 170, 0, 0.1)', color: '#ffaa00', border: '1px solid rgba(255, 170, 0, 0.3)', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                  ⚠️ Crowd Building
+                  ⚠️ {t('coordCrowdBuilding')}
                   {reportCounts.CROWD_BUILDING > 0 && (
                     <span className={`report-badge${animatingButton === 'CROWD_BUILDING' ? ' popping' : ''}`} style={{ background: '#ffaa00', color: '#000' }}>
                       {reportCounts.CROWD_BUILDING}
@@ -389,7 +391,7 @@ export default function CoordinatorApp() {
                   className={`report-btn${animatingButton === 'EMERGENCY' ? ' animating' : ''}`}
                   style={{ background: 'var(--color-danger-pulse)', color: '#fff', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '12px' }}
                 >
-                  🚨 Send Emergency Alert to Manager
+                  🚨 {t('coordSendEmergencyAlert')}
                   {reportCounts.EMERGENCY > 0 && (
                     <span className={`report-badge${animatingButton === 'EMERGENCY' ? ' popping' : ''}`} style={{ background: '#fff', color: 'var(--color-danger-pulse)' }}>
                       {reportCounts.EMERGENCY}
@@ -415,7 +417,7 @@ export default function CoordinatorApp() {
                     color: commsView === 'send' ? '#000' : 'var(--v-text-main)',
                   }}
                 >
-                  ✉️ Send
+                  ✉️ {t('coordSend')}
                 </button>
                 <button
                   onClick={() => setCommsView('inbox')}
@@ -426,7 +428,7 @@ export default function CoordinatorApp() {
                     color: commsView === 'inbox' ? '#000' : 'var(--v-text-main)',
                   }}
                 >
-                  📥 Inbox
+                  📥 {t('coordInbox')}
                   {inboxTotal > 0 && (
                     <span style={{
                       position: 'absolute', top: '-6px', right: '-6px',
@@ -466,11 +468,11 @@ export default function CoordinatorApp() {
                   {/* Message Manager */}
                   <div className="v-card">
                     <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      👔 Message Event Manager
+                      👔 {t('coordSendMsgToManager')}
                     </h4>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <input
-                        placeholder="Type message to manager..."
+                        placeholder={t('coordTypeMessage')}
                         value={textMessage}
                         onChange={e => setTextMessage(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
@@ -487,7 +489,7 @@ export default function CoordinatorApp() {
                   {/* DM to Coordinator */}
                   <div className="v-card">
                     <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      💬 Message a Coordinator
+                      💬 {t('coordDM')}
                     </h4>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px', maxHeight: '220px', overflowY: 'auto' }}>
@@ -555,13 +557,13 @@ export default function CoordinatorApp() {
                   {managerMessages.length > 0 && (
                     <div>
                       <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v-orange)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
-                        📢 From Event Manager
+                        📢 {t('coordFromManager')}
                       </div>
                       {[...managerMessages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(m => (
                         <div key={m.id} className="v-card" style={{ padding: '14px 16px', marginBottom: '8px', borderLeft: '3px solid var(--v-orange)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                             <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v-orange)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              👔 Event Manager
+                              👔 {t('coordEventManager')}
                               {m.is_broadcast && (
                                 <span style={{ background: 'rgba(255,170,0,0.15)', color: 'var(--v-orange)', fontSize: '9px', padding: '1px 5px', borderRadius: '4px', marginLeft: '4px' }}>BROADCAST</span>
                               )}
@@ -580,7 +582,7 @@ export default function CoordinatorApp() {
                   {dmMessages.length > 0 && (
                     <div>
                       <div style={{ fontSize: '11px', fontWeight: 700, color: '#4dff4d', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
-                        💬 Direct Messages
+                        💬 {t('coordDirectMessages')}
                       </div>
                       {[...dmMessages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(m => {
                         const sender = staff.find(s => s.id === m.staff_id)
@@ -615,8 +617,8 @@ export default function CoordinatorApp() {
 
                   {inboxTotal === 0 && (
                     <div className="v-card" style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.5 }}>
-                      <p style={{ fontSize: '14px' }}>📭 No messages yet</p>
-                      <p style={{ fontSize: '12px', marginTop: '6px' }}>Messages from the manager and coordinators will appear here</p>
+                      <p style={{ fontSize: '14px' }}>📭 {t('coordNoMessages')}</p>
+                      <p style={{ fontSize: '12px', marginTop: '6px' }}>{t('coordNoMessagesSub')}</p>
                     </div>
                   )}
                 </div>
@@ -634,7 +636,7 @@ export default function CoordinatorApp() {
               {broadcastAlerts.length > 0 && (
                 <div style={{ marginBottom: '16px' }}>
                   <h4 style={{ fontSize: '12px', color: 'var(--v-orange)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
-                    📢 Broadcast from Manager
+                    📢 {t('coordBroadcastFromManager')}
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {broadcastAlerts.map(a => (
@@ -650,12 +652,12 @@ export default function CoordinatorApp() {
               )}
 
               <h4 style={{ fontSize: '12px', color: 'var(--v-text-main)', opacity: 0.5, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
-                All Zone Alerts
+                {t('coordAllZoneAlerts')}
               </h4>
 
               {allZoneAlerts.length === 0 ? (
                 <div className="v-card" style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.6 }}>
-                  <p style={{ fontSize: '14px' }}>No active zone alerts.</p>
+                  <p style={{ fontSize: '14px' }}>{t('coordNoActiveZoneAlerts')}</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

@@ -18,11 +18,13 @@ export default function LanguageSwitcher({ compact = false }: Props) {
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '4px',
+      gap: '2px', // Reduced gap
       background: 'rgba(255,255,255,0.05)',
       border: '1px solid rgba(255,255,255,0.08)',
       borderRadius: '10px',
       padding: '3px',
+      width: '100%', // Ensure it takes full width of parent
+      boxSizing: 'border-box'
     }}>
       {LANGS.map(l => (
         <button
@@ -30,16 +32,20 @@ export default function LanguageSwitcher({ compact = false }: Props) {
           onClick={() => setLang(l.code)}
           title={l.label}
           style={{
-            padding: compact ? '4px 8px' : '5px 10px',
+            flex: 1, // Make buttons share space evenly
+            padding: compact ? '4px 2px' : '5px 2px', // Reduced horizontal padding
             borderRadius: '7px',
             border: 'none',
             cursor: 'pointer',
-            fontSize: compact ? '12px' : '13px',
+            fontSize: compact ? '11px' : '12px', // Slightly smaller font
             fontWeight: lang === l.code ? 700 : 400,
             background: lang === l.code ? 'rgba(212,175,55,0.2)' : 'transparent',
             color: lang === l.code ? '#d4af37' : 'rgba(245,236,213,0.45)',
             transition: 'all 0.15s',
             whiteSpace: 'nowrap',
+            textAlign: 'center',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
           }}
         >
           {compact ? l.native : l.label}

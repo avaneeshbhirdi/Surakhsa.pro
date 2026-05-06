@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useNavigate } from 'react-router-dom'
 import { useUIStore } from '@/stores/uiStore'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { useLang } from '@/contexts/LanguageContext'
 
 interface CoordinatorSidebarProps {
   activeTab: 'zone' | 'comms' | 'alerts'
@@ -14,6 +15,7 @@ export default function CoordinatorSidebar({ activeTab, setActiveTab, unreadCoun
   const { logout, profile, pinSession } = useAuthStore()
   const { isSidebarCollapsed, toggleSidebar } = useUIStore()
   const navigate = useNavigate()
+  const { t } = useLang()
 
   const displayName = profile?.full_name || pinSession?.displayName || 'Coordinator'
 
@@ -23,9 +25,9 @@ export default function CoordinatorSidebar({ activeTab, setActiveTab, unreadCoun
   }
 
   const navItems: { id: 'zone' | 'comms' | 'alerts', icon: React.ReactNode, label: string, badge?: number | null }[] = [
-    { id: 'zone', icon: <Shield size={18} />, label: 'My Zone' },
-    { id: 'comms', icon: <MessageSquare size={18} />, label: 'Communicate' },
-    { id: 'alerts', icon: <AlertTriangle size={18} />, label: 'Alerts', badge: unreadCount > 0 ? unreadCount : null },
+    { id: 'zone', icon: <Shield size={18} />, label: t('coordMyZone') },
+    { id: 'comms', icon: <MessageSquare size={18} />, label: t('coordCommunicate') },
+    { id: 'alerts', icon: <AlertTriangle size={18} />, label: t('coordAlerts'), badge: unreadCount > 0 ? unreadCount : null },
   ]
 
   return (
@@ -74,7 +76,7 @@ export default function CoordinatorSidebar({ activeTab, setActiveTab, unreadCoun
         </div>
         
         <button className="virtus-nav-item" onClick={handleLogout} style={{ color: 'var(--color-danger)', opacity: 0.8, justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
-          <LogOut size={18} /> {!isSidebarCollapsed && <span className="nav-label">Log Out</span>}
+          <LogOut size={18} /> {!isSidebarCollapsed && <span className="nav-label">{t('logout')}</span>}
         </button>
         
         {!isSidebarCollapsed && (
@@ -84,7 +86,7 @@ export default function CoordinatorSidebar({ activeTab, setActiveTab, unreadCoun
         )}
         <button className="virtus-nav-item" onClick={toggleSidebar} style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
           {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />} 
-          {!isSidebarCollapsed && <span className="nav-label">Collapse Menu</span>}
+          {!isSidebarCollapsed && <span className="nav-label">{t('mgrCollapse')}</span>}
         </button>
       </div>
     </aside>
