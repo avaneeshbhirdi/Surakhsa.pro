@@ -73,6 +73,24 @@ export default function AuthPage() {
     }
   }, [searchParams])
 
+  // Handle Join-via-Link params
+  useEffect(() => {
+    const urlPin = searchParams.get('pin')
+    const urlRole = searchParams.get('role') as UserRole
+    const urlZone = searchParams.get('zone')
+    
+    if (urlPin) {
+      setPin(urlPin)
+      setMode('pin')
+      // Auto-validate the PIN if it's 6 digits
+      if (urlPin.length === 6) {
+        handleValidatePin(urlPin)
+      }
+    }
+    if (urlRole) setSelectedRole(urlRole)
+    if (urlZone) setSelectedZone(urlZone)
+  }, []) // Run only on mount
+
   useEffect(() => {
     if (isAuthenticated && role) {
       const pendingRole = localStorage.getItem('suraksha_pending_role')
@@ -165,9 +183,10 @@ export default function AuthPage() {
     }
   }
 
-  const handleValidatePin = async () => {
+  const handleValidatePin = async (manualPin?: string) => {
+    const targetPin = manualPin || pin
     setLocalError('')
-    if (pin.length !== 6) {
+    if (targetPin.length !== 6) {
       setLocalError('PIN must be 6 digits')
       return
     }
@@ -176,7 +195,7 @@ export default function AuthPage() {
       const { data: event, error: err } = await supabase
         .from('events')
         .select('id, name, status')
-        .eq('pin', pin)
+        .eq('pin', targetPin)
         .in('status', ['ACTIVE', 'PAUSED'])
         .single()
 
@@ -414,7 +433,7 @@ export default function AuthPage() {
                 onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
               />
             </div>
-            <button className="btn btn-gold w-full" onClick={handleValidatePin} disabled={pin.length !== 6}>
+            <button className="btn btn-gold w-full" onClick={() => handleValidatePin()} disabled={pin.length !== 6}>
               {t('authValidatePin')}
             </button>
           </div>
