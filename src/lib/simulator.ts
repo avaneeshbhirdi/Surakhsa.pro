@@ -98,7 +98,7 @@ export const Simulator = {
           })
         }
       }
-    }, 5000)
+    }, 3000)
 
     console.log(`Simulation started for event ${eventId} [${scenario}]`)
   },
