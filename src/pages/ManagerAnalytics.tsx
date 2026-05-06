@@ -12,9 +12,9 @@ export default function ManagerAnalytics() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (activeEvent) { setLoading(false); return }
+    if (!profile) { setLoading(false); return }
     const loadActiveEvent = async () => {
-      if (!profile) { setLoading(false); return }
-      if (activeEvent) { setLoading(false); return }
       const { data: events } = await supabase
         .from('events').select('*')
         .eq('admin_id', profile.id)
@@ -24,7 +24,7 @@ export default function ManagerAnalytics() {
       setLoading(false)
     }
     loadActiveEvent()
-  }, [profile])
+  }, [profile?.id, activeEvent?.id])
 
   const zoneData = useMemo(() => zones.map(z => {
     const r = latestReadings[z.id]

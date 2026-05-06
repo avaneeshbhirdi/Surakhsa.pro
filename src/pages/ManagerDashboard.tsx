@@ -84,12 +84,18 @@ export default function ManagerDashboard() {
   }, [isSimulating, activeEvent, zones, latestReadings])
 
   useEffect(() => {
+    // Re-run when profile becomes available (avoids race on first mount)
+    if (!profile) return
     loadActiveEvent()
-    return () => clearEvent()
-  }, [])
+    // NOTE: do NOT clearEvent on unmount — we want the store to persist across navigation
+  }, [profile?.id])
 
   const loadActiveEvent = async () => {
     if (!profile) { setLoading(false); return }
+
+    // If event already loaded in store (e.g. navigating back), skip fetch
+    if (activeEvent) { setLoading(false); return }
+
     const { data: events } = await supabase
       .from('events')
       .select('*')
@@ -186,7 +192,26 @@ export default function ManagerDashboard() {
   }, [zones, latestReadings])
 
   if (loading) {
-    return <div className="virtus-layout"><div style={{ margin: 'auto' }}><div className="spinner spinner-lg" /></div></div>
+    // Skeleton layout — keeps structure visible while data loads
+    return (
+      <div className="virtus-layout">
+        <ManagerSidebar />
+        <main className="virtus-main">
+          <header className="virtus-header">
+            <div style={{ width: '160px', height: '20px', borderRadius: '8px', background: 'var(--v-border)', opacity: 0.4 }} />
+          </header>
+          <div className="virtus-grid">
+            {[1,2,3,4,5].map(i => (
+              <div key={i} className="v-card" style={{ minHeight: '120px', background: 'var(--v-card-bg)', animation: 'pulse 1.5s ease-in-out infinite' }}>
+                <div style={{ width: '40%', height: '14px', borderRadius: '6px', background: 'var(--v-border)', marginBottom: '16px' }} />
+                <div style={{ width: '60%', height: '32px', borderRadius: '6px', background: 'var(--v-border)' }} />
+              </div>
+            ))}
+          </div>
+        </main>
+        <style>{`@keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:0.8} }`}</style>
+      </div>
+    )
   }
 
   if (!activeEvent) {
@@ -331,7 +356,8 @@ export default function ManagerDashboard() {
                     <div className="v-progress-track">
                       <div className="v-progress-fill" style={{ 
                         width: `${pct}%`, 
-                        background: reading?.color_state === 'RED' ? '#ff4d4d' : reading?.color_state === 'YELLOW' ? 'orange' : 'var(--v-orange)'
+                        background: pct >= 85 ? '#ff4d4d' : pct >= 60 ? 'orange' : 'var(--v-orange)',
+                        transition: 'width 0.6s ease, background 0.4s ease'
                       }} />
                     </div>
                   </div>

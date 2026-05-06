@@ -119,6 +119,12 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   loadEvent: async (eventId: string) => {
+    // If same event already loaded with active realtime subscriptions, skip full re-fetch
+    const current = get()
+    if (current.activeEvent?.id === eventId && current._channels.length > 0) {
+      set({ isLoading: false })
+      return
+    }
     set({ isLoading: true, error: null })
     try {
       const [eventRes, zonesRes, alertsRes, staffRes, stewardRes] = await Promise.all([

@@ -25,10 +25,10 @@ export default function ManagerZones() {
   const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
+    // If event already in store, no loading needed
+    if (activeEvent) { setLoading(false); return }
+    if (!profile) { setLoading(false); return }
     const loadActiveEvent = async () => {
-      if (!profile) { setLoading(false); return }
-      // If event already loaded in store, skip
-      if (activeEvent) { setLoading(false); return }
       const { data: events } = await supabase
         .from('events')
         .select('*')
@@ -43,7 +43,7 @@ export default function ManagerZones() {
       setLoading(false)
     }
     loadActiveEvent()
-  }, [profile])
+  }, [profile?.id, activeEvent?.id])
 
   if (loading) {
     return (

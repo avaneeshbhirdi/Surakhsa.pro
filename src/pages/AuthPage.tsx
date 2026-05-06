@@ -53,6 +53,7 @@ export default function AuthPage() {
   const [pinValidated, setPinValidated] = useState(false)
   const [eventName, setEventName] = useState('')
   const [localError, setLocalError] = useState('')
+  const [emailError, setEmailError] = useState('')
   const [signupSuccess, setSignupSuccess] = useState(false)
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export default function AuthPage() {
     setMode(newMode)
     clearError()
     setLocalError('')
+    setEmailError('')
     setPinValidated(false)
     setSignupSuccess(false)
   }
@@ -91,6 +93,7 @@ export default function AuthPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setLocalError('')
+    setEmailError('')
 
     if (password !== confirmPassword) {
       setLocalError('Passwords do not match')
@@ -104,8 +107,22 @@ export default function AuthPage() {
     try {
       await signup(email, password, fullName, userType || 'GUEST')
       setSignupSuccess(true)
-    } catch {
-      // Error handled by store
+    } catch (err: unknown) {
+      // Detect email-specific errors so user only needs to fix the email field
+      const msg = err instanceof Error ? err.message : String(err)
+      const storeErr = useAuthStore.getState().error || ''
+      const combined = (msg + storeErr).toLowerCase()
+      if (
+        combined.includes('email') ||
+        combined.includes('already registered') ||
+        combined.includes('already in use') ||
+        combined.includes('invalid email') ||
+        combined.includes('user already exists')
+      ) {
+        setEmailError(storeErr || msg || 'Email error — please check and correct your email')
+        clearError() // clear global so banner doesn't double-show
+      }
+      // Non-email errors will show in the global error banner
     }
   }
 
@@ -164,7 +181,7 @@ export default function AuthPage() {
     }
   }
 
-  const displayError = localError || error
+  const displayError = localError || (emailError ? '' : error)
 
   return (
     <div className="auth">
@@ -247,7 +264,14 @@ export default function AuthPage() {
           <form onSubmit={handleLogin} className="auth__form">
             <div className="input-group">
               <label className="input-label">Email</label>
-              <input type="email" className="input" placeholder="admin@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+              <input
+                type="email" className="input"
+                placeholder="admin@example.com"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setEmailError('') }}
+                required
+                style={emailError ? { borderColor: 'var(--color-danger, #ff4d4d)', boxShadow: '0 0 0 2px rgba(255,77,77,0.2)' } : {}}
+              />
             </div>
             <div className="input-group">
               <label className="input-label">Password</label>
@@ -280,7 +304,19 @@ export default function AuthPage() {
             </div>
             <div className="input-group">
               <label className="input-label">Email</label>
-              <input type="email" className="input" placeholder="admin@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+              <input
+                type="email" className="input"
+                placeholder="admin@example.com"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setEmailError('') }}
+                required
+                style={emailError ? { borderColor: 'var(--color-danger, #ff4d4d)', boxShadow: '0 0 0 2px rgba(255,77,77,0.2)' } : {}}
+              />
+              {emailError && (
+                <p style={{ color: 'var(--color-danger, #ff4d4d)', fontSize: '12px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  ✕ {emailError}
+                </p>
+              )}
             </div>
             <div className="input-group">
               <label className="input-label">Password</label>

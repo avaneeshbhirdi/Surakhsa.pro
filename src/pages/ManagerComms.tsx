@@ -24,9 +24,9 @@ export default function ManagerComms() {
   const [personalSent, setPersonalSent] = useState(false)
 
   useEffect(() => {
+    if (activeEvent) { setLoading(false); return }
+    if (!profile) { setLoading(false); return }
     const loadActiveEvent = async () => {
-      if (!profile) { setLoading(false); return }
-      if (activeEvent) { setLoading(false); return }
       const { data: events } = await supabase
         .from('events').select('*')
         .eq('admin_id', profile.id)
@@ -36,7 +36,7 @@ export default function ManagerComms() {
       setLoading(false)
     }
     loadActiveEvent()
-  }, [profile])
+  }, [profile?.id, activeEvent?.id])
 
   // Automatically select first staff member if none selected
   useEffect(() => {
