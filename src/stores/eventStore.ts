@@ -37,7 +37,7 @@ interface EventState {
   resolveAlert: (alertId: string) => Promise<void>
   sendInstruction: (eventId: string, zoneId: string | null, senderId: string, message: string, isBroadcast?: boolean) => Promise<void>
   triggerAlert: (eventId: string, zoneId: string | null, type: 'POLICE' | 'MEDICAL' | 'FIRE' | 'CROWD' | 'OTHER', severity: 'WARNING' | 'CRITICAL', message: string, reportedBy?: string) => Promise<void>
-  sendStewardMessage: (eventId: string, zoneId: string | null, staffId: string, status: 'ALL_CLEAR' | 'CROWD_BUILDING' | 'EMERGENCY', message?: string) => Promise<void>
+  sendStewardMessage: (eventId: string, zoneId: string | null, staffId: string, status: 'ALL_CLEAR' | 'CROWD_BUILDING' | 'EMERGENCY', message?: string, recipientStaffId?: string) => Promise<void>
   subscribeToRealtime: (eventId: string) => void
   unsubscribeAll: () => void
   clearEvent: () => void
@@ -261,13 +261,14 @@ export const useEventStore = create<EventState>((set, get) => ({
     if (error) throw new Error(error.message)
   },
 
-  sendStewardMessage: async (eventId, zoneId, staffId, status, message) => {
+  sendStewardMessage: async (eventId, zoneId, staffId, status, message, recipientStaffId) => {
     const { error } = await supabase.from('steward_updates').insert({
       event_id: eventId,
       zone_id: zoneId,
       staff_id: staffId,
       status,
       message,
+      ...(recipientStaffId ? { recipient_staff_id: recipientStaffId } : {}),
     })
     if (error) throw new Error(error.message)
   },

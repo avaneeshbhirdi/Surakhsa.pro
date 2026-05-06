@@ -9,12 +9,18 @@ import type { Event } from '@/lib/types'
 
 export default function CoordinatorApp() {
   const { pinSession, profile } = useAuthStore()
-  const { zones, alerts, latestReadings, loadEvent, acknowledgeAlert, sendStewardMessage, triggerAlert } = useEventStore()
+  const { zones, alerts, staff, latestReadings, loadEvent, acknowledgeAlert, sendStewardMessage, triggerAlert } = useEventStore()
   const [activeTab, setActiveTab] = useState<'zone' | 'comms' | 'alerts'>('zone')
   const [isPTTActive, setIsPTTActive] = useState(false)
-  const [textMessage, setTextMessage] = useState('')
+  const [textMessage, setTextMessage] = useState('')      // manager message
   const [messageSent, setMessageSent] = useState(false)
   const [eventDetails, setEventDetails] = useState<Event | null>(null)
+
+  // DM to coordinator
+  const [dmRecipientId, setDmRecipientId] = useState<string>('')
+  const [dmMessage, setDmMessage] = useState('')
+  const [dmSent, setDmSent] = useState(false)
+  const [dmSending, setDmSending] = useState(false)
 
   // Zone selector: default to coordinator's assigned zone, but they can switch
   const [selectedZoneId, setSelectedZoneId] = useState<string>('')
@@ -96,12 +102,34 @@ export default function CoordinatorApp() {
   const handleSendMessage = async () => {
     if (!textMessage.trim() || !pinSession) return
     try {
-      await sendStewardMessage(eventId, selectedZoneId || null, pinSession.staffId, 'ALL_CLEAR', textMessage.trim())
+      await sendStewardMessage(eventId, selectedZoneId || null, pinSession.staffId, 'ALL_CLEAR', `[TO MANAGER] ${textMessage.trim()}`)
       setTextMessage('')
       setMessageSent(true)
       setTimeout(() => setMessageSent(false), 2500)
     } catch (err) {
       console.error('Failed to send message')
+    }
+  }
+
+  const handleSendDM = async () => {
+    if (!dmMessage.trim() || !pinSession || !dmRecipientId) return
+    setDmSending(true)
+    try {
+      await sendStewardMessage(
+        eventId,
+        selectedZoneId || null,
+        pinSession.staffId,
+        'ALL_CLEAR',
+        `[DM] ${dmMessage.trim()}`,
+        dmRecipientId
+      )
+      setDmMessage('')
+      setDmSent(true)
+      setTimeout(() => setDmSent(false), 2500)
+    } catch (err) {
+      console.error('Failed to send DM')
+    } finally {
+      setDmSending(false)
     }
   }
 
@@ -365,8 +393,11 @@ export default function CoordinatorApp() {
 
           {/* Communicate Tab */}
           {activeTab === 'comms' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div className="v-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+              {/* ── Section 1: PTT / Broadcast ── */}
+              <div className="v-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 20px', gap: '12px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--v-text-muted)', marginBottom: '4px' }}>Zone Broadcast Channel</div>
                 <button
                   className={`ptt-button ${isPTTActive ? 'ptt-button--transmitting' : ''}`}
                   onMouseDown={() => setIsPTTActive(true)}
@@ -374,7 +405,7 @@ export default function CoordinatorApp() {
                   onTouchStart={() => setIsPTTActive(true)}
                   onTouchEnd={() => setIsPTTActive(false)}
                   style={{
-                    width: '120px', height: '120px', borderRadius: '50%', border: 'none',
+                    width: '100px', height: '100px', borderRadius: '50%', border: 'none',
                     background: isPTTActive ? 'var(--color-danger-pulse)' : 'var(--v-bg-dark)',
                     boxShadow: isPTTActive ? '0 0 40px rgba(255, 60, 60, 0.4)' : 'inset 0 0 20px rgba(0,0,0,0.5), 0 0 0 1px var(--v-border)',
                     color: isPTTActive ? '#fff' : 'var(--v-orange)',
@@ -382,18 +413,21 @@ export default function CoordinatorApp() {
                     transition: 'all 0.1s'
                   }}
                 >
-                  {isPTTActive ? <MicOff size={48} /> : <Mic size={48} />}
+                  {isPTTActive ? <MicOff size={40} /> : <Mic size={40} />}
                 </button>
-                <p style={{ marginTop: '24px', fontSize: '14px', color: 'var(--v-text-main)', opacity: 0.6, textAlign: 'center' }}>
-                  {isPTTActive ? '🔴 Transmitting on Zone channel...' : 'Hold to talk on Zone channel'}
+                <p style={{ fontSize: '13px', color: 'var(--v-text-main)', opacity: 0.55, textAlign: 'center' }}>
+                  {isPTTActive ? '🔴 Transmitting...' : 'Hold to broadcast on zone channel'}
                 </p>
               </div>
 
+              {/* ── Section 2: Message Event Manager ── */}
               <div className="v-card">
-                <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '16px' }}>Send Message to Event Manager</h4>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '16px' }}>👔</span> Message Event Manager
+                </h4>
+                <div style={{ display: 'flex', gap: '10px' }}>
                   <input
-                    placeholder="Type message..."
+                    placeholder="Type message to manager..."
                     value={textMessage}
                     onChange={e => setTextMessage(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
@@ -402,17 +436,120 @@ export default function CoordinatorApp() {
                   <button
                     onClick={handleSendMessage}
                     disabled={!textMessage.trim()}
-                    style={{ background: 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '10px', padding: '0 20px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !textMessage.trim() ? 0.5 : 1 }}
+                    style={{ background: 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '10px', padding: '0 18px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !textMessage.trim() ? 0.5 : 1 }}
                   >
-                    <Send size={18} />
+                    <Send size={16} />
                   </button>
                 </div>
                 {messageSent && (
-                  <p style={{ color: '#4dff4d', fontSize: '12px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    ✅ Message sent to Event Manager
+                  <p style={{ color: '#4dff4d', fontSize: '12px', marginTop: '10px' }}>✅ Message sent to Event Manager</p>
+                )}
+              </div>
+
+              {/* ── Section 3: Direct Message to Coordinator ── */}
+              <div className="v-card">
+                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '16px' }}>💬</span> Message a Coordinator
+                </h4>
+
+                {/* Coordinator list grouped by zone */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px', maxHeight: '260px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {zones.map(z => {
+                    const zoneStaff = staff.filter(s => s.zone_id === z.id && s.id !== pinSession?.staffId)
+                    if (zoneStaff.length === 0) return null
+                    return (
+                      <div key={z.id}>
+                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', paddingLeft: '4px' }}>
+                          Zone {z.label}{z.name ? ` — ${z.name}` : ''}
+                        </div>
+                        {zoneStaff.map(s => (
+                          <div
+                            key={s.id}
+                            onClick={() => setDmRecipientId(s.id)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '10px',
+                              padding: '10px 12px', borderRadius: '10px',
+                              background: dmRecipientId === s.id ? 'rgba(255,170,0,0.12)' : 'var(--v-bg-dark)',
+                              border: `1px solid ${dmRecipientId === s.id ? 'var(--v-orange)' : 'var(--v-border)'}`,
+                              cursor: 'pointer', transition: 'all 0.15s', marginBottom: '6px'
+                            }}
+                          >
+                            <div className="v-avatar" style={{ width: '30px', height: '30px', fontSize: '11px', flexShrink: 0 }}>
+                              {(s.display_name || 'C').substring(0, 2).toUpperCase()}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '13px', fontWeight: 600 }}>{s.display_name || 'Coordinator'}</div>
+                              <div style={{ fontSize: '11px', color: 'var(--v-text-muted)' }}>{s.role.replace('_', ' ')}</div>
+                            </div>
+                            {dmRecipientId === s.id && (
+                              <span style={{ fontSize: '11px', color: 'var(--v-orange)', fontWeight: 700 }}>Selected</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })}
+                  {/* Staff with no zone */}
+                  {(() => {
+                    const noZoneStaff = staff.filter(s => !s.zone_id && s.id !== pinSession?.staffId)
+                    if (noZoneStaff.length === 0) return null
+                    return (
+                      <div>
+                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', paddingLeft: '4px' }}>Unassigned</div>
+                        {noZoneStaff.map(s => (
+                          <div
+                            key={s.id}
+                            onClick={() => setDmRecipientId(s.id)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '10px',
+                              padding: '10px 12px', borderRadius: '10px',
+                              background: dmRecipientId === s.id ? 'rgba(255,170,0,0.12)' : 'var(--v-bg-dark)',
+                              border: `1px solid ${dmRecipientId === s.id ? 'var(--v-orange)' : 'var(--v-border)'}`,
+                              cursor: 'pointer', transition: 'all 0.15s', marginBottom: '6px'
+                            }}
+                          >
+                            <div className="v-avatar" style={{ width: '30px', height: '30px', fontSize: '11px', flexShrink: 0 }}>
+                              {(s.display_name || 'C').substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 600 }}>{s.display_name || 'Coordinator'}</div>
+                              <div style={{ fontSize: '11px', color: 'var(--v-text-muted)' }}>{s.role.replace('_', ' ')}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                  {staff.filter(s => s.id !== pinSession?.staffId).length === 0 && (
+                    <p style={{ fontSize: '13px', opacity: 0.4, textAlign: 'center', padding: '20px 0' }}>No other coordinators online</p>
+                  )}
+                </div>
+
+                {/* DM Text Input */}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input
+                    placeholder={dmRecipientId ? `Message ${staff.find(s => s.id === dmRecipientId)?.display_name || 'coordinator'}...` : 'Select a coordinator above first...'}
+                    value={dmMessage}
+                    disabled={!dmRecipientId}
+                    onChange={e => setDmMessage(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSendDM()}
+                    style={{ flex: 1, background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', borderRadius: '10px', padding: '12px 16px', color: '#fff', fontSize: '14px', opacity: !dmRecipientId ? 0.5 : 1 }}
+                  />
+                  <button
+                    onClick={handleSendDM}
+                    disabled={!dmMessage.trim() || !dmRecipientId || dmSending}
+                    style={{ background: 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '10px', padding: '0 18px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: (!dmMessage.trim() || !dmRecipientId) ? 0.5 : 1 }}
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
+                {dmSent && (
+                  <p style={{ color: '#4dff4d', fontSize: '12px', marginTop: '10px' }}>
+                    ✅ DM sent to {staff.find(s => s.id === dmRecipientId)?.display_name || 'coordinator'}
                   </p>
                 )}
               </div>
+
             </div>
           )}
 
