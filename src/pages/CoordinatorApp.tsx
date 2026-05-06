@@ -9,8 +9,9 @@ import type { Event } from '@/lib/types'
 
 export default function CoordinatorApp() {
   const { pinSession, profile } = useAuthStore()
-  const { zones, alerts, staff, latestReadings, loadEvent, acknowledgeAlert, sendStewardMessage, triggerAlert } = useEventStore()
+  const { zones, alerts, staff, stewardUpdates, instructions, latestReadings, loadEvent, acknowledgeAlert, sendStewardMessage, triggerAlert } = useEventStore()
   const [activeTab, setActiveTab] = useState<'zone' | 'comms' | 'alerts'>('zone')
+  const [commsView, setCommsView] = useState<'send' | 'inbox'>('send')
   const [isPTTActive, setIsPTTActive] = useState(false)
   const [textMessage, setTextMessage] = useState('')      // manager message
   const [messageSent, setMessageSent] = useState(false)
@@ -63,6 +64,14 @@ export default function CoordinatorApp() {
   const broadcastAlerts = alerts.filter(a => a.zone_id === null)
   const allZoneAlerts = alerts.filter(a => a.zone_id !== null && a.status === 'TRIGGERED')
   const unreadCount = broadcastAlerts.filter(a => a.status === 'TRIGGERED').length + allZoneAlerts.length
+
+  // Inbox: messages FROM the manager (instructions) + DMs TO this coordinator from other coordinators
+  const myStaffId = pinSession?.staffId || ''
+  const managerMessages = instructions  // all instructions are from manager to this event
+  const dmMessages = stewardUpdates.filter(
+    u => u.recipient_staff_id === myStaffId && u.message
+  )
+  const inboxTotal = managerMessages.length + dmMessages.length
 
   const profileId = profile?.id || ''
 
@@ -395,163 +404,228 @@ export default function CoordinatorApp() {
           {activeTab === 'comms' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-              {/* ── Section 1: PTT / Broadcast ── */}
-              <div className="v-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 20px', gap: '12px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--v-text-muted)', marginBottom: '4px' }}>Zone Broadcast Channel</div>
+              {/* Send / Inbox switcher */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <button
-                  className={`ptt-button ${isPTTActive ? 'ptt-button--transmitting' : ''}`}
-                  onMouseDown={() => setIsPTTActive(true)}
-                  onMouseUp={() => setIsPTTActive(false)}
-                  onTouchStart={() => setIsPTTActive(true)}
-                  onTouchEnd={() => setIsPTTActive(false)}
+                  onClick={() => setCommsView('send')}
                   style={{
-                    width: '100px', height: '100px', borderRadius: '50%', border: 'none',
-                    background: isPTTActive ? 'var(--color-danger-pulse)' : 'var(--v-bg-dark)',
-                    boxShadow: isPTTActive ? '0 0 40px rgba(255, 60, 60, 0.4)' : 'inset 0 0 20px rgba(0,0,0,0.5), 0 0 0 1px var(--v-border)',
-                    color: isPTTActive ? '#fff' : 'var(--v-orange)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                    transition: 'all 0.1s'
+                    padding: '10px', borderRadius: '10px', fontWeight: 700, fontSize: '13px',
+                    cursor: 'pointer', border: 'none', transition: 'all 0.15s',
+                    background: commsView === 'send' ? 'var(--v-orange)' : 'var(--v-bg-dark)',
+                    color: commsView === 'send' ? '#000' : 'var(--v-text-main)',
                   }}
                 >
-                  {isPTTActive ? <MicOff size={40} /> : <Mic size={40} />}
+                  ✉️ Send
                 </button>
-                <p style={{ fontSize: '13px', color: 'var(--v-text-main)', opacity: 0.55, textAlign: 'center' }}>
-                  {isPTTActive ? '🔴 Transmitting...' : 'Hold to broadcast on zone channel'}
-                </p>
+                <button
+                  onClick={() => setCommsView('inbox')}
+                  style={{
+                    padding: '10px', borderRadius: '10px', fontWeight: 700, fontSize: '13px',
+                    cursor: 'pointer', border: 'none', transition: 'all 0.15s', position: 'relative',
+                    background: commsView === 'inbox' ? 'var(--v-orange)' : 'var(--v-bg-dark)',
+                    color: commsView === 'inbox' ? '#000' : 'var(--v-text-main)',
+                  }}
+                >
+                  📥 Inbox
+                  {inboxTotal > 0 && (
+                    <span style={{
+                      position: 'absolute', top: '-6px', right: '-6px',
+                      background: 'var(--color-danger-pulse)', color: '#fff',
+                      borderRadius: '10px', padding: '1px 6px', fontSize: '10px', fontWeight: 800,
+                    }}>{inboxTotal}</span>
+                  )}
+                </button>
               </div>
 
-              {/* ── Section 2: Message Event Manager ── */}
-              <div className="v-card">
-                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '16px' }}>👔</span> Message Event Manager
-                </h4>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input
-                    placeholder="Type message to manager..."
-                    value={textMessage}
-                    onChange={e => setTextMessage(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                    style={{ flex: 1, background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', borderRadius: '10px', padding: '12px 16px', color: '#fff', fontSize: '14px' }}
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!textMessage.trim()}
-                    style={{ background: 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '10px', padding: '0 18px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !textMessage.trim() ? 0.5 : 1 }}
-                  >
-                    <Send size={16} />
-                  </button>
-                </div>
-                {messageSent && (
-                  <p style={{ color: '#4dff4d', fontSize: '12px', marginTop: '10px' }}>✅ Message sent to Event Manager</p>
-                )}
-              </div>
+              {/* ── SEND VIEW ── */}
+              {commsView === 'send' && (
+                <>
+                  {/* PTT */}
+                  <div className="v-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '28px 20px', gap: '12px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--v-text-muted)' }}>Zone Broadcast Channel</div>
+                    <button
+                      onMouseDown={() => setIsPTTActive(true)}
+                      onMouseUp={() => setIsPTTActive(false)}
+                      onTouchStart={() => setIsPTTActive(true)}
+                      onTouchEnd={() => setIsPTTActive(false)}
+                      style={{
+                        width: '90px', height: '90px', borderRadius: '50%', border: 'none',
+                        background: isPTTActive ? 'var(--color-danger-pulse)' : 'var(--v-bg-dark)',
+                        boxShadow: isPTTActive ? '0 0 40px rgba(255,60,60,0.4)' : 'inset 0 0 20px rgba(0,0,0,0.5), 0 0 0 1px var(--v-border)',
+                        color: isPTTActive ? '#fff' : 'var(--v-orange)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.1s'
+                      }}
+                    >
+                      {isPTTActive ? <MicOff size={36} /> : <Mic size={36} />}
+                    </button>
+                    <p style={{ fontSize: '12px', color: 'var(--v-text-main)', opacity: 0.55, textAlign: 'center' }}>
+                      {isPTTActive ? '🔴 Transmitting...' : 'Hold to broadcast on zone channel'}
+                    </p>
+                  </div>
 
-              {/* ── Section 3: Direct Message to Coordinator ── */}
-              <div className="v-card">
-                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '16px' }}>💬</span> Message a Coordinator
-                </h4>
+                  {/* Message Manager */}
+                  <div className="v-card">
+                    <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      👔 Message Event Manager
+                    </h4>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <input
+                        placeholder="Type message to manager..."
+                        value={textMessage}
+                        onChange={e => setTextMessage(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                        style={{ flex: 1, background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', borderRadius: '10px', padding: '11px 14px', color: '#fff', fontSize: '14px' }}
+                      />
+                      <button onClick={handleSendMessage} disabled={!textMessage.trim()}
+                        style={{ background: 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '10px', padding: '0 18px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !textMessage.trim() ? 0.5 : 1 }}>
+                        <Send size={16} />
+                      </button>
+                    </div>
+                    {messageSent && <p style={{ color: '#4dff4d', fontSize: '12px', marginTop: '8px' }}>✅ Sent to Event Manager</p>}
+                  </div>
 
-                {/* Coordinator list grouped by zone */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px', maxHeight: '260px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {zones.map(z => {
-                    const zoneStaff = staff.filter(s => s.zone_id === z.id && s.id !== pinSession?.staffId)
-                    if (zoneStaff.length === 0) return null
-                    return (
-                      <div key={z.id}>
-                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', paddingLeft: '4px' }}>
-                          Zone {z.label}{z.name ? ` — ${z.name}` : ''}
+                  {/* DM to Coordinator */}
+                  <div className="v-card">
+                    <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      💬 Message a Coordinator
+                    </h4>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px', maxHeight: '220px', overflowY: 'auto' }}>
+                      {zones.map(z => {
+                        const zoneStaff = staff.filter(s => s.zone_id === z.id && s.id !== pinSession?.staffId)
+                        if (zoneStaff.length === 0) return null
+                        return (
+                          <div key={z.id}>
+                            <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 4px 4px' }}>
+                              Zone {z.label}{z.name ? ` — ${z.name}` : ''}
+                            </div>
+                            {zoneStaff.map(s => (
+                              <div key={s.id} onClick={() => setDmRecipientId(s.id)} style={{
+                                display: 'flex', alignItems: 'center', gap: '10px',
+                                padding: '9px 12px', borderRadius: '10px', marginBottom: '4px',
+                                background: dmRecipientId === s.id ? 'rgba(255,170,0,0.12)' : 'var(--v-bg-dark)',
+                                border: `1px solid ${dmRecipientId === s.id ? 'var(--v-orange)' : 'var(--v-border)'}`,
+                                cursor: 'pointer', transition: 'all 0.15s'
+                              }}>
+                                <div className="v-avatar" style={{ width: '28px', height: '28px', fontSize: '10px', flexShrink: 0 }}>
+                                  {(s.display_name || 'C').substring(0, 2).toUpperCase()}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: '13px', fontWeight: 600 }}>{s.display_name || 'Coordinator'}</div>
+                                  <div style={{ fontSize: '10px', color: 'var(--v-text-muted)' }}>{s.role.replace('_', ' ')}</div>
+                                </div>
+                                {dmRecipientId === s.id && <span style={{ fontSize: '10px', color: 'var(--v-orange)', fontWeight: 700 }}>✓</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      })}
+                      {staff.filter(s => s.id !== pinSession?.staffId).length === 0 && (
+                        <p style={{ fontSize: '13px', opacity: 0.4, textAlign: 'center', padding: '16px 0' }}>No other coordinators</p>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <input
+                        placeholder={dmRecipientId ? `Message ${staff.find(s => s.id === dmRecipientId)?.display_name || 'coordinator'}...` : 'Select a coordinator above...'}
+                        value={dmMessage} disabled={!dmRecipientId}
+                        onChange={e => setDmMessage(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSendDM()}
+                        style={{ flex: 1, background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', borderRadius: '10px', padding: '11px 14px', color: '#fff', fontSize: '14px', opacity: !dmRecipientId ? 0.5 : 1 }}
+                      />
+                      <button onClick={handleSendDM} disabled={!dmMessage.trim() || !dmRecipientId || dmSending}
+                        style={{ background: 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '10px', padding: '0 18px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: (!dmMessage.trim() || !dmRecipientId) ? 0.5 : 1 }}>
+                        <Send size={16} />
+                      </button>
+                    </div>
+                    {dmSent && (
+                      <p style={{ color: '#4dff4d', fontSize: '12px', marginTop: '8px' }}>
+                        ✅ DM sent to {staff.find(s => s.id === dmRecipientId)?.display_name || 'coordinator'}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* ── INBOX VIEW ── */}
+              {commsView === 'inbox' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+                  {/* Manager instructions */}
+                  {managerMessages.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v-orange)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
+                        📢 From Event Manager
+                      </div>
+                      {[...managerMessages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(m => (
+                        <div key={m.id} className="v-card" style={{ padding: '14px 16px', marginBottom: '8px', borderLeft: '3px solid var(--v-orange)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--v-orange)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              👔 Event Manager
+                              {m.is_broadcast && (
+                                <span style={{ background: 'rgba(255,170,0,0.15)', color: 'var(--v-orange)', fontSize: '9px', padding: '1px 5px', borderRadius: '4px', marginLeft: '4px' }}>BROADCAST</span>
+                              )}
+                            </span>
+                            <span style={{ fontSize: '10px', color: 'var(--v-text-muted)' }}>
+                              {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: '14px', color: 'var(--v-text-main)', margin: 0, lineHeight: 1.5 }}>{m.message}</p>
                         </div>
-                        {zoneStaff.map(s => (
-                          <div
-                            key={s.id}
-                            onClick={() => setDmRecipientId(s.id)}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: '10px',
-                              padding: '10px 12px', borderRadius: '10px',
-                              background: dmRecipientId === s.id ? 'rgba(255,170,0,0.12)' : 'var(--v-bg-dark)',
-                              border: `1px solid ${dmRecipientId === s.id ? 'var(--v-orange)' : 'var(--v-border)'}`,
-                              cursor: 'pointer', transition: 'all 0.15s', marginBottom: '6px'
-                            }}
-                          >
-                            <div className="v-avatar" style={{ width: '30px', height: '30px', fontSize: '11px', flexShrink: 0 }}>
-                              {(s.display_name || 'C').substring(0, 2).toUpperCase()}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '13px', fontWeight: 600 }}>{s.display_name || 'Coordinator'}</div>
-                              <div style={{ fontSize: '11px', color: 'var(--v-text-muted)' }}>{s.role.replace('_', ' ')}</div>
-                            </div>
-                            {dmRecipientId === s.id && (
-                              <span style={{ fontSize: '11px', color: 'var(--v-orange)', fontWeight: 700 }}>Selected</span>
-                            )}
-                          </div>
-                        ))}
+                      ))}
+                    </div>
+                  )}
+
+                  {/* DMs from other coordinators */}
+                  {dmMessages.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#4dff4d', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
+                        💬 Direct Messages
                       </div>
-                    )
-                  })}
-                  {/* Staff with no zone */}
-                  {(() => {
-                    const noZoneStaff = staff.filter(s => !s.zone_id && s.id !== pinSession?.staffId)
-                    if (noZoneStaff.length === 0) return null
-                    return (
-                      <div>
-                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--v-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', paddingLeft: '4px' }}>Unassigned</div>
-                        {noZoneStaff.map(s => (
-                          <div
-                            key={s.id}
-                            onClick={() => setDmRecipientId(s.id)}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: '10px',
-                              padding: '10px 12px', borderRadius: '10px',
-                              background: dmRecipientId === s.id ? 'rgba(255,170,0,0.12)' : 'var(--v-bg-dark)',
-                              border: `1px solid ${dmRecipientId === s.id ? 'var(--v-orange)' : 'var(--v-border)'}`,
-                              cursor: 'pointer', transition: 'all 0.15s', marginBottom: '6px'
-                            }}
-                          >
-                            <div className="v-avatar" style={{ width: '30px', height: '30px', fontSize: '11px', flexShrink: 0 }}>
-                              {(s.display_name || 'C').substring(0, 2).toUpperCase()}
+                      {[...dmMessages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(m => {
+                        const sender = staff.find(s => s.id === m.staff_id)
+                        const senderZone = zones.find(z => z.id === sender?.zone_id)
+                        const cleanMsg = (m.message || '').replace(/^\[DM\]\s*/, '')
+                        return (
+                          <div key={m.id} className="v-card" style={{ padding: '14px 16px', marginBottom: '8px', borderLeft: '3px solid #4dff4d' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div className="v-avatar" style={{ width: '24px', height: '24px', fontSize: '9px' }}>
+                                  {(sender?.display_name || 'C').substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#4dff4d' }}>
+                                    {sender?.display_name || 'Coordinator'}
+                                  </span>
+                                  {senderZone && (
+                                    <span style={{ fontSize: '10px', color: 'var(--v-text-muted)', marginLeft: '6px' }}>Zone {senderZone.label}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <span style={{ fontSize: '10px', color: 'var(--v-text-muted)' }}>
+                                {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
                             </div>
-                            <div>
-                              <div style={{ fontSize: '13px', fontWeight: 600 }}>{s.display_name || 'Coordinator'}</div>
-                              <div style={{ fontSize: '11px', color: 'var(--v-text-muted)' }}>{s.role.replace('_', ' ')}</div>
-                            </div>
+                            <p style={{ fontSize: '14px', color: 'var(--v-text-main)', margin: 0, lineHeight: 1.5 }}>{cleanMsg}</p>
                           </div>
-                        ))}
-                      </div>
-                    )
-                  })()}
-                  {staff.filter(s => s.id !== pinSession?.staffId).length === 0 && (
-                    <p style={{ fontSize: '13px', opacity: 0.4, textAlign: 'center', padding: '20px 0' }}>No other coordinators online</p>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {inboxTotal === 0 && (
+                    <div className="v-card" style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.5 }}>
+                      <p style={{ fontSize: '14px' }}>📭 No messages yet</p>
+                      <p style={{ fontSize: '12px', marginTop: '6px' }}>Messages from the manager and coordinators will appear here</p>
+                    </div>
                   )}
                 </div>
-
-                {/* DM Text Input */}
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input
-                    placeholder={dmRecipientId ? `Message ${staff.find(s => s.id === dmRecipientId)?.display_name || 'coordinator'}...` : 'Select a coordinator above first...'}
-                    value={dmMessage}
-                    disabled={!dmRecipientId}
-                    onChange={e => setDmMessage(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSendDM()}
-                    style={{ flex: 1, background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', borderRadius: '10px', padding: '12px 16px', color: '#fff', fontSize: '14px', opacity: !dmRecipientId ? 0.5 : 1 }}
-                  />
-                  <button
-                    onClick={handleSendDM}
-                    disabled={!dmMessage.trim() || !dmRecipientId || dmSending}
-                    style={{ background: 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '10px', padding: '0 18px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: (!dmMessage.trim() || !dmRecipientId) ? 0.5 : 1 }}
-                  >
-                    <Send size={16} />
-                  </button>
-                </div>
-                {dmSent && (
-                  <p style={{ color: '#4dff4d', fontSize: '12px', marginTop: '10px' }}>
-                    ✅ DM sent to {staff.find(s => s.id === dmRecipientId)?.display_name || 'coordinator'}
-                  </p>
-                )}
-              </div>
+              )}
 
             </div>
           )}
+
+
 
           {/* Alerts Tab */}
           {activeTab === 'alerts' && (

@@ -117,6 +117,7 @@ export interface StewardUpdate {
   staff_id: string
   status: StewardStatus
   message?: string
+  recipient_staff_id?: string | null
   created_at: string
   // Joined
   staff?: EventStaff

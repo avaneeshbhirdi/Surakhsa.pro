@@ -121,11 +121,12 @@ export const useEventStore = create<EventState>((set, get) => ({
   loadEvent: async (eventId: string) => {
     set({ isLoading: true, error: null })
     try {
-      const [eventRes, zonesRes, alertsRes, staffRes] = await Promise.all([
+      const [eventRes, zonesRes, alertsRes, staffRes, stewardRes] = await Promise.all([
         supabase.from('events').select('*').eq('id', eventId).single(),
         supabase.from('zones').select('*').eq('event_id', eventId).order('label'),
         supabase.from('alerts').select('*').eq('event_id', eventId).order('triggered_at', { ascending: false }).limit(100),
         supabase.from('event_staff').select('*').eq('event_id', eventId).is('left_at', null),
+        supabase.from('steward_updates').select('*').eq('event_id', eventId).order('created_at', { ascending: false }).limit(100),
       ])
 
       if (eventRes.error) throw new Error(eventRes.error.message)
@@ -153,6 +154,7 @@ export const useEventStore = create<EventState>((set, get) => ({
         alerts: alertsRes.data || [],
         staff: staffRes.data || [],
         latestReadings,
+        stewardUpdates: stewardRes.data || [],
         isLoading: false,
       })
 
@@ -165,15 +167,16 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   createZone: async (eventId, label, name, capacity) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('zones')
       .insert({ event_id: eventId, label, name, capacity })
       .select()
       .single()
 
     if (error) throw new Error(error.message)
-    // The new zone will be added via realtime subscription, 
-    // but we can also optimistically update it here if needed.
+    if (data) {
+      set(state => ({ zones: [...state.zones, data] }))
+    }
   },
 
   updateZone: async (zoneId, label, name, capacity) => {
@@ -183,8 +186,13 @@ export const useEventStore = create<EventState>((set, get) => ({
       .eq('id', zoneId)
 
     if (error) throw new Error(error.message)
-    
-    // Realtime subscription will handle updating the UI state
+
+    // Optimistic local update so UI reflects instantly (realtime will echo, but this is faster)
+    set(state => ({
+      zones: state.zones.map(z =>
+        z.id === zoneId ? { ...z, label, name, capacity } : z
+      ),
+    }))
   },
 
   updateEventStatus: async (eventId: string, status: EventStatus) => {
@@ -294,6 +302,31 @@ export const useEventStore = create<EventState>((set, get) => ({
       })
       .subscribe()
     channels.push(readingsChannel)
+
+    // Zones channel (for capacity/name edits)
+    const zonesChannel = supabase
+      .channel(`event:${eventId}:zones`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'zones',
+        filter: `event_id=eq.${eventId}`,
+      }, (payload) => {
+        const updated = payload.new as Zone
+        set(state => ({
+          zones: state.zones.map(z => z.id === updated.id ? updated : z),
+        }))
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'zones',
+        filter: `event_id=eq.${eventId}`,
+      }, (payload) => {
+        set(state => ({ zones: [...state.zones, payload.new as Zone] }))
+      })
+      .subscribe()
+    channels.push(zonesChannel)
 
     // Alerts channel
     const alertsChannel = supabase
