@@ -58,27 +58,28 @@ export default function CoordinatorSidebar({ activeTab, setActiveTab, unreadCoun
       </nav>
 
       <div className="virtus-sidebar-footer">
-        {!isSidebarCollapsed && (
-          <div className="virtus-user-profile" style={{ marginBottom: '16px' }}>
-            <div className="virtus-avatar">
-              {displayName.substring(0, 2).toUpperCase()}
-            </div>
-            <div className="virtus-user-info">
-              <span className="virtus-user-name">{displayName}</span>
-              <span className="virtus-user-role">COORDINATOR</span>
-            </div>
+        <div className="virtus-profile-preview" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', marginBottom: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
+          <div className="v-avatar" style={{ width: '32px', height: '32px', fontSize: '12px', flexShrink: 0 }}>
+            {displayName.substring(0, 2).toUpperCase()}
           </div>
-        )}
+          {!isSidebarCollapsed && (
+            <div style={{ overflow: 'hidden' }}>
+              <div className="v-text-sm" style={{ fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                {displayName}
+              </div>
+              <div className="v-text-xs" style={{ opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>COORDINATOR</div>
+            </div>
+          )}
+        </div>
         
-        <button className="virtus-nav-item" onClick={handleLogout} style={{ color: 'var(--color-danger)', opacity: 0.8 }}>
+        <button className="virtus-nav-item" onClick={handleLogout} style={{ color: 'var(--color-danger)', opacity: 0.8, justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
           <LogOut size={18} /> {!isSidebarCollapsed && <span className="nav-label">Log Out</span>}
         </button>
         
-        <div className="virtus-collapse-btn-container" style={{ marginTop: '16px', display: 'flex', justifyContent: isSidebarCollapsed ? 'center' : 'flex-end' }}>
-          <button className="virtus-collapse-btn" onClick={toggleSidebar}>
-            {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        </div>
+        <button className="virtus-nav-item" onClick={toggleSidebar} style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
+          {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />} 
+          {!isSidebarCollapsed && <span className="nav-label">Collapse Menu</span>}
+        </button>
       </div>
     </aside>
   )
