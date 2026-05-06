@@ -91,41 +91,79 @@ export default function LandingPage() {
               { 
                 id: 1, 
                 icon: <MapIcon size={48} strokeWidth={1.5} color="#facc15" />, 
-                title: 'Live Zone Heatmap', 
-                description: 'See every zone at a glance with color-coded risk status updating every 5 seconds.' 
+                title: t('landingFeature1Title'), 
+                description: t('landingFeature1Desc') 
               },
               { 
                 id: 2, 
                 icon: <Brain size={48} strokeWidth={1.5} color="#facc15" />, 
-                title: 'Risk Detection Engine', 
-                description: 'Automatic detection of surge, bottleneck, and stampede risk patterns with actionable recommendations.' 
+                title: t('landingFeature2Title'), 
+                description: t('landingFeature2Desc') 
               },
               { 
                 id: 3, 
                 icon: <Radio size={48} strokeWidth={1.5} color="#facc15" />, 
-                title: 'WebRTC Walkie-Talkie', 
-                description: 'Push-to-talk voice channels — global and per-zone — with sub-500ms latency.' 
+                title: t('landingFeature3Title'), 
+                description: t('landingFeature3Desc') 
               },
               { 
                 id: 4, 
                 icon: <Bell size={48} strokeWidth={1.5} color="#facc15" />, 
-                title: 'Smart Alert System', 
-                description: 'Priority-based alerts with audio, vibration, and full-screen notifications for critical situations.' 
+                title: t('landingFeature4Title'), 
+                description: t('landingFeature4Desc') 
               },
               { 
                 id: 5, 
                 icon: <Smartphone size={48} strokeWidth={1.5} color="#facc15" />, 
-                title: 'Steward Mobile App', 
-                description: 'Gloves-friendly interface with 1-tap status reports and large touch targets.' 
+                title: t('landingFeature5Title'), 
+                description: t('landingFeature5Desc') 
               },
               { 
                 id: 6, 
                 icon: <BarChart3 size={48} strokeWidth={1.5} color="#facc15" />, 
-                title: 'Event Analytics', 
-                description: 'Complete event timeline, risk history, and staff activity logs for post-event review.' 
+                title: t('landingFeature6Title'), 
+                description: t('landingFeature6Desc') 
               },
             ]}
           />
+        </div>
+      </section>
+
+      {/* About Us */}
+      <section className="landing__section landing__section--dark" id="about">
+        <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <h2 className="landing__section-title heading-display" style={{ marginBottom: '1rem' }}>{t('aboutTitle')}</h2>
+          <p className="text-secondary" style={{ maxWidth: '700px', margin: '0 auto 2rem', fontSize: '1.125rem', lineHeight: '1.6' }}>
+            {t('aboutDescription')}
+          </p>
+          
+          <div className="landing__team-card">
+            <h3 className="text-gold" style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', marginBottom: '1.5rem', letterSpacing: '0.1em' }}>
+              {t('teamName')}
+            </h3>
+            <div className="landing__team-grid">
+              <div className="landing__team-member">
+                <div className="landing__team-avatar">AB</div>
+                <div className="landing__team-name">Avaneesh Bhirdi</div>
+                <div className="landing__team-role text-gold">{t('leaderLabel')}</div>
+              </div>
+              <div className="landing__team-member">
+                <div className="landing__team-avatar">SL</div>
+                <div className="landing__team-name">Shreya Lukk</div>
+                <div className="landing__team-role text-muted">{t('memberLabel')}</div>
+              </div>
+              <div className="landing__team-member">
+                <div className="landing__team-avatar">MP</div>
+                <div className="landing__team-name">Manthan Patel</div>
+                <div className="landing__team-role text-muted">{t('memberLabel')}</div>
+              </div>
+              <div className="landing__team-member">
+                <div className="landing__team-avatar">SW</div>
+                <div className="landing__team-name">Suhani Wali</div>
+                <div className="landing__team-role text-muted">{t('memberLabel')}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
