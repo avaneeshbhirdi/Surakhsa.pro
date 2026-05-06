@@ -6,8 +6,8 @@ import { Mic, MicOff } from 'lucide-react'
 import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function StewardApp() {
-  const { pinSession } = useAuthStore()
-  const { activeEvent, loadEvent, instructions, zones } = useEventStore()
+  const { pinSession, logout } = useAuthStore()
+  const { activeEvent, loadEvent, instructions, zones, staff } = useEventStore()
   const [isPTTActive, setIsPTTActive] = useState(false)
 
   const eventId = pinSession?.eventId || ''
@@ -16,6 +16,17 @@ export default function StewardApp() {
   useEffect(() => {
     if (eventId) loadEvent(eventId)
   }, [eventId])
+
+  // AUTO-LOGOUT: If manager removes this steward, logout immediately
+  useEffect(() => {
+    if (!pinSession?.staffId || staff.length === 0) return
+    
+    const stillActive = staff.some(s => s.id === pinSession.staffId)
+    if (!stillActive) {
+      console.log('Steward removed by manager. Logging out...')
+      logout()
+    }
+  }, [staff, pinSession?.staffId, logout])
 
   const myZone = zones.find(z => z.id === zoneId)
 

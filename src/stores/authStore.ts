@@ -250,11 +250,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { pinSession } = get()
 
     if (pinSession) {
-      // Mark staff as left
-      await supabase
-        .from('event_staff')
-        .update({ is_online: false, left_at: new Date().toISOString() })
-        .eq('id', pinSession.staffId)
+      try {
+        // Mark staff as left
+        await supabase
+          .from('event_staff')
+          .update({ is_online: false, left_at: new Date().toISOString() })
+          .eq('id', pinSession.staffId)
+      } catch (e) {
+        console.warn('Could not update staff record during logout, likely already removed.')
+      }
 
       localStorage.removeItem('suraksha_pin_session')
       set({

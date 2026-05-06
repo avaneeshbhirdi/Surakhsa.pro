@@ -10,7 +10,7 @@ import { useLang } from '@/contexts/LanguageContext'
 import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function CoordinatorApp() {
-  const { pinSession, profile } = useAuthStore()
+  const { pinSession, profile, logout } = useAuthStore()
   const { zones, alerts, staff, stewardUpdates, instructions, latestReadings, loadEvent, acknowledgeAlert, sendStewardMessage, triggerAlert } = useEventStore()
   const { t } = useLang()
   const [activeTab, setActiveTab] = useState<'zone' | 'comms' | 'alerts'>('zone')
@@ -53,6 +53,17 @@ export default function CoordinatorApp() {
       setSelectedZoneId(assignedZoneId || zones[0].id)
     }
   }, [zones, assignedZoneId, selectedZoneId])
+  
+  // AUTO-LOGOUT: If manager removes this coordinator, logout immediately
+  useEffect(() => {
+    if (!pinSession?.staffId || staff.length === 0) return
+    
+    const stillActive = staff.some(s => s.id === pinSession.staffId)
+    if (!stillActive) {
+      console.log('Coordinator removed by manager. Logging out...')
+      logout()
+    }
+  }, [staff, pinSession?.staffId, logout])
 
   const loadEventDetails = async (id: string) => {
     const { data } = await supabase.from('events').select('*').eq('id', id).single()
