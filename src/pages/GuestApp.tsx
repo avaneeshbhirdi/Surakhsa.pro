@@ -44,10 +44,12 @@ export default function GuestApp() {
             <span>{activeEvent.name}</span>
           </div>
         )}
-        <LanguageSwitcher compact />
-        <button className="g-logout-btn" onClick={() => logout()} title={t('logout')}>
-          <LogOut size={16} />
-        </button>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <LanguageSwitcher compact />
+          <button className="g-logout-btn" onClick={() => logout()} title={t('logout')} style={{ margin: 0 }}>
+            <LogOut size={16} />
+          </button>
+        </div>
       </header>
 
       <main className="g-content">

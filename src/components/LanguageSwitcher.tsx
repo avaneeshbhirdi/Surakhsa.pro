@@ -23,7 +23,7 @@ export default function LanguageSwitcher({ compact = false }: Props) {
       border: '1px solid rgba(255,255,255,0.08)',
       borderRadius: '10px',
       padding: '3px',
-      width: '100%', // Ensure it takes full width of parent
+      width: compact ? 'max-content' : '100%', // Conditional width
       boxSizing: 'border-box'
     }}>
       {LANGS.map(l => (
@@ -32,8 +32,8 @@ export default function LanguageSwitcher({ compact = false }: Props) {
           onClick={() => setLang(l.code)}
           title={l.label}
           style={{
-            flex: 1, // Make buttons share space evenly
-            padding: compact ? '4px 2px' : '5px 2px', // Reduced horizontal padding
+            flex: compact ? '0 1 auto' : 1, // Don't force stretch if compact
+            padding: compact ? '4px 6px' : '5px 2px', // Slightly wider horizontal padding for compact
             borderRadius: '7px',
             border: 'none',
             cursor: 'pointer',
