@@ -47,6 +47,14 @@ export default function ManagerComms() {
   const handleBroadcastSend = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!broadcastMessage.trim() || !activeEvent || !profile) return
+    
+    // Find the manager's staff ID
+    const managerStaff = staff.find(s => s.profile_id === profile.id)
+    if (!managerStaff) {
+      alert("Manager staff record not found. Cannot send message.")
+      return
+    }
+
     setBroadcastSending(true)
     try {
       let zoneId: string | null = null
@@ -58,7 +66,7 @@ export default function ManagerComms() {
         zoneId = broadcastZone
       }
 
-      await sendInstruction(activeEvent.id, zoneId, profile.id, broadcastMessage.trim(), isBroadcast)
+      await sendInstruction(activeEvent.id, zoneId, managerStaff.id, broadcastMessage.trim(), isBroadcast)
       setBroadcastSent(true)
       setBroadcastMessage('')
       setTimeout(() => setBroadcastSent(false), 2000)
@@ -72,6 +80,14 @@ export default function ManagerComms() {
   const handlePersonalSend = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!personalMessage.trim() || !personalStaff || !activeEvent || !profile) return
+
+    // Find the manager's staff ID
+    const managerStaff = staff.find(s => s.profile_id === profile.id)
+    if (!managerStaff) {
+      alert("Manager staff record not found. Cannot send message.")
+      return
+    }
+
     setPersonalSending(true)
     try {
       const targetStaff = staff.find(s => s.id === personalStaff)
@@ -82,7 +98,7 @@ export default function ManagerComms() {
       const isBroadcast = !zoneId
       const finalMessage = `[Direct to ${targetStaff?.display_name || 'Coordinator'}] ${personalMessage.trim()}`
 
-      await sendInstruction(activeEvent.id, zoneId, profile.id, finalMessage, isBroadcast)
+      await sendInstruction(activeEvent.id, zoneId, managerStaff.id, finalMessage, isBroadcast)
       setPersonalSent(true)
       setPersonalMessage('')
       setTimeout(() => setPersonalSent(false), 2000)
