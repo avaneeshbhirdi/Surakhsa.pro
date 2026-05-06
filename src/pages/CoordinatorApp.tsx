@@ -7,6 +7,7 @@ import AlertCard from '@/components/AlertCard'
 import { Mic, MicOff, Activity, Send, Megaphone, ChevronDown } from 'lucide-react'
 import type { Event } from '@/lib/types'
 import { useLang } from '@/contexts/LanguageContext'
+import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function CoordinatorApp() {
   const { pinSession, profile } = useAuthStore()
@@ -210,6 +211,7 @@ export default function CoordinatorApp() {
                 PAUSED
               </span>
             )}
+            <RealtimeStatus />
           </div>
           
           {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length > 0 && (

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { MapPin, AlertTriangle, RotateCw } from 'lucide-react'
 import { useLang } from '@/contexts/LanguageContext'
+import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function ManagerMap() {
   const { profile } = useAuthStore()
@@ -162,10 +163,11 @@ export default function ManagerMap() {
     <div className="virtus-layout">
       <ManagerSidebar />
       <main className="virtus-main" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
-        <header className="virtus-header" style={{ padding: '16px 24px', borderBottom: '1px solid var(--v-border)' }}>
+        <header className="virtus-header" style={{ padding: '16px 24px', borderBottom: '1px solid var(--v-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 600, color: 'var(--v-text-muted)', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase' }}>
             {t('mgrVenueMap')} — {t('mgrRiskOverlay')}
           </span>
+          <RealtimeStatus />
         </header>
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>

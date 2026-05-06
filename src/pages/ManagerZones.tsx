@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { Plus, MapPin, AlertTriangle, Edit2, Trash2 } from 'lucide-react'
 import { useLang } from '@/contexts/LanguageContext'
+import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function ManagerZones() {
   const navigate = useNavigate()
@@ -144,9 +145,12 @@ export default function ManagerZones() {
               <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
             )}
           </div>
-          <button className="virtus-pill" onClick={() => setShowCreateModal(true)} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)' }}>
-            <Plus size={14} /> {t('mgrCreateZone')}
-          </button>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <RealtimeStatus />
+            <button className="virtus-pill" onClick={() => setShowCreateModal(true)} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)' }}>
+              <Plus size={14} /> {t('mgrCreateZone')}
+            </button>
+          </div>
         </header>
 
         {/* Zones Grid */}

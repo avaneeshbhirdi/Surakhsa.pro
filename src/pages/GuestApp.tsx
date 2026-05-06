@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
 import { useLang } from '@/contexts/LanguageContext'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import RealtimeStatus from '@/components/RealtimeStatus'
 import './GuestApp.css'
 
 export default function GuestApp() {
@@ -45,6 +46,7 @@ export default function GuestApp() {
           </div>
         )}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <RealtimeStatus />
           <LanguageSwitcher compact />
           <button className="g-logout-btn" onClick={() => logout()} title={t('logout')} style={{ margin: 0 }}>
             <LogOut size={16} />

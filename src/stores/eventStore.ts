@@ -17,6 +17,7 @@ interface EventState {
   instructions: Instruction[]
   isLoading: boolean
   error: string | null
+  realtimeStatus: 'connecting' | 'connected' | 'disconnected'
 
   // Realtime channels
   _channels: RealtimeChannel[]
@@ -58,6 +59,7 @@ export const useEventStore = create<EventState>((set, get) => ({
   instructions: [],
   isLoading: false,
   error: null,
+  realtimeStatus: 'disconnected',
   _channels: [],
 
   createEvent: async (data, adminProfileId) => {
@@ -300,8 +302,30 @@ export const useEventStore = create<EventState>((set, get) => ({
 
   subscribeToRealtime: (eventId: string) => {
     get().unsubscribeAll()
+    set({ realtimeStatus: 'connecting' })
 
     const channels: RealtimeChannel[] = []
+    let connectedCount = 0
+    const totalChannels = 6
+
+    const onSubscribed = () => {
+      connectedCount++
+      if (connectedCount >= totalChannels) {
+        set({ realtimeStatus: 'connected' })
+      }
+    }
+
+    const onError = () => {
+      set({ realtimeStatus: 'disconnected' })
+      // Auto-reconnect after 3 seconds
+      setTimeout(() => {
+        const { activeEvent } = get()
+        if (activeEvent?.id === eventId) {
+          console.log('[Realtime] Reconnecting...')
+          get().subscribeToRealtime(eventId)
+        }
+      }, 3000)
+    }
 
     // Zone readings channel
     const readingsChannel = supabase
@@ -317,7 +341,10 @@ export const useEventStore = create<EventState>((set, get) => ({
           latestReadings: { ...state.latestReadings, [reading.zone_id]: reading },
         }))
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') onSubscribed()
+        if (status === 'CHANNEL_ERROR' || status === 'CLOSED') onError()
+      })
     channels.push(readingsChannel)
 
     // Zones channel (for capacity/name edits)
@@ -342,7 +369,10 @@ export const useEventStore = create<EventState>((set, get) => ({
       }, (payload) => {
         set(state => ({ zones: [...state.zones, payload.new as Zone] }))
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') onSubscribed()
+        if (status === 'CHANNEL_ERROR' || status === 'CLOSED') onError()
+      })
     channels.push(zonesChannel)
 
     // Alerts channel
@@ -369,7 +399,10 @@ export const useEventStore = create<EventState>((set, get) => ({
           alerts: state.alerts.map(a => a.id === updated.id ? updated : a),
         }))
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') onSubscribed()
+        if (status === 'CHANNEL_ERROR' || status === 'CLOSED') onError()
+      })
     channels.push(alertsChannel)
 
     // Staff channel
@@ -390,7 +423,10 @@ export const useEventStore = create<EventState>((set, get) => ({
           }))
         }
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') onSubscribed()
+        if (status === 'CHANNEL_ERROR' || status === 'CLOSED') onError()
+      })
     channels.push(staffChannel)
 
     // Steward updates channel
@@ -406,7 +442,10 @@ export const useEventStore = create<EventState>((set, get) => ({
           stewardUpdates: [payload.new as StewardUpdate, ...state.stewardUpdates],
         }))
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') onSubscribed()
+        if (status === 'CHANNEL_ERROR' || status === 'CLOSED') onError()
+      })
     channels.push(stewardChannel)
 
     // Instructions channel
@@ -422,7 +461,10 @@ export const useEventStore = create<EventState>((set, get) => ({
           instructions: [payload.new as Instruction, ...state.instructions],
         }))
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') onSubscribed()
+        if (status === 'CHANNEL_ERROR' || status === 'CLOSED') onError()
+      })
     channels.push(instructionsChannel)
 
     set({ _channels: channels })
@@ -431,7 +473,7 @@ export const useEventStore = create<EventState>((set, get) => ({
   unsubscribeAll: () => {
     const { _channels } = get()
     _channels.forEach(ch => supabase.removeChannel(ch))
-    set({ _channels: [] })
+    set({ _channels: [], realtimeStatus: 'disconnected' })
   },
 
   clearEvent: () => {

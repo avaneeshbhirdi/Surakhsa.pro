@@ -9,6 +9,7 @@ import ManagerSidebar from '@/components/ManagerSidebar'
 import type { EventStaff } from '@/lib/types'
 import { Plus, Copy, Check, Megaphone, Activity, Play, Pause, Square } from 'lucide-react'
 import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
+import RealtimeStatus from '@/components/RealtimeStatus'
 import './ManagerDashboard.css'
 
 export default function ManagerDashboard() {
@@ -227,6 +228,7 @@ export default function ManagerDashboard() {
             </button>
           )}
 
+          <RealtimeStatus />
           <button className={`simulator-toggle ${isSimulating ? 'active' : 'inactive'}`} onClick={toggleSimulation}>
             <Activity size={14} /> {isSimulating ? t('mgrSimulating') : t('mgrSimulate')}
           </button>

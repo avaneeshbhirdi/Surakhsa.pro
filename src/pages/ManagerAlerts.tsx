@@ -3,6 +3,7 @@ import { useEventStore } from '@/stores/eventStore'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
+import RealtimeStatus from '@/components/RealtimeStatus'
 import { Bell, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useLang } from '@/contexts/LanguageContext'
 
@@ -74,6 +75,7 @@ export default function ManagerAlerts() {
               {triggered} {t('live')}
             </span>
           )}
+          <div style={{ marginLeft: 'auto' }}><RealtimeStatus /></div>
         </header>
 
         {/* Summary pills */}

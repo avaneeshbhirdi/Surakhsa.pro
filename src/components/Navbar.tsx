@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { LayoutDashboard, PlusCircle, Clock, LogOut } from 'lucide-react'
+import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -64,6 +65,7 @@ export default function Navbar() {
       )}
 
       <div className="header__right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <RealtimeStatus />
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div 
             style={{

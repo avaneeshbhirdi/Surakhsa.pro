@@ -1,0 +1,234 @@
+/* ============================================
+   Suraksha.pro — Global Animations & Smoothness
+   ============================================ */
+
+/* ---- Page Entrance Animations ---- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(201, 168, 76, 0.2); }
+  50%       { box-shadow: 0 0 24px rgba(201, 168, 76, 0.5); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* ---- Global smooth transitions ---- */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, opacity, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Exclude layout/geometric properties from blanket transition to avoid jank */
+*, *::before, *::after {
+  will-change: auto;
+}
+
+/* ---- Page Wrapper Animation ---- */
+.page, .virtus-main, main {
+  animation: fadeIn 0.3s ease both;
+}
+
+/* ---- Card Entrance ---- */
+.v-card, .card, .card-glass {
+  animation: fadeInUp 0.35s ease both;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease !important;
+}
+.v-card:hover, .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+}
+
+/* ---- Button smoothness ---- */
+.btn, button {
+  transition: background-color 150ms ease, color 150ms ease, 
+              border-color 150ms ease, box-shadow 200ms ease,
+              transform 150ms ease, opacity 150ms ease !important;
+}
+.btn:active, button:active {
+  transform: scale(0.97) !important;
+}
+.btn:disabled, button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ---- Input smoothness ---- */
+.input, input, textarea, select {
+  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease !important;
+}
+.input:focus, input:focus, textarea:focus {
+  transform: none;
+}
+
+/* ---- Modal animation ---- */
+.modal-overlay {
+  animation: fadeIn 0.2s ease both;
+}
+.modal {
+  animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ---- Auth card animation ---- */
+.auth__card {
+  animation: scaleIn 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+/* ---- Sidebar animation ---- */
+.virtus-sidebar, .sidebar {
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ---- Staggered card children ---- */
+.virtus-grid .v-card:nth-child(1) { animation-delay: 0ms; }
+.virtus-grid .v-card:nth-child(2) { animation-delay: 50ms; }
+.virtus-grid .v-card:nth-child(3) { animation-delay: 100ms; }
+.virtus-grid .v-card:nth-child(4) { animation-delay: 150ms; }
+.virtus-grid .v-card:nth-child(5) { animation-delay: 200ms; }
+.virtus-grid .v-card:nth-child(6) { animation-delay: 250ms; }
+
+/* ---- Progress bar smoothness ---- */
+.v-progress-fill {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.4s ease !important;
+}
+
+/* ---- Live indicator pulse ---- */
+.live-indicator__dot {
+  animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ---- Shimmer skeleton loading ---- */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--color-bg-surface) 25%,
+    var(--color-bg-elevated) 50%,
+    var(--color-bg-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ---- Status pill transitions ---- */
+.v-status-pill {
+  transition: background-color 300ms ease, color 300ms ease, 
+              transform 150ms ease !important;
+}
+.v-status-pill:hover {
+  transform: scale(1.05);
+}
+
+/* ---- Alert items slide in ---- */
+.v-report-item {
+  animation: slideInLeft 0.3s ease both;
+  transition: background-color 200ms ease, transform 150ms ease !important;
+}
+.v-report-item:hover {
+  transform: translateX(3px);
+  background: rgba(255,255,255,0.04) !important;
+}
+
+/* ---- Number counter smooth update ---- */
+.v-text-huge {
+  transition: color 400ms ease !important;
+}
+
+/* ---- Smooth scrolling on containers ---- */
+[style*="overflow"] {
+  scroll-behavior: smooth;
+}
+
+/* ---- Tooltip fade ---- */
+[title] {
+  position: relative;
+}
+
+/* ---- Tab switcher ---- */
+.tab, .tabs button {
+  transition: all 200ms ease !important;
+  position: relative;
+}
+.tab::after, .tabs button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--color-gold);
+  transform: scaleX(0);
+  transition: transform 200ms ease !important;
+}
+.tab--active::after, .tabs button.tab--active::after {
+  transform: scaleX(1);
+}
+
+/* ---- Header smooth sticky ---- */
+.virtus-header {
+  transition: box-shadow 200ms ease !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ---- Navigation pill active state ---- */
+.virtus-pill {
+  transition: all 200ms ease !important;
+}
+.virtus-pill:hover {
+  transform: translateY(-1px);
+}
+
+/* ---- Landing page sections ---- */
+.landing__section {
+  animation: fadeInUp 0.5s ease both;
+}
+
+/* ---- Reduce motion for accessibility ---- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

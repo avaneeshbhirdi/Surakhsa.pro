@@ -6,6 +6,7 @@ import ManagerSidebar from '@/components/ManagerSidebar'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
 import { TrendingUp, AlertTriangle, Users, Shield } from 'lucide-react'
 import { useLang } from '@/contexts/LanguageContext'
+import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function ManagerAnalytics() {
   const { profile } = useAuthStore()
@@ -69,10 +70,13 @@ export default function ManagerAnalytics() {
       <ManagerSidebar />
       <main className="virtus-main">
         <header className="virtus-header">
-          <span style={{ fontWeight: 600 }}>{activeEvent?.name ?? t('mgrNoEvent')} — {t('mgrAnalyticsHeader')}</span>
-          {activeEvent?.status === 'ACTIVE' && (
-            <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
-          )}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontWeight: 600 }}>{activeEvent?.name ?? t('mgrNoEvent')} — {t('mgrAnalyticsHeader')}</span>
+            {activeEvent?.status === 'ACTIVE' && (
+              <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
+            )}
+          </div>
+          <RealtimeStatus />
         </header>
 
         {/* Stat Cards Row */}

@@ -3,6 +3,7 @@ import { useEventStore } from '@/stores/eventStore'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
+import RealtimeStatus from '@/components/RealtimeStatus'
 import { Send, Radio, User, Inbox, MessageCircle } from 'lucide-react'
 import { useLang } from '@/contexts/LanguageContext'
 
@@ -141,6 +142,7 @@ export default function ManagerComms() {
           {activeEvent?.status === 'ACTIVE' && (
             <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
           )}
+          <div style={{ marginLeft: 'auto' }}><RealtimeStatus /></div>
         </header>
 
         {!activeEvent ? (

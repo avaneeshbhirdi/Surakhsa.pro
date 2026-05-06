@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
 import { supabase } from '@/lib/supabase'
 import { Mic, MicOff } from 'lucide-react'
+import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function StewardApp() {
   const { pinSession } = useAuthStore()
@@ -39,13 +40,16 @@ export default function StewardApp() {
     <div className="page" style={{ background: '#000', position: 'relative' }}>
       
       {/* Top Section */}
-      <div style={{ padding: 'var(--space-6)', background: 'var(--color-bg-surface)', borderBottom: '1px solid var(--color-border)' }}>
-        <h1 style={{ color: 'var(--color-gold)', fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-extrabold)', margin: 0, lineHeight: 1 }}>
-          Zone {myZone?.label || '?'}
-        </h1>
-        <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-lg)', marginTop: 'var(--space-2)' }}>
-          {activeEvent?.name || 'Loading Event...'}
-        </p>
+      <div style={{ padding: 'var(--space-6)', background: 'var(--color-bg-surface)', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ color: 'var(--color-gold)', fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-extrabold)', margin: 0, lineHeight: 1 }}>
+            Zone {myZone?.label || '?'}
+          </h1>
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-lg)', marginTop: 'var(--space-2)' }}>
+            {activeEvent?.name || 'Loading Event...'}
+          </p>
+        </div>
+        <RealtimeStatus />
       </div>
 
       <div className="flex-1 flex-col" style={{ display: 'flex', padding: 'var(--space-4)' }}>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { User, Bell, Edit2, Check, X, LogOut } from 'lucide-react'
+import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function ManagerSettings() {
   const { profile, logout, updateProfile } = useAuthStore()
@@ -46,8 +47,9 @@ export default function ManagerSettings() {
     <div className="virtus-layout">
       <ManagerSidebar />
       <main className="virtus-main">
-        <header className="virtus-header">
+        <header className="virtus-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 600 }}>Settings</span>
+          <RealtimeStatus />
         </header>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>

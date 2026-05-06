@@ -6,6 +6,7 @@ import ManagerSidebar from '@/components/ManagerSidebar'
 import { Users, Trash2, Copy, Check, UserPlus, Shield, MapPin, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '@/contexts/LanguageContext'
+import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function ManagerCoordinators() {
   const navigate = useNavigate()
@@ -111,9 +112,12 @@ export default function ManagerCoordinators() {
               </span>
             )}
           </div>
-          <span className="v-status-pill safe" style={{ fontSize: '11px' }}>
-            {coordinators.length} {t('guestAvailable')}
-          </span>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <RealtimeStatus />
+            <span className="v-status-pill safe" style={{ fontSize: '11px' }}>
+              {coordinators.length} {t('guestAvailable')}
+            </span>
+          </div>
         </header>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
