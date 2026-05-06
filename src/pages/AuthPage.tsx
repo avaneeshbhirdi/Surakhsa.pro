@@ -196,7 +196,7 @@ export default function AuthPage() {
         }}>
           <ArrowLeft size={16} /> {t('back')}
         </button>
-        <div style={{ marginLeft: 'auto' }}><LanguageSwitcher compact /></div>
+        <div style={{ position: 'absolute', top: 'var(--space-4)', right: 'var(--space-4)' }}><LanguageSwitcher compact /></div>
 
         <div className="auth__header">
           <img 
