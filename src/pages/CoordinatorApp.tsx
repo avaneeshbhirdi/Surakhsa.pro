@@ -217,6 +217,7 @@ export default function CoordinatorApp() {
             {eventDetails?.status === 'ACTIVE' && (
               <span className="live-indicator"><span className="live-indicator__dot" /> {t('live')}</span>
             )}
+            {eventDetails?.status === 'PAUSED' && (
               <span style={{ fontSize: '10px', background: 'var(--color-warning)', color: '#000', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
                 PAUSED
               </span>
