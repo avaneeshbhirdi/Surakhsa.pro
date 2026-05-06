@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   AlertTriangle, MapPin, LogOut,
   Users, Activity, Megaphone, ShieldCheck, Clock,
@@ -12,7 +12,7 @@ import './GuestApp.css'
 
 export default function GuestApp() {
   const { logout, pinSession } = useAuthStore()
-  const { zones, alerts, latestReadings, loadEvent, triggerAlert, activeEvent } = useEventStore()
+  const { zones, alerts, latestReadings, loadEvent, activeEvent } = useEventStore()
   const { t } = useLang()
 
   useEffect(() => {
