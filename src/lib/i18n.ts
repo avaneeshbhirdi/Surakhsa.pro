@@ -17,6 +17,17 @@ export const translations = {
     noAlerts: 'No alerts found.',
     resolve: 'Resolve',
 
+    // Landing
+    landingGoToDashboard: 'Go to Dashboard',
+    landingLogin: 'Login',
+    landingGetStarted: 'Get Started',
+    landingHeroLine1: 'From Chaos',
+    landingHeroLine2: 'to Command',
+    landingHeroSub: 'A real-time crowd control tower that predicts danger and coordinates response before chaos begins. 60 seconds of earlier warning is the difference between prevention and tragedy.',
+    landingExplore: 'Explore Features',
+    landingKeyFeatures: 'Key Features',
+    landingSwipe: 'Swipe through our interactive feature cards.',
+
     // Auth
     authWelcome: 'Welcome to Suraksha.pro',
     authJoinPin: 'JOIN EVENT VIA PIN',
@@ -195,6 +206,17 @@ export const translations = {
     noAlerts: 'कोई अलर्ट नहीं मिला।',
     resolve: 'समाधान करें',
 
+    // Landing
+    landingGoToDashboard: 'डैशबोर्ड पर जाएं',
+    landingLogin: 'लॉगिन',
+    landingGetStarted: 'शुरू करें',
+    landingHeroLine1: 'अव्यवस्था से',
+    landingHeroLine2: 'नियंत्रण तक',
+    landingHeroSub: 'एक रियल-टाइम भीड़ नियंत्रण टावर जो खतरे की भविष्यवाणी करता है और अव्यवस्था शुरू होने से पहले प्रतिक्रिया का समन्वय करता है। 60 सेकंड की पूर्व चेतावनी रोकथाम और त्रासदी के बीच का अंतर है।',
+    landingExplore: 'सुविधाएं देखें',
+    landingKeyFeatures: 'मुख्य विशेषताएं',
+    landingSwipe: 'हमारे इंटरैक्टिव फीचर कार्ड के माध्यम से स्वाइप करें।',
+
     authWelcome: 'Suraksha.pro में आपका स्वागत है',
     authJoinPin: 'PIN से इवेंट जॉइन करें',
     authManagerLogin: 'इवेंट मैनेजर लॉगिन',
@@ -367,6 +389,17 @@ export const translations = {
     error: 'ಏನೋ ತಪ್ಪಾಗಿದೆ.',
     noAlerts: 'ಯಾವುದೇ ಎಚ್ಚರಿಕೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ.',
     resolve: 'ಪರಿಹರಿಸಿ',
+
+    // Landing
+    landingGoToDashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ',
+    landingLogin: 'ಲಾಗಿನ್',
+    landingGetStarted: 'ಪ್ರಾರಂಭಿಸಿ',
+    landingHeroLine1: 'ಗೊಂದಲದಿಂದ',
+    landingHeroLine2: 'ನಿಯಂತ್ರಣಕ್ಕೆ',
+    landingHeroSub: 'ಅಪಾಯವನ್ನು ಊಹಿಸುವ ಮತ್ತು ಗೊಂದಲ ಪ್ರಾರಂಭವಾಗುವ ಮೊದಲು ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಂಯೋಜಿಸುವ ನೈಜ-ಸಮಯದ ಗುಂಪು ನಿಯಂತ್ರಣ ಗೋಪುರ. 60 ಸೆಕೆಂಡುಗಳ ಮುಂಚಿನ ಎಚ್ಚರಿಕೆಯು ತಡೆಗಟ್ಟುವಿಕೆ ಮತ್ತು ದುರಂತದ ನಡುವಿನ ವ್ಯತ್ಯಾಸವಾಗಿದೆ.',
+    landingExplore: 'ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಅನ್ವೇಷಿಸಿ',
+    landingKeyFeatures: 'ಪ್ರಮುಖ ವೈಶಿಷ್ಟ್ಯಗಳು',
+    landingSwipe: 'ನಮ್ಮ ಸಂವಾದಾತ್ಮಕ ವೈಶಿಷ್ಟ್ಯ ಕಾರ್ಡ್‌ಗಳ ಮೂಲಕ ಸ್ವೈಪ್ ಮಾಡಿ.',
 
     authWelcome: 'Suraksha.pro ಗೆ ಸ್ವಾಗತ',
     authJoinPin: 'PIN ಮೂಲಕ ಕಾರ್ಯಕ್ರಮಕ್ಕೆ ಸೇರಿ',

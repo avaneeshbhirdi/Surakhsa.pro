@@ -10,11 +10,14 @@ import {
   Smartphone, 
   BarChart3 
 } from 'lucide-react'
+import { useLang } from '@/contexts/LanguageContext'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import './LandingPage.css'
 
 export default function LandingPage() {
   const navigate = useNavigate()
   const { isAuthenticated, role } = useAuthStore()
+  const { t } = useLang()
 
   const getDashboardRoute = () => {
     if (role === 'ADMIN') return '/dashboard'
@@ -42,14 +45,15 @@ export default function LandingPage() {
             <span className="landing__logo-text">Suraksha<span className="text-gold">.pro</span></span>
           </div>
           <div className="landing__nav-actions">
+            <LanguageSwitcher compact />
             {isAuthenticated ? (
               <button className="btn btn-gold btn-sm" onClick={() => navigate(getDashboardRoute())}>
-                Go to Dashboard
+                {t('landingGoToDashboard')}
               </button>
             ) : (
               <>
-                <button className="btn btn-ghost" onClick={() => navigate('/auth')}>Login</button>
-                <button className="btn btn-gold btn-sm" onClick={() => navigate('/auth')}>Get Started</button>
+                <button className="btn btn-ghost" onClick={() => navigate('/auth')}>{t('landingLogin')}</button>
+                <button className="btn btn-gold btn-sm" onClick={() => navigate('/auth')}>{t('landingGetStarted')}</button>
               </>
             )}
           </div>
@@ -59,17 +63,17 @@ export default function LandingPage() {
       {/* Hero Section */}
       <Hero
         headline={{
-          line1: "From Chaos",
-          line2: "to Command"
+          line1: t('landingHeroLine1'),
+          line2: t('landingHeroLine2')
         }}
-        subtitle="A real-time crowd control tower that predicts danger and coordinates response before chaos begins. 60 seconds of earlier warning is the difference between prevention and tragedy."
+        subtitle={t('landingHeroSub')}
         buttons={{
           primary: {
-            text: "Get Started",
+            text: t('landingGetStarted'),
             onClick: () => navigate('/auth?mode=signup')
           },
           secondary: {
-            text: "Explore Features",
+            text: t('landingExplore'),
             onClick: () => {
               document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
             }
@@ -80,8 +84,8 @@ export default function LandingPage() {
       {/* Features */}
       <section className="landing__section" id="features">
         <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 className="landing__section-title heading-display" style={{ marginBottom: '1rem' }}>Key Features</h2>
-          <p className="text-secondary" style={{ marginBottom: '1rem', fontSize: '1.125rem', textAlign: 'center' }}>Swipe through our interactive feature cards.</p>
+          <h2 className="landing__section-title heading-display" style={{ marginBottom: '1rem' }}>{t('landingKeyFeatures')}</h2>
+          <p className="text-secondary" style={{ marginBottom: '1rem', fontSize: '1.125rem', textAlign: 'center' }}>{t('landingSwipe')}</p>
           <ShuffleFeatureCards 
             features={[
               { 
@@ -125,28 +129,28 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="landing__footer">
-        <div className="container">
-          <div className="landing__footer-inner">
-            <div className="landing__footer-brand">
-              <img 
-                src="/main logo-png.png" 
-                alt="Suraksha.pro" 
-                style={{ height: '24px', width: 'auto', marginRight: '8px' }}
-              />
-              <span>Suraksha<span className="text-gold">.pro</span></span>
-            </div>
-            <p className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>
-              © 2026 Suraksha.pro — Real-time crowd safety platform
-            </p>
-            <div className="landing__footer-links">
-              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/auth')}>Login</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/auth?mode=signup')}>Sign Up</button>
-            </div>
+    {/* landing footer */}
+    <footer className="landing__footer">
+      <div className="container">
+        <div className="landing__footer-inner">
+          <div className="landing__footer-brand">
+            <img 
+              src="/main logo-png.png" 
+              alt="Suraksha.pro" 
+              style={{ height: '24px', width: 'auto', marginRight: '8px' }}
+            />
+            <span>Suraksha<span className="text-gold">.pro</span></span>
+          </div>
+          <p className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>
+            © 2026 Suraksha.pro — Real-time crowd safety platform
+          </p>
+          <div className="landing__footer-links">
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/auth')}>{t('landingLogin')}</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/auth?mode=signup')}>{t('authSignup')}</button>
           </div>
         </div>
-      </footer>
+      </div>
+    </footer>
     </div>
   )
 }
