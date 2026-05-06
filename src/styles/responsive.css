@@ -4,13 +4,30 @@
 
 /* Mobile-first: base styles target mobile */
 
-/* Small mobile (steward app) */
+/* Small mobile (steward app & general mobile) */
 @media (max-width: 480px) {
   :root {
-    --header-height: 56px;
+    --header-height: 52px;
   }
   .hide-mobile { display: none !important; }
   .dashboard-grid { grid-template-columns: 1fr !important; }
+  
+  /* Auth Page Adjustments */
+  .auth { padding: var(--space-4) var(--space-2); align-items: flex-start; padding-top: 10vh; }
+  .auth__card { padding: var(--space-6) var(--space-4); border-radius: var(--radius-md); }
+  .auth__title { font-size: var(--text-xl); }
+  .auth__pin-input { font-size: var(--text-2xl) !important; letter-spacing: 0.2em; }
+  .auth__role-selector { grid-template-columns: 1fr !important; }
+  
+  /* Header Bar */
+  .header { height: 52px; padding: 0 var(--space-3); }
+  .header__title { font-size: var(--text-md); }
+  
+  /* Buttons on mobile */
+  .btn { width: 100%; justify-content: center; min-height: 44px; }
+  
+  /* Tables */
+  .admin-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 
 /* Tablet portrait */
@@ -31,12 +48,45 @@
 }
 
 /* Show/hide utilities */
-.show-mobile-only {
-  display: none !important;
-}
 @media (max-width: 768px) {
   .show-mobile-only { display: block !important; }
   .hide-on-mobile { display: none !important; }
+  
+  /* Manager Dashboard Mobile Layout (Horizontal Nav) */
+  .virtus-layout { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
+  .virtus-sidebar { 
+    width: 100% !important; 
+    height: auto !important; 
+    position: sticky; 
+    top: 0; 
+    z-index: 1000;
+    flex-direction: row !important; 
+    padding: var(--space-2) var(--space-4) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--v-border);
+    gap: var(--space-2) !important;
+    background: var(--v-sidebar-bg);
+  }
+  .virtus-sidebar-header, .virtus-nav-divider, .virtus-sidebar-footer, .virtus-logo-container { display: none !important; }
+  .virtus-nav { flex-direction: row !important; gap: var(--space-1) !important; width: max-content; }
+  .virtus-nav-item { padding: 8px 14px !important; border-radius: 8px !important; white-space: nowrap; width: auto !important; font-size: 12px !important; }
+  .virtus-nav-item svg { width: 16px; height: 16px; }
+  
+  .virtus-main { padding: var(--space-4) !important; width: 100%; }
+  .virtus-header { flex-direction: column; align-items: stretch !important; gap: var(--space-3); margin-bottom: var(--space-6); }
+  .virtus-pill { width: 100%; justify-content: space-between; }
+  
+  /* Stack the Dashboard Cards */
+  .virtus-grid { display: flex !important; flex-direction: column !important; gap: var(--space-4) !important; }
+  .v-card { grid-column: span 12 !important; width: 100%; padding: var(--space-5) !important; }
+  .v-text-huge { font-size: 32px !important; }
+  .chart-container { height: 240px !important; width: 100%; }
+  
+  /* Coordinator/Steward specific */
+  .g-content { padding: var(--space-4) var(--space-3) !important; }
+  .g-zones-grid { grid-template-columns: 1fr !important; }
 }
 
 /* Touch target enforcement */
