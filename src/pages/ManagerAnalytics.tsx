@@ -5,10 +5,12 @@ import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
 import { TrendingUp, AlertTriangle, Users, Shield } from 'lucide-react'
+import { useLang } from '@/contexts/LanguageContext'
 
 export default function ManagerAnalytics() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, alerts, latestReadings, loadEvent } = useEventStore()
+  const { t } = useLang()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -56,10 +58,10 @@ export default function ManagerAnalytics() {
   }
 
   const statCards = [
-    { icon: <Users size={20} />, label: 'Total Crowd', value: totalPeople, sub: `of ${totalCapacity} capacity`, color: 'var(--v-orange)' },
-    { icon: <TrendingUp size={20} />, label: 'Avg Density', value: `${overallPct}%`, sub: 'across all zones', color: overallPct > 80 ? '#ff4d4d' : overallPct > 60 ? 'orange' : '#4dff4d' },
-    { icon: <AlertTriangle size={20} />, label: 'Active Alerts', value: activeAlerts, sub: `${resolvedAlerts} resolved`, color: activeAlerts > 0 ? '#ff4d4d' : '#4dff4d' },
-    { icon: <Shield size={20} />, label: 'Zones Monitored', value: zones.length, sub: `${zones.filter(z => { const r = latestReadings[z.id]; const p = z.capacity > 0 ? ((r?.density || 0) / z.capacity) * 100 : 0; return p > 80 }).length} at risk`, color: 'var(--v-orange)' },
+    { icon: <Users size={20} />, label: t('mgrTotalCrowd'), value: totalPeople, sub: `of ${totalCapacity} capacity`, color: 'var(--v-orange)' },
+    { icon: <TrendingUp size={20} />, label: t('mgrPeakDensity'), value: `${overallPct}%`, sub: 'across all zones', color: overallPct > 80 ? '#ff4d4d' : overallPct > 60 ? 'orange' : '#4dff4d' },
+    { icon: <AlertTriangle size={20} />, label: t('mgrActiveAlerts'), value: activeAlerts, sub: `${resolvedAlerts} resolved`, color: activeAlerts > 0 ? '#ff4d4d' : '#4dff4d' },
+    { icon: <Shield size={20} />, label: t('mgrZonesHeader'), value: zones.length, sub: `${zones.filter(z => { const r = latestReadings[z.id]; const p = z.capacity > 0 ? ((r?.density || 0) / z.capacity) * 100 : 0; return p > 80 }).length} at risk`, color: 'var(--v-orange)' },
   ]
 
   return (
@@ -67,9 +69,9 @@ export default function ManagerAnalytics() {
       <ManagerSidebar />
       <main className="virtus-main">
         <header className="virtus-header">
-          <span style={{ fontWeight: 600 }}>{activeEvent?.name ?? 'No Event'} — Analytics</span>
+          <span style={{ fontWeight: 600 }}>{activeEvent?.name ?? t('mgrNoEvent')} — {t('mgrAnalyticsHeader')}</span>
           {activeEvent?.status === 'ACTIVE' && (
-            <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> LIVE</span>
+            <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
           )}
         </header>
 
@@ -88,7 +90,7 @@ export default function ManagerAnalytics() {
         {/* Charts Row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           <div className="v-card">
-            <h3 className="v-text-title mb-4">Zone Density (%)</h3>
+            <h3 className="v-text-title mb-4">{t('mgrRoomDensity')} (%)</h3>
             <div style={{ height: '220px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={zoneData} barSize={28}>
@@ -103,10 +105,9 @@ export default function ManagerAnalytics() {
           </div>
 
           <div className="v-card">
-            <h3 className="v-text-title mb-4">Alerts by Type</h3>
             {alertsByType.length === 0 ? (
               <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
-                <p className="v-text-sm">No alerts triggered yet</p>
+                <p className="v-text-sm">{t('noAlerts')}</p>
               </div>
             ) : (
               <div style={{ height: '220px' }}>
@@ -126,10 +127,10 @@ export default function ManagerAnalytics() {
 
         {/* Alert Timeline */}
         <div className="v-card" style={{ marginTop: '20px' }}>
-          <h3 className="v-text-title mb-4">Alert Timeline</h3>
+          <h3 className="v-text-title mb-4">{t('mgrTotalAlerts')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
             {alerts.length === 0 && (
-              <p className="v-text-sm" style={{ opacity: 0.5, textAlign: 'center', padding: '20px' }}>No alerts yet</p>
+              <p className="v-text-sm" style={{ opacity: 0.5, textAlign: 'center', padding: '20px' }}>{t('noAlerts')}</p>
             )}
             {alerts.slice(0, 20).map(a => (
               <div key={a.id} style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '12px', background: 'var(--v-bg-dark)', borderRadius: '10px', border: '1px solid var(--v-border)' }}>

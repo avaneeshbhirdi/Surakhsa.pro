@@ -4,10 +4,12 @@ import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { MapPin, AlertTriangle, RotateCw } from 'lucide-react'
+import { useLang } from '@/contexts/LanguageContext'
 
 export default function ManagerMap() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, latestReadings, alerts, loadEvent } = useEventStore()
+  const { t } = useLang()
   const [loading, setLoading] = useState(!activeEvent) // skip loading if event already in store
 
   const [positions, setPositions] = useState<Record<string, {x: number, y: number, r?: number}>>(() => {
@@ -112,8 +114,8 @@ export default function ManagerMap() {
         <main className="virtus-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
             <MapPin size={48} style={{ opacity: 0.3, margin: '0 auto 16px' }} />
-            <h2 className="v-text-title">No Active Event</h2>
-            <p className="v-text-sm">Start an event from the dashboard to see the map.</p>
+            <h2 className="v-text-title">{t('mgrNoEvent')}</h2>
+            <p className="v-text-sm">{t('mgrStartEventFromDashboard')}</p>
           </div>
         </main>
       </div>
@@ -148,10 +150,10 @@ export default function ManagerMap() {
   }
 
   const getRiskLabel = (pct: number) => {
-    if (pct >= 80) return 'CRITICAL'
-    if (pct >= 60) return 'HIGH'
-    if (pct >= 40) return 'LOW'
-    return 'SAFE'
+    if (pct >= 80) return t('mgrCritical')
+    if (pct >= 60) return t('mgrHigh')
+    if (pct >= 40) return t('mgrLow')
+    return t('mgrSafe')
   }
 
   const maxCapacity = Math.max(...zones.map(z => z.capacity), 1)
@@ -162,7 +164,7 @@ export default function ManagerMap() {
       <main className="virtus-main" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
         <header className="virtus-header" style={{ padding: '16px 24px', borderBottom: '1px solid var(--v-border)' }}>
           <span style={{ fontWeight: 600, color: 'var(--v-text-muted)', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase' }}>
-            Venue Map — Live Risk Overlay
+            {t('mgrVenueMap')} — {t('mgrRiskOverlay')}
           </span>
         </header>
 
@@ -261,11 +263,11 @@ export default function ManagerMap() {
             
             {/* Footer Legend within Map */}
             <div style={{ position: 'absolute', bottom: '24px', left: '24px', display: 'flex', gap: '16px', fontSize: '10px', fontWeight: 600, color: 'var(--v-text-muted)', background: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '20px', backdropFilter: 'blur(10px)', border: '1px solid var(--v-border)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#00ff88' }} /> SAFE</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#ffcc00' }} /> LOW</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#ff8800' }} /> MODERATE</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#ff4d4d' }} /> HIGH</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#ff1a1a' }} /> CRITICAL</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#00ff88' }} /> {t('mgrSafe')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#ffcc00' }} /> {t('mgrLow')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#ff8800' }} /> {t('mgrModerate')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#ff4d4d' }} /> {t('mgrHigh')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 10, height: 10, borderRadius: '2px', background: '#ff1a1a' }} /> {t('mgrCritical')}</span>
             </div>
           </div>
 
@@ -280,7 +282,7 @@ export default function ManagerMap() {
           }}>
             <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--v-border)' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--v-text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                All Zones — Risk Summary
+                {t('mgrZonesHeader')} — {t('mgrRiskSummary')}
               </span>
             </div>
             
@@ -323,7 +325,7 @@ export default function ManagerMap() {
               {sortedZones.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--v-text-muted)' }}>
                   <MapPin size={32} style={{ opacity: 0.3, margin: '0 auto 12px' }} />
-                  <p style={{ fontSize: '12px' }}>No zones configured</p>
+                  <p style={{ fontSize: '12px' }}>{t('mgrNoZones')}</p>
                 </div>
               )}
             </div>

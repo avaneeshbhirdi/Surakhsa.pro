@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useEventStore } from '@/stores/eventStore'
 import { useUIStore } from '@/stores/uiStore'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { useLang } from '@/contexts/LanguageContext'
 
 export default function ManagerSidebar() {
   const { profile } = useAuthStore()
@@ -11,22 +12,23 @@ export default function ManagerSidebar() {
   const { isSidebarCollapsed, toggleSidebar } = useUIStore()
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useLang()
 
   const activeAlerts = alerts.filter(a => a.status === 'TRIGGERED').length
 
   const navItems = [
-    { icon: <Home size={18} />, label: 'Home', path: '/manager' },
-    { icon: <MapPin size={18} />, label: 'Zones', path: '/manager/zones' },
-    { icon: <Target size={18} />, label: 'Map', path: '/manager/map' },
-    { icon: <UserCheck size={18} />, label: 'Coordinators', path: '/manager/coordinators' },
-    { icon: <MessageSquare size={18} />, label: 'Comms', path: '/manager/comms' },
-    { icon: <Folder size={18} />, label: 'Analytics', path: '/manager/analytics' },
-    { icon: <Calendar size={18} color="var(--v-orange)" strokeWidth={2.5} />, label: 'History', path: '/event/history' },
+    { icon: <Home size={18} />, label: t('mgrHome'), path: '/manager' },
+    { icon: <MapPin size={18} />, label: t('mgrZones'), path: '/manager/zones' },
+    { icon: <Target size={18} />, label: t('mgrMap'), path: '/manager/map' },
+    { icon: <UserCheck size={18} />, label: t('mgrCoordinators'), path: '/manager/coordinators' },
+    { icon: <MessageSquare size={18} />, label: t('mgrComms'), path: '/manager/comms' },
+    { icon: <Folder size={18} />, label: t('mgrAnalytics'), path: '/manager/analytics' },
+    { icon: <Calendar size={18} color="var(--v-orange)" strokeWidth={2.5} />, label: t('mgrHistory'), path: '/event/history' },
   ]
 
   const bottomItems = [
-    { icon: <Bell size={18} />, label: 'Alerts', path: '/manager/alerts', badge: activeAlerts > 0 ? activeAlerts : null },
-    { icon: <Settings size={18} />, label: 'Settings', path: '/manager/settings' },
+    { icon: <Bell size={18} />, label: t('mgrActiveAlerts'), path: '/manager/alerts', badge: activeAlerts > 0 ? activeAlerts : null },
+    { icon: <Settings size={18} />, label: t('mgrSettings'), path: '/manager/settings' },
   ]
 
   const isActive = (path: string) => {
@@ -94,7 +96,7 @@ export default function ManagerSidebar() {
         )}
         <button className="virtus-nav-item" onClick={toggleSidebar} style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
           {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />} 
-          {!isSidebarCollapsed && <span className="nav-label">Collapse Menu</span>}
+          {!isSidebarCollapsed && <span className="nav-label">{t('mgrCollapse')}</span>}
         </button>
       </div>
     </aside>

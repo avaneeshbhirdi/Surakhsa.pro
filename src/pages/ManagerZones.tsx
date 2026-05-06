@@ -5,11 +5,13 @@ import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { Plus, MapPin, AlertTriangle, Edit2, Trash2 } from 'lucide-react'
+import { useLang } from '@/contexts/LanguageContext'
 
 export default function ManagerZones() {
   const navigate = useNavigate()
   const { profile } = useAuthStore()
   const { activeEvent, zones, latestReadings, alerts, createZone, updateZone, deleteZone, loadEvent } = useEventStore()
+  const { t } = useLang()
   
   const [loading, setLoading] = useState(!activeEvent) // skip loading if event already in store
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -65,10 +67,10 @@ export default function ManagerZones() {
         <ManagerSidebar />
         <main className="virtus-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
-            <h2 className="v-text-title" style={{ fontSize: '24px' }}>No Active Event</h2>
-            <p className="text-secondary mb-6">Create an event to get started with crowd monitoring.</p>
+            <h2 className="v-text-title" style={{ fontSize: '24px' }}>{t('mgrNoEvent')}</h2>
+            <p className="text-secondary mb-6">{t('mgrCreateEvent')}</p>
             <button className="btn btn-gold btn-lg" onClick={() => navigate('/event/create')} style={{ background: 'var(--v-orange)', color: '#fff', border: 'none' }}>
-              <Plus size={18} /> Create Event
+              <Plus size={18} /> {t('mgrCreateBtn')}
             </button>
           </div>
         </main>
@@ -137,13 +139,13 @@ export default function ManagerZones() {
         {/* Header */}
         <header className="virtus-header">
           <div style={{ display: 'flex', gap: '8px', marginRight: 'auto', alignItems: 'center' }}>
-            <span style={{ fontWeight: 600 }}>{activeEvent.name} — Zones</span>
+            <span style={{ fontWeight: 600 }}>{activeEvent.name} — {t('mgrZonesHeader')}</span>
             {activeEvent.status === 'ACTIVE' && (
-              <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> LIVE</span>
+              <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
             )}
           </div>
           <button className="virtus-pill" onClick={() => setShowCreateModal(true)} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)' }}>
-            <Plus size={14} /> Create Zone
+            <Plus size={14} /> {t('mgrCreateZone')}
           </button>
         </header>
 
@@ -188,7 +190,7 @@ export default function ManagerZones() {
                 </div>
 
                 <div className="flex flex-between mb-2">
-                  <span className="v-text-sm">Occupancy</span>
+                  <span className="v-text-sm">{t('mgrOccupancy')}</span>
                   <span style={{ fontWeight: 600, color }}>{pct}%</span>
                 </div>
                 
@@ -198,11 +200,11 @@ export default function ManagerZones() {
 
                 <div className="grid grid-2 gap-4" style={{ background: 'var(--v-bg-dark)', padding: '16px', borderRadius: '12px', border: '1px solid var(--v-border)' }}>
                   <div>
-                    <div className="v-text-sm mb-1">Current Crowd</div>
+                    <div className="v-text-sm mb-1">{t('mgrCurrentCrowd')}</div>
                     <div className="v-text-huge" style={{ fontSize: '24px' }}>{density}</div>
                   </div>
                   <div>
-                    <div className="v-text-sm mb-1">Max Capacity</div>
+                    <div className="v-text-sm mb-1">{t('mgrMaxCapacity')}</div>
                     <div className="v-text-huge" style={{ fontSize: '24px', color: 'var(--v-text-muted)' }}>{z.capacity}</div>
                   </div>
                 </div>
@@ -213,10 +215,10 @@ export default function ManagerZones() {
           {zones.length === 0 && (
             <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', border: '1px dashed var(--v-border)', borderRadius: '20px' }}>
               <MapPin size={48} color="var(--v-text-muted)" style={{ margin: '0 auto 16px auto', opacity: 0.5 }} />
-              <h3 className="v-text-title">No Zones Created</h3>
-              <p className="v-text-sm mb-4">Create your first zone to start monitoring specific areas.</p>
+              <h3 className="v-text-title">{t('mgrNoZones')}</h3>
+              <p className="v-text-sm mb-4">{t('mgrCreateFirstZone')}</p>
               <button className="btn" onClick={() => setShowCreateModal(true)} style={{ background: 'var(--v-orange)', color: '#fff', border: 'none' }}>
-                Create Zone
+                {t('mgrCreateZone')}
               </button>
             </div>
           )}
@@ -228,7 +230,7 @@ export default function ManagerZones() {
         <div className="modal-overlay" onClick={() => !creating && setShowCreateModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '24px', maxWidth: '400px' }}>
             <div className="modal__header" style={{ borderBottom: '1px solid var(--v-border)' }}>
-              <h2 className="modal__title">Create New Zone</h2>
+              <h2 className="modal__title">{t('mgrCreateZone')}</h2>
             </div>
             <form onSubmit={handleCreateZone}>
               <div className="modal__body flex flex-col gap-4">
@@ -271,10 +273,10 @@ export default function ManagerZones() {
               </div>
               <div className="modal__footer">
                 <button type="button" className="btn" style={{ background: 'transparent' }} onClick={() => setShowCreateModal(false)} disabled={creating}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit" className="btn" style={{ background: 'var(--v-orange)', color: 'white', border: 'none' }} disabled={creating}>
-                  {creating ? 'Creating...' : 'Create Zone'}
+                  {creating ? t('loading') : t('mgrCreateZone')}
                 </button>
               </div>
             </form>
@@ -287,7 +289,7 @@ export default function ManagerZones() {
         <div className="modal-overlay" onClick={() => !updating && setEditingZoneId(null)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '24px', maxWidth: '400px' }}>
             <div className="modal__header" style={{ borderBottom: '1px solid var(--v-border)' }}>
-              <h2 className="modal__title">Edit Zone</h2>
+              <h2 className="modal__title">{t('mgrEditZone')}</h2>
             </div>
             <form onSubmit={handleUpdateZone}>
               <div className="modal__body flex flex-col gap-4">
@@ -330,10 +332,10 @@ export default function ManagerZones() {
               </div>
               <div className="modal__footer">
                 <button type="button" className="btn" style={{ background: 'transparent' }} onClick={() => setEditingZoneId(null)} disabled={updating}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit" className="btn" style={{ background: 'var(--v-orange)', color: 'white', border: 'none' }} disabled={updating}>
-                  {updating ? 'Saving...' : 'Save Changes'}
+                  {updating ? t('save') + '...' : t('save')}
                 </button>
               </div>
             </form>
@@ -347,17 +349,17 @@ export default function ManagerZones() {
           <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--v-card-bg)', border: '1px solid rgba(255,77,77,0.3)', borderRadius: '24px', maxWidth: '400px' }}>
             <div className="modal__header" style={{ borderBottom: '1px solid var(--v-border)' }}>
               <h2 className="modal__title" style={{ color: '#ff4d4d', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Trash2 size={20} /> Delete Zone
+                <Trash2 size={20} /> {t('mgrDeleteZone')}
               </h2>
             </div>
             <div className="modal__body">
-              <p style={{ marginBottom: '8px' }}>Are you sure you want to permanently delete:</p>
+              <p style={{ marginBottom: '8px' }}>{t('mgrConfirmDeleteZone')}</p>
               <div style={{ background: 'rgba(255,77,77,0.08)', border: '1px solid rgba(255,77,77,0.2)', borderRadius: '12px', padding: '14px 18px', marginBottom: '16px' }}>
                 <strong style={{ fontSize: '18px' }}>{deletingZone.label}</strong>
                 {deletingZone.name && <span style={{ color: 'var(--v-text-muted)', marginLeft: '8px' }}>— {deletingZone.name}</span>}
               </div>
               <p style={{ fontSize: '13px', color: 'var(--v-text-muted)', lineHeight: 1.6 }}>
-                ⚠️ This will also delete all readings and alerts associated with this zone. This action cannot be undone.
+                ⚠️ {t('mgrDeleteWarning')}
               </p>
             </div>
             <div className="modal__footer">
@@ -367,7 +369,7 @@ export default function ManagerZones() {
                 onClick={() => setDeletingZone(null)}
                 disabled={deleteConfirming}
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 type="button" className="btn"
@@ -375,7 +377,7 @@ export default function ManagerZones() {
                 onClick={handleDeleteZone}
                 disabled={deleteConfirming}
               >
-                {deleteConfirming ? 'Deleting...' : '🗑 Delete Zone'}
+                {deleteConfirming ? t('loading') : '🗑 ' + t('mgrDeleteZone')}
               </button>
             </div>
           </div>

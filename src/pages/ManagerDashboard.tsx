@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
 import { useUIStore } from '@/stores/uiStore'
+import { useLang } from '@/contexts/LanguageContext'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import type { EventStaff } from '@/lib/types'
@@ -18,6 +19,7 @@ export default function ManagerDashboard() {
     activeEvent, zones, alerts, staff, latestReadings, stewardUpdates,
     loadEvent, acknowledgeAlert, clearEvent, updateEventStatus,
   } = useEventStore()
+  const { t } = useLang()
 
   const [loading, setLoading] = useState(true)
 
@@ -171,11 +173,11 @@ export default function ManagerDashboard() {
         <ManagerSidebar />
         <main className="virtus-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
-            <h2 className="v-text-title" style={{ fontSize: '24px' }}>No Active Event</h2>
-            <p className="text-secondary mb-6">Create an event to get started with crowd monitoring.</p>
+            <h2 className="v-text-title" style={{ fontSize: '24px' }}>{t('mgrNoEvent')}</h2>
+            <p className="text-secondary mb-6">{t('mgrCreateEvent')}</p>
             <div className="flex gap-3" style={{ justifyContent: 'center' }}>
               <button className="btn btn-gold btn-lg" onClick={() => navigate('/event/create')} style={{ background: 'var(--v-orange)', color: '#fff', border: 'none' }}>
-                <Plus size={18} /> Create Event
+                <Plus size={18} /> {t('mgrCreateBtn')}
               </button>
             </div>
           </div>
@@ -194,7 +196,7 @@ export default function ManagerDashboard() {
           <div style={{ display: 'flex', gap: '8px', marginRight: 'auto', alignItems: 'center' }}>
             <span style={{ fontWeight: 600 }}>{activeEvent.name}</span>
             {activeEvent.status === 'ACTIVE' && (
-              <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> LIVE</span>
+              <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
             )}
             {activeEvent.status === 'PAUSED' && <span className="v-status-pill warning" style={{ marginLeft: '8px' }}>PAUSED</span>}
             {activeEvent.status === 'DRAFT' && <span className="v-status-pill" style={{ marginLeft: '8px' }}>DRAFT</span>}
@@ -226,10 +228,10 @@ export default function ManagerDashboard() {
           )}
 
           <button className={`simulator-toggle ${isSimulating ? 'active' : 'inactive'}`} onClick={toggleSimulation}>
-            <Activity size={14} /> {isSimulating ? 'Simulating...' : 'Simulate Data'}
+            <Activity size={14} /> {isSimulating ? t('mgrSimulating') : t('mgrSimulate')}
           </button>
           <button className="virtus-pill" onClick={() => setShowAlertModal(true)}>
-            <Megaphone size={14} /> Send Alert
+            <Megaphone size={14} /> {t('mgrSendAlert')}
           </button>
           <div className="v-avatar">
             {profile?.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'M'}
@@ -242,19 +244,19 @@ export default function ManagerDashboard() {
           {/* Row 1: Task progress (Overall Density) */}
           <div className="v-card v-task-progress">
             <h3 className="v-text-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              Total Crowd <span style={{ color: 'var(--v-text-muted)' }}>Live</span>
+              {t('mgrTotalCrowd')} <span style={{ color: 'var(--v-text-muted)' }}>{t('live')}</span>
             </h3>
             <div className="v-text-huge mb-2">{totalDensityPct}%</div>
             <div className="v-text-sm mb-4">{new Date().toLocaleDateString()}</div>
             <button className="btn" style={{ background: 'rgba(255,255,255,0.05)', width: '100%', borderRadius: '12px' }}>
-              {totalPeople} / {totalCapacity} people
+              {totalPeople} / {totalCapacity} {t('guestPeople')}
             </button>
           </div>
 
           {/* Row 1: Today task (Active Alerts) */}
           <div className="v-card v-today-task orange" style={{ cursor: 'pointer' }} onClick={() => navigate('/event/history')}>
             <h3 className="v-text-title" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              Active Alerts <span style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>High</span>
+              {t('mgrActiveAlerts')} <span style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>High</span>
             </h3>
             <div className="v-text-huge mb-4">{activeAlertsCount}</div>
             <div className="v-progress-track" style={{ background: 'rgba(255,255,255,0.2)' }}>
@@ -266,8 +268,8 @@ export default function ManagerDashboard() {
           {/* Row 1: Room Density (Bar Chart) */}
           <div className="v-card v-performance">
             <h3 className="v-text-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              Room Density (%) <div className="flex gap-4">
-                <span style={{ fontSize: '12px', color: 'var(--v-orange)' }}>● Current</span>
+              {t('mgrRoomDensity')} <div className="flex gap-4">
+                <span style={{ fontSize: '12px', color: 'var(--v-orange)' }}>● {t('live')}</span>
               </div>
             </h3>
             <div style={{ display: 'flex', gap: '32px', marginBottom: '16px' }}>
@@ -288,7 +290,7 @@ export default function ManagerDashboard() {
           {/* Row 2: Zone Capacities (Main Goal) */}
           <div className="v-card v-zone-capacities">
             <div className="flex flex-between mb-4">
-              <h3 className="v-text-title" style={{ margin: 0 }}>Zone Occupancy</h3>
+              <h3 className="v-text-title" style={{ margin: 0 }}>{t('mgrZoneOccupancy')}</h3>
               <button className="btn-icon" onClick={() => navigate('/manager/zones')} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: '6px', borderRadius: '8px', cursor: 'pointer', color: 'var(--v-text-main)' }}>
                 <Plus size={16} />
               </button>
@@ -316,14 +318,14 @@ export default function ManagerDashboard() {
               })}
             </div>
             <button className="btn mt-auto" onClick={() => navigate('/manager/zones')} style={{ background: 'transparent', border: '1px solid var(--v-border)', width: '100%', borderRadius: '12px', marginTop: '24px' }}>
-              View All Zones
+              {t('mgrViewAllZones')}
             </button>
           </div>
 
           {/* Row 2: Staff & Alert Feed (Assignment for all team) */}
           <div className="v-card v-staff-reports">
             <div className="flex flex-between mb-4">
-              <h3 className="v-text-title" style={{ margin: 0 }}>Command Feed</h3>
+              <h3 className="v-text-title" style={{ margin: 0 }}>{t('mgrCommandFeed')}</h3>
               <div className="flex gap-2">
                 <span className="v-status-pill safe" style={{ fontSize: '10px' }}>{stewardUpdates.length} Reports</span>
                 <span className="v-status-pill danger" style={{ fontSize: '10px' }}>{activeAlertsCount} Alerts</span>

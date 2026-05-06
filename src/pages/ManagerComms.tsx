@@ -4,10 +4,12 @@ import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { Send, Radio, User, Inbox, MessageCircle } from 'lucide-react'
+import { useLang } from '@/contexts/LanguageContext'
 
 export default function ManagerComms() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, staff, stewardUpdates, loadEvent, sendInstruction } = useEventStore()
+  const { t } = useLang()
   const [loading, setLoading] = useState(true)
   const [activeView, setActiveView] = useState<'compose' | 'inbox'>('compose')
 
@@ -135,16 +137,16 @@ export default function ManagerComms() {
       <ManagerSidebar />
       <main className="virtus-main">
         <header className="virtus-header">
-          <span style={{ fontWeight: 600 }}>{activeEvent?.name ?? 'No Event'} — Comms</span>
+          <span style={{ fontWeight: 600 }}>{activeEvent?.name ?? t('mgrNoEvent')} — {t('mgrCommsHeader')}</span>
           {activeEvent?.status === 'ACTIVE' && (
-            <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> LIVE</span>
+            <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
           )}
         </header>
 
         {!activeEvent ? (
           <div style={{ textAlign: 'center', padding: '60px', opacity: 0.5 }}>
             <Radio size={48} style={{ margin: '0 auto 16px' }} />
-            <p className="v-text-sm">No active event. Start an event to use Comms.</p>
+            <p className="v-text-sm">{t('mgrStartEventFromDashboard')}</p>
           </div>
         ) : (
           <>
@@ -160,7 +162,7 @@ export default function ManagerComms() {
                   color: activeView === 'compose' ? '#000' : 'var(--v-text-main)',
                 }}
               >
-                <MessageCircle size={16} /> Compose
+                <MessageCircle size={16} /> {t('mgrCompose')}
               </button>
               <button
                 onClick={() => setActiveView('inbox')}
@@ -172,7 +174,7 @@ export default function ManagerComms() {
                   color: activeView === 'inbox' ? '#000' : 'var(--v-text-main)',
                 }}
               >
-                <Inbox size={16} /> Inbox
+                <Inbox size={16} /> {t('mgrInbox')}
                 {stewardUpdates.length > 0 && (
                   <span style={{
                     background: activeView === 'inbox' ? 'rgba(0,0,0,0.3)' : 'var(--v-orange)',
@@ -194,18 +196,18 @@ export default function ManagerComms() {
                   {/* Broadcast Message Panel */}
                   <div className="v-card">
                     <h3 className="v-text-title mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Radio size={18} color="var(--v-orange)" /> Broadcast Message
+                      <Radio size={18} color="var(--v-orange)" /> {t('mgrBroadcast')}
                     </h3>
 
                     <form onSubmit={handleBroadcastSend} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div>
-                        <label className="v-text-sm mb-2 block">Send To</label>
+                        <label className="v-text-sm mb-2 block">{t('mgrSendTo')}</label>
                         <select
                           value={broadcastZone}
                           onChange={e => setBroadcastZone(e.target.value)}
                           style={{ width: '100%', background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', color: 'var(--v-text-main)', borderRadius: '10px', padding: '10px 14px', fontSize: '14px' }}
                         >
-                          <option value="all">📣 All Zones (Global Broadcast)</option>
+                          <option value="all">📣 {t('mgrAllZones')} ({t('mgrBroadcast')})</option>
                           <optgroup label="Specific Zones">
                             {zones.map(z => (
                               <option key={z.id} value={z.id}>📍 Zone {z.label}{z.name ? ` - ${z.name}` : ''}</option>
@@ -227,7 +229,7 @@ export default function ManagerComms() {
                       </div>
 
                       <button type="submit" disabled={broadcastSending || !broadcastMessage.trim()} style={{ background: broadcastSent ? '#4dff4d' : 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '12px', padding: '14px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'background 0.3s' }}>
-                        {broadcastSent ? '✓ Sent!' : broadcastSending ? 'Sending...' : <><Send size={16} /> Send Broadcast</>}
+                        {broadcastSent ? '✓ ' + t('mgrSent') : broadcastSending ? t('loading') : <><Send size={16} /> {t('mgrBroadcast')}</>}
                       </button>
                     </form>
                   </div>
@@ -235,7 +237,7 @@ export default function ManagerComms() {
                   {/* Personal Message Panel */}
                   <div className="v-card">
                     <h3 className="v-text-title mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <User size={18} color="var(--v-orange)" /> Personal Message
+                      <User size={18} color="var(--v-orange)" /> {t('mgrPersonalMsg')}
                     </h3>
 
                     <form onSubmit={handlePersonalSend} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -272,7 +274,7 @@ export default function ManagerComms() {
                       </div>
 
                       <button type="submit" disabled={personalSending || !personalMessage.trim() || !personalStaff} style={{ background: personalSent ? '#4dff4d' : 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '12px', padding: '14px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'background 0.3s' }}>
-                        {personalSent ? '✓ Sent!' : personalSending ? 'Sending...' : <><Send size={16} /> Send Personal Message</>}
+                        {personalSent ? '✓ ' + t('mgrSent') : personalSending ? t('loading') : <><Send size={16} /> {t('mgrPersonalMsg')}</>}
                       </button>
                     </form>
                   </div>
@@ -283,7 +285,7 @@ export default function ManagerComms() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {/* Quick Phrases */}
                   <div className="v-card">
-                    <h3 className="v-text-title mb-3" style={{ fontSize: '14px' }}>⚡ Quick Phrases</h3>
+                    <h3 className="v-text-title mb-3" style={{ fontSize: '14px' }}>⚡ {t('mgrQuickPhrases')}</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {quickMessages.map(q => (
                         <button key={q} onClick={() => setBroadcastMessage(q)} style={{ background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', color: 'var(--v-text-main)', borderRadius: '10px', padding: '10px 12px', textAlign: 'left', cursor: 'pointer', fontSize: '12px', lineHeight: 1.4, transition: 'border-color 0.2s' }}>
@@ -295,7 +297,7 @@ export default function ManagerComms() {
 
                   {/* Active Coordinators */}
                   <div className="v-card">
-                    <h3 className="v-text-title mb-3" style={{ fontSize: '14px' }}>👥 Active Coordinators ({staff.filter(s => s.is_online).length})</h3>
+                    <h3 className="v-text-title mb-3" style={{ fontSize: '14px' }}>👥 {t('mgrActiveCoordinators')} ({staff.filter(s => s.is_online).length})</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {staff.filter(s => s.is_online).length === 0 && (
                         <p className="v-text-sm" style={{ opacity: 0.4 }}>No coordinators online</p>
@@ -322,7 +324,7 @@ export default function ManagerComms() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '760px' }}>
                 <div className="v-card" style={{ padding: '16px 20px' }}>
                   <h3 className="v-text-title mb-1" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px' }}>
-                    <Inbox size={16} color="var(--v-orange)" /> Messages from Coordinators
+                    <Inbox size={16} color="var(--v-orange)" /> {t('mgrMessagesFromCoords')}
                   </h3>
                   <p className="v-text-sm" style={{ opacity: 0.5, marginBottom: 0 }}>
                     Showing latest {Math.min(stewardUpdates.length, 50)} field reports
@@ -332,7 +334,7 @@ export default function ManagerComms() {
                 {stewardUpdates.length === 0 ? (
                   <div className="v-card" style={{ textAlign: 'center', padding: '48px 20px', opacity: 0.5 }}>
                     <Inbox size={40} style={{ margin: '0 auto 12px' }} />
-                    <p className="v-text-sm">No messages yet. Coordinators haven't sent any field reports.</p>
+                    <p className="v-text-sm">{t('noAlerts')}</p>
                   </div>
                 ) : (
                   stewardUpdates.map(update => {
@@ -405,7 +407,7 @@ export default function ManagerComms() {
                             fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0
                           }}
                         >
-                          Reply
+                          {t('mgrReply')}
                         </button>
                       </div>
                     )

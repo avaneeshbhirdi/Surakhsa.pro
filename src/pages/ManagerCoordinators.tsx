@@ -5,11 +5,13 @@ import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { Users, Trash2, Copy, Check, UserPlus, Shield, MapPin, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useLang } from '@/contexts/LanguageContext'
 
 export default function ManagerCoordinators() {
   const navigate = useNavigate()
   const { profile } = useAuthStore()
   const { activeEvent, zones, staff, loadEvent } = useEventStore()
+  const { t } = useLang()
 
   const [loading, setLoading] = useState(!activeEvent)
   const [pinCopied, setPinCopied] = useState(false)
@@ -82,10 +84,10 @@ export default function ManagerCoordinators() {
         <ManagerSidebar />
         <main className="virtus-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
-            <h2 className="v-text-title" style={{ fontSize: '24px' }}>No Active Event</h2>
-            <p className="text-secondary mb-6">Create an event to manage coordinators.</p>
+            <h2 className="v-text-title" style={{ fontSize: '24px' }}>{t('mgrNoEvent')}</h2>
+            <p className="text-secondary mb-6">{t('mgrCreateEvent')}</p>
             <button className="btn" onClick={() => navigate('/event/create')} style={{ background: 'var(--v-orange)', color: '#fff', border: 'none' }}>
-              Create Event
+              {t('mgrCreateBtn')}
             </button>
           </div>
         </main>
@@ -102,15 +104,15 @@ export default function ManagerCoordinators() {
         <header className="virtus-header">
           <div style={{ display: 'flex', gap: '8px', marginRight: 'auto', alignItems: 'center' }}>
             <Users size={18} style={{ color: 'var(--v-orange)' }} />
-            <span style={{ fontWeight: 600 }}>{activeEvent.name} — Coordinators</span>
+            <span style={{ fontWeight: 600 }}>{activeEvent.name} — {t('mgrCoordinatorsHeader')}</span>
             {activeEvent.status === 'ACTIVE' && (
               <span className="live-indicator" style={{ marginLeft: '8px' }}>
-                <span className="live-indicator__dot" /> LIVE
+                <span className="live-indicator__dot" /> {t('live')}
               </span>
             )}
           </div>
           <span className="v-status-pill safe" style={{ fontSize: '11px' }}>
-            {coordinators.length} Active
+            {coordinators.length} {t('guestAvailable')}
           </span>
         </header>
 
@@ -121,10 +123,10 @@ export default function ManagerCoordinators() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
               <div>
                 <h3 className="v-text-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <UserPlus size={18} color="var(--v-orange)" /> Add Coordinators
+                  <UserPlus size={18} color="var(--v-orange)" /> {t('mgrAddCoordinators')}
                 </h3>
                 <p className="v-text-sm" style={{ marginTop: '6px', opacity: 0.6, maxWidth: '480px' }}>
-                  Share the event PIN with coordinators. They join by entering the PIN on the login screen and selecting the <strong>Coordinator</strong> role.
+                  {t('mgrInviteText')}
                 </p>
               </div>
             </div>
@@ -172,9 +174,9 @@ export default function ManagerCoordinators() {
           <div className="v-card" style={{ padding: '24px', border: '1px solid var(--v-border)' }}>
             <h3 className="v-text-title" style={{ margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Users size={18} color="var(--v-orange)" />
-              Active Coordinators
+              {t('mgrActiveCoordinators')}
               <span style={{ marginLeft: 'auto', fontSize: '12px', fontWeight: 400, opacity: 0.5 }}>
-                {coordinators.length} total
+                {coordinators.length} {t('mgrCoordinatorsHeader')}
               </span>
             </h3>
 
@@ -184,8 +186,7 @@ export default function ManagerCoordinators() {
                 border: '1px dashed var(--v-border)', borderRadius: '16px',
               }}>
                 <Users size={40} style={{ opacity: 0.2, margin: '0 auto 16px' }} />
-                <p className="v-text-title" style={{ marginBottom: '8px' }}>No Coordinators Yet</p>
-                <p className="v-text-sm" style={{ opacity: 0.5 }}>Share the PIN above to invite coordinators to join this event.</p>
+                <p className="v-text-title" style={{ marginBottom: '8px' }}>{t('mgrNoCoordinators')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -249,7 +250,7 @@ export default function ManagerCoordinators() {
                         e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)'
                       }}
                     >
-                      <Trash2 size={14} /> Remove
+                      <Trash2 size={14} /> {t('mgrRemoveCoordinator')}
                     </button>
                   </div>
                 ))}
@@ -268,11 +269,11 @@ export default function ManagerCoordinators() {
           }}>
             <div className="modal__header" style={{ borderBottom: '1px solid var(--v-border)' }}>
               <h2 className="modal__title" style={{ color: '#ff4d4d', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Trash2 size={20} /> Remove Coordinator
+                <Trash2 size={20} /> {t('mgrRemoveCoordinator')}
               </h2>
             </div>
             <div className="modal__body">
-              <p style={{ marginBottom: '12px' }}>Are you sure you want to remove:</p>
+              <p style={{ marginBottom: '12px' }}>{t('mgrConfirmRemoveCoord')}</p>
               <div style={{
                 background: 'rgba(255,77,77,0.07)', border: '1px solid rgba(255,77,77,0.18)',
                 borderRadius: '12px', padding: '14px 18px', marginBottom: '16px',
@@ -288,14 +289,14 @@ export default function ManagerCoordinators() {
                 className="btn" style={{ background: 'transparent' }}
                 onClick={() => setConfirmRemove(null)} disabled={removing}
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 className="btn"
                 style={{ background: '#ef4444', color: 'white', border: 'none', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}
                 onClick={handleRemove} disabled={removing}
               >
-                {removing ? 'Removing...' : '🗑 Remove'}
+                {removing ? t('loading') : '🗑 ' + t('mgrRemoveCoordinator')}
               </button>
             </div>
           </div>

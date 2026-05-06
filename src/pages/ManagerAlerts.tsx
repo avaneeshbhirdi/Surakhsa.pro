@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
 import { Bell, CheckCircle, AlertTriangle } from 'lucide-react'
+import { useLang } from '@/contexts/LanguageContext'
 
 const PRIORITY_COLOR: Record<string, string> = {
   CRITICAL: '#ff4d4d',
@@ -21,6 +22,7 @@ const STATUS_COLOR: Record<string, string> = {
 export default function ManagerAlerts() {
   const { profile } = useAuthStore()
   const { activeEvent, alerts, zones, loadEvent, acknowledgeAlert, resolveAlert } = useEventStore()
+  const { t } = useLang()
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'ALL' | 'TRIGGERED' | 'ACKNOWLEDGED' | 'RESOLVED'>('ALL')
 
@@ -66,10 +68,10 @@ export default function ManagerAlerts() {
       <ManagerSidebar />
       <main className="virtus-main">
         <header className="virtus-header">
-          <span style={{ fontWeight: 600 }}>{activeEvent?.name ?? 'No Event'} — Alerts</span>
+          <span style={{ fontWeight: 600 }}>{activeEvent?.name ?? t('mgrNoEvent')} — {t('mgrActiveAlerts')}</span>
           {triggered > 0 && (
             <span style={{ background: '#ff4d4d20', color: '#ff4d4d', border: '1px solid #ff4d4d50', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>
-              {triggered} Active
+              {triggered} {t('live')}
             </span>
           )}
         </header>
@@ -102,7 +104,7 @@ export default function ManagerAlerts() {
           {filtered.length === 0 && (
             <div style={{ textAlign: 'center', padding: '60px', opacity: 0.4, border: '1px dashed var(--v-border)', borderRadius: '20px' }}>
               <Bell size={40} style={{ margin: '0 auto 12px' }} />
-              <p className="v-text-sm">No alerts in this category</p>
+              <p className="v-text-sm">{t('noAlerts')}</p>
             </div>
           )}
 
@@ -148,7 +150,7 @@ export default function ManagerAlerts() {
                     style={{ background: '#4dff4d20', border: '1px solid #4dff4d', color: '#4dff4d', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}
                   >
                     <CheckCircle size={14} style={{ display: 'inline', marginRight: '4px' }} />
-                    Resolve
+                    {t('resolve')}
                   </button>
                 )}
               </div>
