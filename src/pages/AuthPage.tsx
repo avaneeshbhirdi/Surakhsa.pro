@@ -100,6 +100,14 @@ export default function AuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLocalError('')
+    setEmailError('')
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setEmailError('Please enter a valid email address')
+      return
+    }
+
     try {
       await login(email, password)
     } catch {
@@ -118,6 +126,12 @@ export default function AuthPage() {
     }
     if (password.length < 6) {
       setLocalError('Password must be at least 6 characters')
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setEmailError('Please enter a valid email address')
       return
     }
 
