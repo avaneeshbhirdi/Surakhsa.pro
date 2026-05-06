@@ -1,4 +1,4 @@
-import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Home, Calendar, Target, Folder, MessageSquare, Bell, Settings, MapPin, ChevronLeft, ChevronRight, UserCheck } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useEventStore } from '@/stores/eventStore'
@@ -18,6 +18,7 @@ export default function ManagerSidebar() {
     { icon: <Home size={18} />, label: 'Home', path: '/manager' },
     { icon: <MapPin size={18} />, label: 'Zones', path: '/manager/zones' },
     { icon: <Target size={18} />, label: 'Map', path: '/manager/map' },
+    { icon: <UserCheck size={18} />, label: 'Coordinators', path: '/manager/coordinators' },
     { icon: <MessageSquare size={18} />, label: 'Comms', path: '/manager/comms' },
     { icon: <Folder size={18} />, label: 'Analytics', path: '/manager/analytics' },
     { icon: <Calendar size={18} color="var(--v-orange)" strokeWidth={2.5} />, label: 'History', path: '/event/history' },

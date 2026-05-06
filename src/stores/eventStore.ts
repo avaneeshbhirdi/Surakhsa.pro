@@ -31,6 +31,7 @@ interface EventState {
   }, adminProfileId: string) => Promise<Event>
   createZone: (eventId: string, label: string, name: string | null, capacity: number) => Promise<void>
   updateZone: (zoneId: string, label: string, name: string | null, capacity: number) => Promise<void>
+  deleteZone: (zoneId: string) => Promise<void>
   loadEvent: (eventId: string) => Promise<void>
   updateEventStatus: (eventId: string, status: EventStatus) => Promise<void>
   acknowledgeAlert: (alertId: string, profileId: string) => Promise<void>
@@ -199,6 +200,16 @@ export const useEventStore = create<EventState>((set, get) => ({
         z.id === zoneId ? { ...z, label, name, capacity } : z
       ),
     }))
+  },
+
+  deleteZone: async (zoneId) => {
+    // Optimistic removal first for instant UI feedback
+    set(state => ({ zones: state.zones.filter(z => z.id !== zoneId) }))
+    const { error } = await supabase.from('zones').delete().eq('id', zoneId)
+    if (error) {
+      // Rollback isn't feasible here — just reload from DB via realtime
+      throw new Error(error.message)
+    }
   },
 
   updateEventStatus: async (eventId: string, status: EventStatus) => {

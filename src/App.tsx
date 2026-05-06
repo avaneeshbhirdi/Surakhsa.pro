@@ -18,6 +18,7 @@ import ManagerAnalytics from '@/pages/ManagerAnalytics'
 import ManagerComms from '@/pages/ManagerComms'
 import ManagerAlerts from '@/pages/ManagerAlerts'
 import ManagerSettings from '@/pages/ManagerSettings'
+import ManagerCoordinators from '@/pages/ManagerCoordinators'
 import GuestApp from '@/pages/GuestApp'
 import CreateEvent from '@/pages/CreateEvent'
 import EventHistory from '@/pages/EventHistory'
@@ -134,6 +135,11 @@ function App() {
       <Route path="/manager/map" element={
         <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
           <ManagerMap />
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/coordinators" element={
+        <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
+          <ManagerCoordinators />
         </ProtectedRoute>
       } />
       <Route path="/manager/analytics" element={

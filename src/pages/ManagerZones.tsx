@@ -4,12 +4,12 @@ import { useEventStore } from '@/stores/eventStore'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import ManagerSidebar from '@/components/ManagerSidebar'
-import { Plus, MapPin, AlertTriangle, Edit2 } from 'lucide-react'
+import { Plus, MapPin, AlertTriangle, Edit2, Trash2 } from 'lucide-react'
 
 export default function ManagerZones() {
   const navigate = useNavigate()
   const { profile } = useAuthStore()
-  const { activeEvent, zones, latestReadings, alerts, createZone, updateZone, loadEvent } = useEventStore()
+  const { activeEvent, zones, latestReadings, alerts, createZone, updateZone, deleteZone, loadEvent } = useEventStore()
   
   const [loading, setLoading] = useState(!activeEvent) // skip loading if event already in store
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -23,6 +23,9 @@ export default function ManagerZones() {
   const [editZoneName, setEditZoneName] = useState('')
   const [editZoneCapacity, setEditZoneCapacity] = useState('')
   const [updating, setUpdating] = useState(false)
+
+  const [deletingZone, setDeletingZone] = useState<{ id: string; label: string; name?: string } | null>(null)
+  const [deleteConfirming, setDeleteConfirming] = useState(false)
 
   useEffect(() => {
     // If event already in store, no loading needed
@@ -113,6 +116,19 @@ export default function ManagerZones() {
     }
   }
 
+  const handleDeleteZone = async () => {
+    if (!deletingZone) return
+    setDeleteConfirming(true)
+    try {
+      await deleteZone(deletingZone.id)
+      setDeletingZone(null)
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete zone')
+    } finally {
+      setDeleteConfirming(false)
+    }
+  }
+
   return (
     <div className="virtus-layout">
       <ManagerSidebar />
@@ -149,12 +165,19 @@ export default function ManagerZones() {
                 <div className="flex flex-between mb-4">
                   <h3 className="v-text-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <MapPin size={18} color={color} /> {z.label} {z.name ? `- ${z.name}` : ''}
-                    <button 
+                    <button
                       onClick={() => handleEditClick(z)}
                       style={{ background: 'transparent', border: 'none', color: 'var(--v-text-muted)', cursor: 'pointer', display: 'flex', padding: '4px', opacity: 0.7 }}
                       title="Edit Zone"
                     >
                       <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => setDeletingZone({ id: z.id, label: z.label, name: z.name ?? undefined })}
+                      style={{ background: 'transparent', border: 'none', color: '#ff4d4d', cursor: 'pointer', display: 'flex', padding: '4px', opacity: 0.75, marginLeft: 'auto' }}
+                      title="Delete Zone"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </h3>
                   {zoneAlerts > 0 && (
@@ -314,6 +337,47 @@ export default function ManagerZones() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Zone Confirmation Modal */}
+      {deletingZone && (
+        <div className="modal-overlay" onClick={() => !deleteConfirming && setDeletingZone(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--v-card-bg)', border: '1px solid rgba(255,77,77,0.3)', borderRadius: '24px', maxWidth: '400px' }}>
+            <div className="modal__header" style={{ borderBottom: '1px solid var(--v-border)' }}>
+              <h2 className="modal__title" style={{ color: '#ff4d4d', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Trash2 size={20} /> Delete Zone
+              </h2>
+            </div>
+            <div className="modal__body">
+              <p style={{ marginBottom: '8px' }}>Are you sure you want to permanently delete:</p>
+              <div style={{ background: 'rgba(255,77,77,0.08)', border: '1px solid rgba(255,77,77,0.2)', borderRadius: '12px', padding: '14px 18px', marginBottom: '16px' }}>
+                <strong style={{ fontSize: '18px' }}>{deletingZone.label}</strong>
+                {deletingZone.name && <span style={{ color: 'var(--v-text-muted)', marginLeft: '8px' }}>— {deletingZone.name}</span>}
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--v-text-muted)', lineHeight: 1.6 }}>
+                ⚠️ This will also delete all readings and alerts associated with this zone. This action cannot be undone.
+              </p>
+            </div>
+            <div className="modal__footer">
+              <button
+                type="button" className="btn"
+                style={{ background: 'transparent' }}
+                onClick={() => setDeletingZone(null)}
+                disabled={deleteConfirming}
+              >
+                Cancel
+              </button>
+              <button
+                type="button" className="btn"
+                style={{ background: '#ef4444', color: 'white', border: 'none', boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}
+                onClick={handleDeleteZone}
+                disabled={deleteConfirming}
+              >
+                {deleteConfirming ? 'Deleting...' : '🗑 Delete Zone'}
+              </button>
+            </div>
           </div>
         </div>
       )}
