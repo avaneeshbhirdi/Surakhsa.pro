@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useEventStore } from '@/stores/eventStore'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import CoordinatorSidebar from '@/components/CoordinatorSidebar'
 import AlertCard from '@/components/AlertCard'
-import { Mic, MicOff, Shield, Activity, AlertTriangle, MessageSquare, Send, Megaphone } from 'lucide-react'
+import { Mic, MicOff, Activity, Send, Megaphone } from 'lucide-react'
 import type { Event } from '@/lib/types'
 
 export default function CoordinatorApp() {
@@ -64,8 +64,6 @@ export default function CoordinatorApp() {
   const handleSendMessage = async () => {
     if (!textMessage.trim() || !pinSession) return
     try {
-      // We send arbitrary text as a generic 'CROWD_BUILDING' or just keep it whatever.
-      // Since it's a message, we'll send it as 'ALL_CLEAR' with the message attached.
       await sendStewardMessage(eventId, zoneId || null, pinSession.staffId, 'ALL_CLEAR', textMessage.trim())
       setTextMessage('')
       setMessageSent(true)
@@ -93,235 +91,237 @@ export default function CoordinatorApp() {
   }
 
   return (
-    <div className="page">
-      <Navbar />
+    <div className="virtus-layout">
+      <CoordinatorSidebar activeTab={activeTab} setActiveTab={setActiveTab} unreadCount={unreadCount} />
 
-      {/* Event Info Banner */}
-      {eventDetails && (
-        <div style={{
-          background: 'var(--color-bg-elevated)',
-          borderBottom: '1px solid var(--color-border)',
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          flexWrap: 'wrap',
-        }}>
-          <span style={{ fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', color: 'var(--color-gold)' }}>
-            {eventDetails.name}
-          </span>
-          {eventDetails.venue_name && (
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-              📍 {eventDetails.venue_name}
-            </span>
-          )}
-          {eventDetails.event_date && (
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-              📅 {new Date(eventDetails.event_date).toLocaleDateString()}
-            </span>
-          )}
-          <span
-            className={`badge badge-${eventDetails.status === 'ACTIVE' ? 'safe' : eventDetails.status === 'PAUSED' ? 'warning' : 'info'}`}
-            style={{ marginLeft: 'auto', fontSize: '10px' }}
-          >
-            {eventDetails.status}
-          </span>
+      <main className="virtus-main">
+        {/* Event Info Header */}
+        <header className="virtus-header" style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontWeight: 600 }}>{eventDetails?.name ?? 'Loading Event...'}</span>
+            {eventDetails?.status === 'ACTIVE' && (
+              <span className="live-indicator"><span className="live-indicator__dot" /> LIVE</span>
+            )}
+            {eventDetails?.status === 'PAUSED' && (
+              <span style={{ fontSize: '10px', background: 'var(--color-warning)', color: '#000', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                PAUSED
+              </span>
+            )}
+          </div>
+          
           {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length > 0 && (
-            <div
-              className="badge badge-danger"
-              style={{ 
-                marginLeft: 'auto', 
-                fontSize: '10px', 
-                animation: 'pulse 1.5s infinite',
-                cursor: 'pointer',
+            <button
+              style={{
+                background: 'rgba(255, 60, 60, 0.1)',
+                border: '1px solid var(--color-danger-pulse)',
+                color: 'var(--color-danger-pulse)',
+                padding: '4px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: 'bold',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '6px',
+                cursor: 'pointer',
+                animation: 'pulse 2s infinite'
               }}
               onClick={() => setActiveTab('alerts')}
             >
-              <Megaphone size={10} /> {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length} URGENT
+              <Megaphone size={14} /> {broadcastAlerts.filter(a => a.status === 'TRIGGERED').length} URGENT
+            </button>
+          )}
+        </header>
+
+        <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+          {/* My Zone Tab */}
+          {activeTab === 'zone' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div className="v-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--v-orange)', marginBottom: '4px' }}>
+                      Zone {myZone?.label || '?'}
+                    </h2>
+                    {myZone?.name && <p style={{ color: 'var(--v-text-main)', opacity: 0.7, fontSize: '14px' }}>{myZone.name}</p>}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '32px', fontWeight: 800, color: riskColor }}>{riskScore}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--v-text-main)', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Risk Score</div>
+                  </div>
+                </div>
+
+                {/* Density Meter */}
+                <div style={{ marginTop: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '14px', color: 'var(--v-text-main)', opacity: 0.7 }}>Live Occupancy</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: riskColor }}>{percentage}% ({myReading?.density || 0} people)</span>
+                  </div>
+                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div
+                      style={{ 
+                        height: '100%', 
+                        width: `${percentage}%`,
+                        background: colorState === 'RED' ? 'var(--color-danger-pulse)' : colorState === 'YELLOW' ? 'var(--color-warning)' : 'var(--v-orange)',
+                        transition: 'width 0.5s ease-out, background-color 0.5s ease'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Flow Rate */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--v-border)' }}>
+                  <span style={{ fontSize: '14px', color: 'var(--v-text-main)', opacity: 0.7, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Activity size={16} />
+                    Flow Rate
+                  </span>
+                  <span style={{ fontSize: '14px', fontWeight: 700 }}>
+                    {(myReading?.flow_rate || 0).toFixed(1)} m/min
+                  </span>
+                </div>
+
+                {/* Risk Type */}
+                {myReading?.risk_type && myReading.risk_type !== 'NORMAL' && (
+                  <div style={{
+                    marginTop: '20px',
+                    padding: '12px',
+                    background: 'rgba(255, 60, 60, 0.1)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--color-danger-pulse)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <Megaphone size={16} color="var(--color-danger-pulse)" />
+                    <span style={{ fontWeight: 600, color: 'var(--color-danger-pulse)', fontSize: '14px' }}>
+                      {myReading.risk_type.replace('_', ' ')}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Report Buttons */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+                <button 
+                  onClick={() => handleReport('ALL_CLEAR')}
+                  style={{ background: 'rgba(77, 255, 77, 0.1)', color: '#4dff4d', border: '1px solid rgba(77, 255, 77, 0.3)', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  ✅ Mark All Clear
+                </button>
+                <button 
+                  onClick={() => handleReport('CROWD_BUILDING')}
+                  style={{ background: 'rgba(255, 170, 0, 0.1)', color: '#ffaa00', border: '1px solid rgba(255, 170, 0, 0.3)', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  ⚠️ Crowd Building
+                </button>
+                <button
+                  onClick={handleSendEmergencyAlert}
+                  style={{ background: 'var(--color-danger-pulse)', color: '#fff', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '12px' }}
+                >
+                  🚨 Send Emergency Alert to Manager
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Communicate Tab */}
+          {activeTab === 'comms' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div className="v-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}>
+                <button
+                  className={`ptt-button ${isPTTActive ? 'ptt-button--transmitting' : ''}`}
+                  onMouseDown={() => setIsPTTActive(true)}
+                  onMouseUp={() => setIsPTTActive(false)}
+                  onTouchStart={() => setIsPTTActive(true)}
+                  onTouchEnd={() => setIsPTTActive(false)}
+                  style={{
+                    width: '120px', height: '120px', borderRadius: '50%', border: 'none',
+                    background: isPTTActive ? 'var(--color-danger-pulse)' : 'var(--v-bg-dark)',
+                    boxShadow: isPTTActive ? '0 0 40px rgba(255, 60, 60, 0.4)' : 'inset 0 0 20px rgba(0,0,0,0.5), 0 0 0 1px var(--v-border)',
+                    color: isPTTActive ? '#fff' : 'var(--v-orange)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    transition: 'all 0.1s'
+                  }}
+                >
+                  {isPTTActive ? <MicOff size={48} /> : <Mic size={48} />}
+                </button>
+                <p style={{ marginTop: '24px', fontSize: '14px', color: 'var(--v-text-main)', opacity: 0.6, textAlign: 'center' }}>
+                  {isPTTActive ? '🔴 Transmitting on Zone channel...' : 'Hold to talk on Zone channel'}
+                </p>
+              </div>
+
+              <div className="v-card">
+                <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '16px' }}>Send Message to Event Manager</h4>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <input
+                    placeholder="Type message..."
+                    value={textMessage}
+                    onChange={e => setTextMessage(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                    style={{ flex: 1, background: 'var(--v-bg-dark)', border: '1px solid var(--v-border)', borderRadius: '10px', padding: '12px 16px', color: '#fff', fontSize: '14px' }}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!textMessage.trim()}
+                    style={{ background: 'var(--v-orange)', color: '#000', border: 'none', borderRadius: '10px', padding: '0 20px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !textMessage.trim() ? 0.5 : 1 }}
+                  >
+                    <Send size={18} />
+                  </button>
+                </div>
+                {messageSent && (
+                  <p style={{ color: '#4dff4d', fontSize: '12px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    ✅ Message sent to Event Manager
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Alerts Tab */}
+          {activeTab === 'alerts' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Broadcast alerts from manager shown at top */}
+              {broadcastAlerts.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '12px', color: 'var(--v-orange)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                    📢 Broadcast from Manager
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {broadcastAlerts.map(a => (
+                      <AlertCard
+                        key={a.id}
+                        alert={a}
+                        onAcknowledge={() => acknowledgeAlert(a.id, profileId)}
+                      />
+                    ))}
+                  </div>
+                  <div style={{ borderBottom: '1px solid var(--v-border)', margin: '24px 0 8px 0' }} />
+                </div>
+              )}
+
+              <h4 style={{ fontSize: '12px', color: 'var(--v-text-main)', opacity: 0.5, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                Zone Alerts
+              </h4>
+
+              {/* Zone-specific alerts */}
+              {myAlerts.filter(a => a.zone_id === zoneId).length === 0 ? (
+                <div className="v-card" style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.6 }}>
+                  <p style={{ fontSize: '14px' }}>No alerts for your zone.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {myAlerts.filter(a => a.zone_id === zoneId).map(a => (
+                    <AlertCard
+                      key={a.id}
+                      alert={a}
+                      onAcknowledge={() => acknowledgeAlert(a.id, profileId)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
-
-      {/* Tabs */}
-      <div className="tabs">
-        <button className={`tab ${activeTab === 'zone' ? 'tab--active' : ''}`} onClick={() => setActiveTab('zone')}>
-          <Shield size={14} /> My Zone
-        </button>
-        <button className={`tab ${activeTab === 'comms' ? 'tab--active' : ''}`} onClick={() => setActiveTab('comms')}>
-          <MessageSquare size={14} /> Communicate
-        </button>
-        <button className={`tab ${activeTab === 'alerts' ? 'tab--active' : ''}`} onClick={() => setActiveTab('alerts')}>
-          <AlertTriangle size={14} /> Alerts
-          {unreadCount > 0 && (
-            <span className="badge badge-danger" style={{ marginLeft: '4px', fontSize: '10px' }}>
-              {unreadCount}
-            </span>
-          )}
-        </button>
-      </div>
-
-      <div className="p-4 flex-1">
-        {/* My Zone Tab */}
-        {activeTab === 'zone' && (
-          <div className="flex flex-col gap-4">
-            <div className="card-glass p-6">
-              <div className="flex flex-between" style={{ alignItems: 'center' }}>
-                <div>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-2xl)', color: 'var(--color-gold)' }}>
-                    Zone {myZone?.label || '?'}
-                  </h2>
-                  {myZone?.name && <p className="text-secondary">{myZone.name}</p>}
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-bold)', color: riskColor }}>{riskScore}</div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>Risk Score</div>
-                </div>
-              </div>
-
-              {/* Density Meter */}
-              <div className="mt-4">
-                <div className="flex flex-between mb-2">
-                  <span className="text-secondary" style={{ fontSize: 'var(--text-sm)' }}>Live Occupancy</span>
-                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', color: riskColor }}>{percentage}% ({myReading?.density || 0} people)</span>
-                </div>
-                <div className="density-bar" style={{ height: '12px' }}>
-                  <div
-                    className={`density-bar__fill density-bar__fill--${colorState === 'RED' ? 'danger' : colorState === 'YELLOW' ? 'warning' : 'safe'}`}
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Flow Rate */}
-              <div className="flex flex-between mt-4">
-                <span className="text-secondary" style={{ fontSize: 'var(--text-sm)' }}>
-                  <Activity size={14} style={{ display: 'inline', marginRight: '4px' }} />
-                  Flow Rate
-                </span>
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)' }}>
-                  {(myReading?.flow_rate || 0).toFixed(1)} m/min
-                </span>
-              </div>
-
-              {/* Risk Type */}
-              {myReading?.risk_type && myReading.risk_type !== 'NORMAL' && (
-                <div className="mt-4" style={{
-                  padding: 'var(--space-3)',
-                  background: 'var(--color-danger-bg)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-danger)',
-                }}>
-                  <span style={{ fontWeight: 'var(--weight-bold)', color: riskColor }}>
-                    ⚠ {myReading.risk_type.replace('_', ' ')}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Report Buttons */}
-            <div className="flex flex-col gap-3">
-              <button className="steward-status-btn steward-status-btn--clear" onClick={() => handleReport('ALL_CLEAR')}>
-                ✅ Mark All Clear
-              </button>
-              <button className="steward-status-btn steward-status-btn--emergency" onClick={() => handleReport('CROWD_BUILDING')}>
-                ⚠️ Crowd Building
-              </button>
-              {/* Send Emergency Alert to Manager */}
-              <button
-                className="steward-status-btn steward-status-btn--emergency"
-                onClick={handleSendEmergencyAlert}
-                style={{ background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
-              >
-                🚨 Send Emergency Alert to Manager
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Communicate Tab */}
-        {activeTab === 'comms' && (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-center" style={{ padding: 'var(--space-8)' }}>
-              <button
-                className={`ptt-button ${isPTTActive ? 'ptt-button--transmitting' : ''}`}
-                onMouseDown={() => setIsPTTActive(true)}
-                onMouseUp={() => setIsPTTActive(false)}
-                onTouchStart={() => setIsPTTActive(true)}
-                onTouchEnd={() => setIsPTTActive(false)}
-              >
-                {isPTTActive ? <MicOff size={32} /> : <Mic size={32} className="text-gold" />}
-              </button>
-            </div>
-            <p className="text-center text-muted" style={{ fontSize: 'var(--text-sm)' }}>
-              {isPTTActive ? '🔴 Transmitting on Zone channel...' : 'Hold to talk on Zone channel'}
-            </p>
-
-            <div className="mt-6">
-              <h4 className="text-secondary mb-2" style={{ fontSize: 'var(--text-sm)' }}>Send Message to Event Manager</h4>
-              <div className="flex gap-2">
-                <input
-                  className="input"
-                  placeholder="Type message..."
-                  value={textMessage}
-                  onChange={e => setTextMessage(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                />
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={handleSendMessage}
-                  disabled={!textMessage.trim()}
-                >
-                  <Send size={14} />
-                </button>
-              </div>
-              {messageSent && (
-                <p style={{ color: 'var(--color-safe)', fontSize: '12px', marginTop: '6px' }}>
-                  ✅ Message sent to Event Manager
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Alerts Tab */}
-        {activeTab === 'alerts' && (
-          <div className="flex flex-col gap-3">
-            {/* Broadcast alerts from manager shown at top */}
-            {broadcastAlerts.length > 0 && (
-              <div>
-                <h4 style={{ fontSize: 'var(--text-xs)', color: 'var(--color-warning)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  📢 Broadcast from Manager
-                </h4>
-                {broadcastAlerts.map(a => (
-                  <AlertCard
-                    key={a.id}
-                    alert={a}
-                    onAcknowledge={() => acknowledgeAlert(a.id, profileId)}
-                  />
-                ))}
-                <div style={{ borderBottom: '1px solid var(--color-border)', margin: '12px 0' }} />
-              </div>
-            )}
-
-            {/* Zone-specific alerts */}
-            {myAlerts.filter(a => a.zone_id === zoneId).length === 0 && broadcastAlerts.length === 0 ? (
-              <p className="text-muted text-center p-6">No alerts for your zone.</p>
-            ) : (
-              myAlerts.filter(a => a.zone_id === zoneId).map(a => (
-                <AlertCard
-                  key={a.id}
-                  alert={a}
-                  onAcknowledge={() => acknowledgeAlert(a.id, profileId)}
-                />
-              ))
-            )}
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   )
 }
