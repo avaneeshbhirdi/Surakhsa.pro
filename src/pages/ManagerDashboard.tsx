@@ -275,15 +275,21 @@ export default function ManagerDashboard() {
             <div style={{ display: 'flex', gap: '32px', marginBottom: '16px' }}>
               <div><span className="v-text-huge" style={{ fontSize: '32px' }}>{totalDensityPct}%</span> <span className="v-text-sm">Overall Avg</span></div>
             </div>
-            <div style={{ height: '160px', width: '100%', marginLeft: '-20px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} barSize={24}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} dy={10} />
-                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '8px', color: 'var(--v-text-main)' }} />
-                  <Bar dataKey="density" fill="var(--v-orange)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div style={{ height: '160px', width: '100%', minWidth: 0, marginLeft: '-20px', overflow: 'hidden' }}>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="99%" height={160}>
+                  <BarChart data={chartData} barSize={24}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} dy={10} />
+                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'var(--v-card-bg)', border: '1px solid var(--v-border)', borderRadius: '8px', color: 'var(--v-text-main)' }} />
+                    <Bar dataKey="density" fill="var(--v-orange)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <p className="v-text-sm text-muted">No zone data yet</p>
+                </div>
+              )}
             </div>
           </div>
 

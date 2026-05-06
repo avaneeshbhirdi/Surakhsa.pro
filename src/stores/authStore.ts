@@ -134,7 +134,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signup: async (email: string, password: string, fullName: string, role?: UserRole) => {
     set({ isLoading: true, error: null })
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -146,6 +146,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         },
       })
       if (error) throw error
+
+      // If identities is empty, the email already exists (Supabase returns 200 but empty identities)
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        const err = new Error('An account with this email already exists. Please login instead.')
+        set({ isLoading: false, error: err.message })
+        throw err
+      }
+
       set({ isLoading: false })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Signup failed'
