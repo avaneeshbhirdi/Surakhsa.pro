@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import type { Event } from '@/lib/types'
-import { Calendar, MapPin, Users, AlertTriangle } from 'lucide-react'
+import { Calendar, MapPin } from 'lucide-react'
 import ManagerSidebar from '@/components/ManagerSidebar'
 
 export default function EventHistory() {
@@ -26,17 +26,7 @@ export default function EventHistory() {
       .order('created_at', { ascending: false })
 
     if (data) {
-      // Load counts for each event
-      const enriched = await Promise.all(
-        data.map(async (evt) => {
-          const [zonesRes, alertsRes] = await Promise.all([
-            supabase.from('zones').select('id', { count: 'exact', head: true }).eq('event_id', evt.id),
-            supabase.from('alerts').select('id', { count: 'exact', head: true }).eq('event_id', evt.id),
-          ])
-          return { ...evt, zones_count: zonesRes.count || 0, alerts_count: alertsRes.count || 0 }
-        })
-      )
-      setEvents(enriched)
+      setEvents(data)
     }
     setLoading(false)
   }
@@ -107,12 +97,6 @@ export default function EventHistory() {
                       <Calendar size={14} /> {new Date(evt.event_date).toLocaleDateString()}
                     </span>
                   )}
-                  <span className="v-text-sm flex" style={{ alignItems: 'center', gap: '6px', opacity: 0.7 }}>
-                    <Users size={14} /> {evt.zones_count} zones
-                  </span>
-                  <span className="v-text-sm flex" style={{ alignItems: 'center', gap: '6px', opacity: 0.7 }}>
-                    <AlertTriangle size={14} /> {evt.alerts_count} alerts
-                  </span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid var(--v-border)', opacity: 0.5, fontSize: '12px' }}>

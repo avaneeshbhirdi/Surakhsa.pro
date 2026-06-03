@@ -115,12 +115,12 @@ export default function CoordinatorApp() {
   const riskScore = selectedReading?.risk_score || 0
 
   const handleReport = async (status: 'ALL_CLEAR' | 'CROWD_BUILDING' | 'EMERGENCY') => {
-    if (!pinSession || !selectedZoneId) return
+    if (!myStaffId || !selectedZoneId) return
     // Trigger animation
     setAnimatingButton(status)
     setTimeout(() => setAnimatingButton(null), 600)
     try {
-      await sendStewardMessage(eventId, selectedZoneId, pinSession.staffId, status)
+      await sendStewardMessage(eventId, selectedZoneId, myStaffId, status)
       setReportCounts(prev => ({ ...prev, [status]: (prev[status] || 0) + 1 }))
       setLastReportedStatus(status)
       setReportSent(true)
@@ -131,9 +131,9 @@ export default function CoordinatorApp() {
   }
 
   const handleSendMessage = async () => {
-    if (!textMessage.trim() || !pinSession) return
+    if (!textMessage.trim() || !myStaffId) return
     try {
-      await sendStewardMessage(eventId, selectedZoneId || null, pinSession.staffId, 'ALL_CLEAR', `[TO MANAGER] ${textMessage.trim()}`)
+      await sendStewardMessage(eventId, selectedZoneId || null, myStaffId, 'ALL_CLEAR', `[TO MANAGER] ${textMessage.trim()}`)
       setTextMessage('')
       setMessageSent(true)
       setTimeout(() => setMessageSent(false), 2500)
@@ -143,13 +143,13 @@ export default function CoordinatorApp() {
   }
 
   const handleSendDM = async () => {
-    if (!dmMessage.trim() || !pinSession || !dmRecipientId) return
+    if (!dmMessage.trim() || !myStaffId || !dmRecipientId) return
     setDmSending(true)
     try {
       await sendStewardMessage(
         eventId,
         selectedZoneId || null,
-        pinSession.staffId,
+        myStaffId,
         'ALL_CLEAR',
         `[DM] ${dmMessage.trim()}`,
         dmRecipientId
@@ -165,19 +165,20 @@ export default function CoordinatorApp() {
   }
 
   const handleSendEmergencyAlert = async () => {
-    if (!pinSession || !eventId || !selectedZoneId) return
+    if (!myStaffId || !eventId || !selectedZoneId) return
     setAnimatingButton('EMERGENCY')
     setTimeout(() => setAnimatingButton(null), 600)
+
     try {
-      await sendStewardMessage(eventId, selectedZoneId, pinSession.staffId, 'EMERGENCY')
+      await sendStewardMessage(eventId, selectedZoneId, myStaffId, 'EMERGENCY')
       setReportCounts(prev => ({ ...prev, EMERGENCY: (prev.EMERGENCY || 0) + 1 }))
       await triggerAlert(
         eventId,
         selectedZoneId,
         'OTHER',
         'CRITICAL',
-        `🚨 Emergency reported by ${pinSession.displayName} at Zone ${selectedZone?.label || '?'}`,
-        pinSession.staffId
+        'Coordinator declared emergency — immediate assistance required.',
+        myStaffId
       )
     } catch (err) {
       console.error('Failed to send emergency alert')

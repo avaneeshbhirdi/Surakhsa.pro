@@ -307,7 +307,7 @@ function SimulationRunner() {
         await supabase.from('steward_updates').insert(pick)
       }
 
-    }, 6000) // ← 6 seconds per tick (was 2000ms — 3× slower)
+    }, 2000)
 
     return () => clearInterval(interval)
   }, [isSimulating, activeEvent?.id, zones.length > 0])
