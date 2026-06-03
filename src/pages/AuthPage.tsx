@@ -99,7 +99,7 @@ export default function AuthPage() {
       // The other useEffect will update the DB and re-trigger state.
       if (pendingRole && role === 'GUEST') return
 
-      if (role === 'ADMIN') navigate('/dashboard')
+      if (role === 'ADMIN') navigate('/manager')
       else if (role === 'EVENT_MANAGER') navigate('/manager')
       else if (role === 'COORDINATOR') navigate('/coordinator')
       else if (role === 'GUEST') navigate('/guest')

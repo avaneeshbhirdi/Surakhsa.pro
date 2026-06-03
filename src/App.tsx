@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import SplashScreen from '@/pages/SplashScreen'
 import LandingPage from '@/pages/LandingPage'
 import AuthPage from '@/pages/AuthPage'
-import AdminDashboard from '@/pages/AdminDashboard'
+
 import CoordinatorApp from '@/pages/CoordinatorApp'
 import ManagerDashboard from '@/pages/ManagerDashboard'
 import ManagerZones from '@/pages/ManagerZones'
@@ -317,12 +317,19 @@ function SimulationRunner() {
 
 function App() {
   const { initialize, isLoading } = useAuthStore()
-  const [showSplash, setShowSplash] = useState(true)
+  // Only show splash on first-ever visit — skip for returning/logged-in users
+  const hasSession = !!(
+    localStorage.getItem('sb-' + (import.meta.env.VITE_SUPABASE_URL || '').replace(/https?:\/\//, '').split('.')[0] + '-auth-token') ||
+    localStorage.getItem('suraksha_pin_session')
+  )
+  const [showSplash, setShowSplash] = useState(!hasSession)
 
   useEffect(() => {
     initialize()
-    const timer = setTimeout(() => setShowSplash(false), 2500)
-    return () => clearTimeout(timer)
+    if (!hasSession) {
+      const timer = setTimeout(() => setShowSplash(false), 1500)
+      return () => clearTimeout(timer)
+    }
   }, [initialize])
 
   if (showSplash) {
@@ -337,6 +344,7 @@ function App() {
     )
   }
 
+
   return (
     <>
       <SimulationRunner />
@@ -346,11 +354,7 @@ function App() {
       <Route path="/auth" element={<AuthPage />} />
 
       {/* Protected user routes */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute allowedRoles={['ADMIN']}>
-          <AdminDashboard />
-        </ProtectedRoute>
-      } />
+      <Route path="/dashboard" element={<Navigate to="/manager" replace />} />
       <Route path="/manager" element={
         <ProtectedRoute allowedRoles={['ADMIN', 'EVENT_MANAGER']}>
           <ManagerDashboard />

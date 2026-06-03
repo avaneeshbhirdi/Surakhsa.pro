@@ -12,7 +12,7 @@ export default function Navbar() {
   const isActive = (path: string) => location.pathname === path
 
   const getDashboardRoute = () => {
-    if (role === 'ADMIN') return '/dashboard'
+    if (role === 'ADMIN') return '/manager'
     if (role === 'EVENT_MANAGER') return '/manager'
     if (role === 'COORDINATOR') return '/coordinator'
     if (role === 'GUEST') return '/guest'
@@ -50,8 +50,8 @@ export default function Navbar() {
       {(role === 'ADMIN' || role === 'EVENT_MANAGER') && (
         <div className="flex gap-1 hide-on-mobile">
           <button 
-            className={`btn btn-sm ${isActive(role === 'ADMIN' ? '/dashboard' : '/manager') ? 'btn-primary' : 'btn-ghost'}`} 
-            onClick={() => navigate(role === 'ADMIN' ? '/dashboard' : '/manager')}
+            className={`btn btn-sm ${isActive(role === 'ADMIN' ? '/manager' : '/manager') ? 'btn-primary' : 'btn-ghost'}`} 
+            onClick={() => navigate('/manager')}
           >
             <LayoutDashboard size={14} /> Dashboard
           </button>

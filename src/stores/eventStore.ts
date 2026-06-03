@@ -131,6 +131,7 @@ export const useEventStore = create<EventState>((set, get) => ({
     }
     set({ isLoading: true, error: null })
     try {
+      // Fetch all data in parallel — single round-trip
       const [eventRes, zonesRes, alertsRes, staffRes, stewardRes] = await Promise.all([
         supabase.from('events').select('*').eq('id', eventId).single(),
         supabase.from('zones').select('*').eq('event_id', eventId).order('label'),
@@ -141,19 +142,24 @@ export const useEventStore = create<EventState>((set, get) => ({
 
       if (eventRes.error) throw new Error(eventRes.error.message)
 
-      // Load latest reading per zone
+      // ── Batch-fetch latest reading per zone in ONE query instead of N sequential calls ──
       const latestReadings: Record<string, ZoneReading> = {}
-      if (zonesRes.data) {
-        for (const zone of zonesRes.data) {
-          const { data: readings } = await supabase
-            .from('zone_readings')
-            .select('*')
-            .eq('zone_id', zone.id)
-            .order('recorded_at', { ascending: false })
-            .limit(1)
-          
-          if (readings && readings.length > 0) {
-            latestReadings[zone.id] = readings[0]
+      if (zonesRes.data && zonesRes.data.length > 0) {
+        const zoneIds = zonesRes.data.map(z => z.id)
+        const { data: allReadings } = await supabase
+          .from('zone_readings')
+          .select('*')
+          .in('zone_id', zoneIds)
+          .eq('event_id', eventId)
+          .order('recorded_at', { ascending: false })
+          .limit(zoneIds.length * 3) // a few per zone is enough to get latest
+
+        if (allReadings) {
+          // Keep only the most recent reading per zone (already sorted desc)
+          for (const reading of allReadings) {
+            if (!latestReadings[reading.zone_id]) {
+              latestReadings[reading.zone_id] = reading
+            }
           }
         }
       }
@@ -216,15 +222,23 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   updateEventStatus: async (eventId: string, status: EventStatus) => {
+    // Optimistic update — UI responds immediately
+    const prevStatus = get().activeEvent?.status
+    set(state => ({
+      activeEvent: state.activeEvent ? { ...state.activeEvent, status } : null,
+    }))
     const { error } = await supabase
       .from('events')
       .update({ status })
       .eq('id', eventId)
 
-    if (error) throw new Error(error.message)
-    set(state => ({
-      activeEvent: state.activeEvent ? { ...state.activeEvent, status } : null,
-    }))
+    if (error) {
+      // Rollback on failure
+      set(state => ({
+        activeEvent: state.activeEvent ? { ...state.activeEvent, status: prevStatus ?? state.activeEvent.status } : null,
+      }))
+      throw new Error(error.message)
+    }
   },
 
   acknowledgeAlert: async (alertId: string, profileId: string) => {

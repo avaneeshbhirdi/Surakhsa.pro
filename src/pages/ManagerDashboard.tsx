@@ -23,8 +23,7 @@ export default function ManagerDashboard() {
   const { t } = useLang()
 
   const [loading, setLoading] = useState(true)
-
-  // Generate Event Code states
+  const [eventBusy, setEventBusy] = useState(false) // guards Start/Pause/End buttons
   const [pinCopied, setPinCopied] = useState(false)
 
   // Send Alert modal states
@@ -73,21 +72,26 @@ export default function ManagerDashboard() {
   }
 
   const handleStartEvent = async () => {
-    if (!activeEvent) return
-    await updateEventStatus(activeEvent.id, 'ACTIVE')
+    if (!activeEvent || eventBusy) return
+    setEventBusy(true)
+    try { await updateEventStatus(activeEvent.id, 'ACTIVE') } finally { setEventBusy(false) }
   }
 
   const handlePauseEvent = async () => {
-    if (!activeEvent) return
-    await updateEventStatus(activeEvent.id, activeEvent.status === 'PAUSED' ? 'ACTIVE' : 'PAUSED')
+    if (!activeEvent || eventBusy) return
+    setEventBusy(true)
+    try { await updateEventStatus(activeEvent.id, activeEvent.status === 'PAUSED' ? 'ACTIVE' : 'PAUSED') } finally { setEventBusy(false) }
   }
 
   const handleEndEvent = async () => {
-    if (!activeEvent) return
-    await updateEventStatus(activeEvent.id, 'ENDED')
-    setShowEndConfirm(false)
-    clearEvent()
-    navigate('/event/history')
+    if (!activeEvent || eventBusy) return
+    setEventBusy(true)
+    try {
+      await updateEventStatus(activeEvent.id, 'ENDED')
+      setShowEndConfirm(false)
+      clearEvent()
+      navigate('/event/history')
+    } finally { setEventBusy(false) }
   }
 
   const handleDirectMessage = (s: EventStaff) => {
@@ -206,22 +210,22 @@ export default function ManagerDashboard() {
           
           {/* Status Controls */}
           {activeEvent.status === 'DRAFT' && (
-            <button className="virtus-pill" onClick={handleStartEvent} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)' }}>
-              <Play size={14} /> Start Event
+            <button className="virtus-pill" onClick={handleStartEvent} disabled={eventBusy} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)', opacity: eventBusy ? 0.6 : 1 }}>
+              {eventBusy ? <span className="spinner" style={{ width: '12px', height: '12px' }} /> : <Play size={14} />} Start Event
             </button>
           )}
           {activeEvent.status === 'ACTIVE' && (
-            <button className="virtus-pill" onClick={handlePauseEvent}>
-              <Pause size={14} /> Pause
+            <button className="virtus-pill" onClick={handlePauseEvent} disabled={eventBusy} style={{ opacity: eventBusy ? 0.6 : 1 }}>
+              {eventBusy ? <span className="spinner" style={{ width: '12px', height: '12px' }} /> : <Pause size={14} />} Pause
             </button>
           )}
           {activeEvent.status === 'PAUSED' && (
-            <button className="virtus-pill" onClick={handlePauseEvent} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)' }}>
-              <Play size={14} /> Resume
+            <button className="virtus-pill" onClick={handlePauseEvent} disabled={eventBusy} style={{ color: 'var(--v-orange)', borderColor: 'var(--v-orange)', opacity: eventBusy ? 0.6 : 1 }}>
+              {eventBusy ? <span className="spinner" style={{ width: '12px', height: '12px' }} /> : <Play size={14} />} Resume
             </button>
           )}
           {activeEvent.status !== 'DRAFT' && (
-            <button className="virtus-pill" onClick={() => setShowEndConfirm(true)} style={{ color: 'var(--v-red)', borderColor: 'var(--v-red)' }}>
+            <button className="virtus-pill" onClick={() => setShowEndConfirm(true)} disabled={eventBusy} style={{ color: 'var(--v-red)', borderColor: 'var(--v-red)', opacity: eventBusy ? 0.6 : 1 }}>
               <Square size={14} /> End Event
             </button>
           )}

@@ -20,7 +20,7 @@ export default function LandingPage() {
   const { t } = useLang()
 
   const getDashboardRoute = () => {
-    if (role === 'ADMIN') return '/dashboard'
+    if (role === 'ADMIN') return '/manager'
     if (role === 'EVENT_MANAGER') return '/manager'
     if (role === 'COORDINATOR') return '/coordinator'
     if (role === 'GUEST') return '/guest'
