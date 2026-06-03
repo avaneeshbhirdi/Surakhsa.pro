@@ -4,16 +4,16 @@ import { useEventStore } from '@/stores/eventStore'
 import { supabase } from '@/lib/supabase'
 import CoordinatorSidebar from '@/components/CoordinatorSidebar'
 import AlertCard from '@/components/AlertCard'
-import { Mic, MicOff, Activity, Send, Megaphone, ChevronDown, LogOut } from 'lucide-react'
+import { Mic, MicOff, Activity, Send, Megaphone, ChevronDown, LogOut, User, Bell, Edit2, Check, X, MapPin, Info } from 'lucide-react'
 import type { Event } from '@/lib/types'
 import { useLang } from '@/contexts/LanguageContext'
 import RealtimeStatus from '@/components/RealtimeStatus'
 
 export default function CoordinatorApp() {
-  const { pinSession, profile, logout } = useAuthStore()
+  const { pinSession, profile, logout, updateProfile } = useAuthStore()
   const { zones, alerts, staff, stewardUpdates, instructions, latestReadings, loadEvent, acknowledgeAlert, sendStewardMessage, triggerAlert } = useEventStore()
   const { t } = useLang()
-  const [activeTab, setActiveTab] = useState<'zone' | 'comms' | 'alerts'>('zone')
+  const [activeTab, setActiveTab] = useState<'zone' | 'comms' | 'alerts' | 'settings'>('zone')
   const [commsView, setCommsView] = useState<'send' | 'inbox'>('send')
   const [isPTTActive, setIsPTTActive] = useState(false)
   const [textMessage, setTextMessage] = useState('')      // manager message
@@ -36,6 +36,14 @@ export default function CoordinatorApp() {
   // Per-button click counters and animation triggers
   const [reportCounts, setReportCounts] = useState<Record<string, number>>({ ALL_CLEAR: 0, CROWD_BUILDING: 0, EMERGENCY: 0 })
   const [animatingButton, setAnimatingButton] = useState<string | null>(null)
+
+  // ── Settings state ──
+  const [notifSound, setNotifSound] = useState(true)
+  const [criticalOnly, setCriticalOnly] = useState(false)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [nameSaving, setNameSaving] = useState(false)
+  const [nameSaved, setNameSaved] = useState(false)
 
   const eventId = pinSession?.eventId || ''
   const assignedZoneId = pinSession?.zoneId || ''
@@ -175,6 +183,53 @@ export default function CoordinatorApp() {
       console.error('Failed to send emergency alert')
     }
   }
+
+  const handleSaveDisplayName = async () => {
+    const newName = editName.trim()
+    if (!newName) return
+    setNameSaving(true)
+    try {
+      if (pinSession?.staffId) {
+        // PIN user — update event_staff record
+        await supabase.from('event_staff').update({ display_name: newName }).eq('id', pinSession.staffId)
+        // Update in-memory pinSession name (localStorage)
+        const stored = localStorage.getItem('suraksha_pin_session')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          parsed.displayName = newName
+          localStorage.setItem('suraksha_pin_session', JSON.stringify(parsed))
+        }
+      } else if (profile) {
+        // Full auth user — update profile
+        await updateProfile({ full_name: newName })
+      }
+      setIsEditingName(false)
+      setNameSaved(true)
+      setTimeout(() => setNameSaved(false), 2500)
+    } catch (err) {
+      console.error('Failed to save name', err)
+    } finally {
+      setNameSaving(false)
+    }
+  }
+
+  const SettingsToggle = ({ value, onChange }: { value: boolean; onChange: () => void }) => (
+    <button
+      onClick={onChange}
+      style={{
+        width: '48px', height: '26px', borderRadius: '13px', position: 'relative',
+        cursor: 'pointer', border: 'none', flexShrink: 0,
+        background: value ? 'var(--v-orange)' : 'rgba(255,255,255,0.15)',
+        transition: 'background 0.2s',
+      }}
+    >
+      <span style={{
+        position: 'absolute', top: '3px', left: value ? '24px' : '3px',
+        width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
+        transition: 'left 0.2s',
+      }} />
+    </button>
+  )
 
   return (
     <div className="virtus-layout">
@@ -695,6 +750,152 @@ export default function CoordinatorApp() {
               )}
             </div>
           )}
+
+          {/* ── SETTINGS TAB ── */}
+          {activeTab === 'settings' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+              {/* Profile / Identity Card */}
+              <div className="v-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 className="v-text-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                    <User size={18} color="var(--v-orange)" /> Profile
+                  </h3>
+                  {!isEditingName && (
+                    <button
+                      onClick={() => { setEditName(pinSession?.displayName || profile?.full_name || ''); setIsEditingName(true) }}
+                      style={{ background: 'transparent', border: '1px solid var(--v-border)', borderRadius: '6px', color: 'var(--v-text-main)', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      <Edit2 size={12} /> Edit
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--v-bg-dark)', borderRadius: '12px', border: '1px solid var(--v-border)' }}>
+                  <div className="v-avatar" style={{ width: '52px', height: '52px', fontSize: '20px', flexShrink: 0 }}>
+                    {(pinSession?.displayName || profile?.full_name || 'C').substring(0, 2).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {isEditingName ? (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={e => setEditName(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleSaveDisplayName()}
+                          autoFocus
+                          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--v-orange)', color: '#fff', borderRadius: '6px', padding: '6px 10px', fontSize: '14px', width: '100%', outline: 'none' }}
+                        />
+                        <button onClick={handleSaveDisplayName} disabled={nameSaving} style={{ background: '#4dff4d20', border: 'none', color: '#4dff4d', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', flexShrink: 0 }}>
+                          {nameSaving ? <span className="spinner" style={{ width: '14px', height: '14px' }} /> : <Check size={16} />}
+                        </button>
+                        <button onClick={() => setIsEditingName(false)} style={{ background: '#ff4d4d20', border: 'none', color: '#ff4d4d', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', flexShrink: 0 }}><X size={16} /></button>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ fontWeight: 700, fontSize: '16px' }}>
+                          {pinSession?.displayName || profile?.full_name || 'Coordinator'}
+                        </div>
+                        {nameSaved && <div style={{ color: '#4dff4d', fontSize: '11px', marginTop: '2px' }}>✅ Name updated!</div>}
+                      </>
+                    )}
+                    <div className="v-text-sm" style={{ opacity: 0.55, marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {pinSession ? 'Coordinator (PIN session)' : profile?.role?.replace('_', ' ') || 'Coordinator'}
+                    </div>
+                    {profile?.id && (
+                      <div className="v-text-sm" style={{ opacity: 0.35, marginTop: '2px', fontFamily: 'monospace' }}>
+                        {profile.id.substring(0, 14)}…
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Assigned Zone Info */}
+              <div className="v-card">
+                <h3 className="v-text-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <MapPin size={18} color="var(--v-orange)" /> Zone Assignment
+                </h3>
+                {assignedZoneId ? (() => {
+                  const az = zones.find(z => z.id === assignedZoneId)
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--v-bg-dark)', borderRadius: '12px', border: '1px solid var(--v-border)' }}>
+                      <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,170,0,0.15)', border: '1px solid var(--v-orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800, color: 'var(--v-orange)', flexShrink: 0 }}>
+                        {az?.label || '?'}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '15px' }}>{az ? `Zone ${az.label}${az.name ? ` — ${az.name}` : ''}` : 'Unknown Zone'}</div>
+                        <div className="v-text-sm" style={{ opacity: 0.5, marginTop: '3px' }}>Capacity: {az?.capacity ?? '—'} people</div>
+                      </div>
+                    </div>
+                  )
+                })() : (
+                  <div style={{ padding: '16px', background: 'var(--v-bg-dark)', borderRadius: '12px', border: '1px solid var(--v-border)', opacity: 0.5, fontSize: '14px', textAlign: 'center' }}>
+                    No specific zone assigned — you have global access.
+                  </div>
+                )}
+              </div>
+
+              {/* Notification Preferences */}
+              <div className="v-card">
+                <h3 className="v-text-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <Bell size={18} color="var(--v-orange)" /> Notification Preferences
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {[
+                    { label: 'Alert Sound Effects', sub: 'Play audio cue when an alert is triggered', value: notifSound, toggle: () => setNotifSound(v => !v) },
+                    { label: 'Critical Alerts Only', sub: 'Only notify for CRITICAL severity alerts', value: criticalOnly, toggle: () => setCriticalOnly(v => !v) },
+                  ].map(s => (
+                    <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', background: 'var(--v-bg-dark)', borderRadius: '12px', border: '1px solid var(--v-border)' }}>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 600 }}>{s.label}</div>
+                        <div className="v-text-sm" style={{ opacity: 0.5, marginTop: '2px' }}>{s.sub}</div>
+                      </div>
+                      <SettingsToggle value={s.value} onChange={s.toggle} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Session Info */}
+              <div className="v-card">
+                <h3 className="v-text-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <Info size={18} color="var(--v-orange)" /> Session Info
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {[
+                    { label: 'Event', value: eventDetails?.name || '—' },
+                    { label: 'Event Status', value: eventDetails?.status || '—' },
+                    { label: 'Session Type', value: pinSession ? 'PIN (Guest Session)' : 'Authenticated Account' },
+                    { label: 'Staff ID', value: pinSession?.staffId ? pinSession.staffId.substring(0, 16) + '…' : '—' },
+                  ].map(row => (
+                    <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--v-bg-dark)', borderRadius: '10px', border: '1px solid var(--v-border)' }}>
+                      <span style={{ fontSize: '13px', opacity: 0.55 }}>{row.label}</span>
+                      <span style={{ fontSize: '13px', fontWeight: 600, fontFamily: row.label === 'Staff ID' ? 'monospace' : 'inherit' }}>{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Logout */}
+              <div>
+                <button
+                  onClick={() => logout()}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '12px 24px', background: '#ff4d4d15', border: '1px solid #ff4d4d30',
+                    color: '#ff4d4d', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', fontSize: '14px',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#ff4d4d25'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#ff4d4d15'}
+                >
+                  <LogOut size={16} /> Leave Event & Logout
+                </button>
+              </div>
+
+            </div>
+          )}
+
         </div>
       </main>
     </div>

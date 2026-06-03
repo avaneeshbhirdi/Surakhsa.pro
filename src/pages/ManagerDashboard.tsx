@@ -18,7 +18,7 @@ export default function ManagerDashboard() {
   const { isSimulating, toggleSimulation } = useUIStore()
   const {
     activeEvent, zones, alerts, staff, latestReadings, stewardUpdates,
-    loadEvent, acknowledgeAlert, clearEvent, updateEventStatus,
+    loadEvent, acknowledgeAlert, resolveAlert, clearEvent, updateEventStatus,
   } = useEventStore()
   const { t } = useLang()
 
@@ -343,7 +343,7 @@ export default function ManagerDashboard() {
             </div>
             <div style={{ overflowY: 'auto', maxHeight: '280px', paddingRight: '8px' }}>
               {/* Critical Alerts First */}
-              {alerts.filter(a => a.status === 'TRIGGERED').map(alert => {
+              {alerts.filter(a => a.status === 'TRIGGERED' || a.status === 'ACKNOWLEDGED').map(alert => {
                 const z = zones.find(zn => zn.id === alert.zone_id)
                 return (
                   <div key={alert.id} className="v-report-item alert-urgent">
@@ -353,17 +353,28 @@ export default function ManagerDashboard() {
                           !
                         </div>
                         <div>
-                          <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--v-red)' }}>CRITICAL ALERT</div>
+                          <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--v-red)' }}>{alert.status === 'TRIGGERED' ? 'CRITICAL ALERT' : 'ACKNOWLEDGED'}</div>
                           <div className="v-text-sm">{z?.label ? `Zone ${z.label}` : 'Global'} • {alert.message}</div>
                         </div>
                       </div>
-                      <button 
-                        className="v-status-pill danger" 
-                        style={{ cursor: 'pointer', border: 'none' }}
-                        onClick={() => acknowledgeAlert(alert.id, profile?.id || '')}
-                      >
-                        ACK
-                      </button>
+                      {alert.status === 'TRIGGERED' && (
+                        <button 
+                          className="v-status-pill danger" 
+                          style={{ cursor: 'pointer', border: 'none' }}
+                          onClick={() => acknowledgeAlert(alert.id, profile?.id || '')}
+                        >
+                          <Check size={14} /> Acknowledge
+                        </button>
+                      )}
+                      {alert.status === 'ACKNOWLEDGED' && (
+                        <button 
+                          className="btn btn-primary btn-sm" 
+                          style={{ fontSize: '12px', padding: '6px 12px' }}
+                          onClick={() => resolveAlert(alert.id)}
+                        >
+                          <Check size={14} /> Resolve
+                        </button>
+                      )}
                     </div>
                   </div>
                 )

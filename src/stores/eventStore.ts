@@ -196,14 +196,17 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   updateZone: async (zoneId, label, name, capacity) => {
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from('zones')
       .update({ label, name, capacity })
       .eq('id', zoneId)
+      .select('id')
 
     if (error) throw new Error(error.message)
+    // data.length === 0 means RLS blocked the update (no rows matched the policy)
+    if (!data || data.length === 0) throw new Error('Permission denied: you can only edit zones for your own events.')
 
-    // Optimistic local update so UI reflects instantly (realtime will echo, but this is faster)
+    // Optimistic local update so UI reflects instantly
     set(state => ({
       zones: state.zones.map(z =>
         z.id === zoneId ? { ...z, label, name, capacity } : z
@@ -212,13 +215,16 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   deleteZone: async (zoneId) => {
-    // Optimistic removal first for instant UI feedback
+    // Hard DELETE (the RLS policy allows DELETE for event owners)
+    const { error } = await supabase
+      .from('zones')
+      .delete()
+      .eq('id', zoneId)
+
+    if (error) throw new Error(error.message)
+
+    // Remove from local state after confirmed DB delete
     set(state => ({ zones: state.zones.filter(z => z.id !== zoneId) }))
-    const { error } = await supabase.from('zones').delete().eq('id', zoneId)
-    if (error) {
-      // Rollback isn't feasible here — just reload from DB via realtime
-      throw new Error(error.message)
-    }
   },
 
   updateEventStatus: async (eventId: string, status: EventStatus) => {
@@ -291,14 +297,21 @@ export const useEventStore = create<EventState>((set, get) => ({
     if (error) throw new Error(error.message)
   },
 
-  triggerAlert: async (eventId, zoneId, type, severity, message, reportedBy) => {
+  triggerAlert: async (eventId, zoneId, type, severity, message, _reportedBy) => {
+    // Map old-style type/severity params to actual DB columns
+    const priorityMap: Record<string, string> = { WARNING: 'HIGH', CRITICAL: 'CRITICAL' }
+    const riskTypeMap: Record<string, string> = {
+      POLICE: 'SURGE', MEDICAL: 'SURGE', FIRE: 'STAMPEDE_RISK', CROWD: 'STAMPEDE_RISK', OTHER: 'SURGE',
+    }
     const { error } = await supabase.from('alerts').insert({
       event_id: eventId,
       zone_id: zoneId,
-      type,
-      severity,
+      risk_type: riskTypeMap[type] || 'SURGE',
+      risk_score: severity === 'CRITICAL' ? 95 : 75,
+      priority: priorityMap[severity] || 'HIGH',
       message,
-      reported_by: reportedBy,
+      recommended_action: 'Dispatch emergency response team immediately.',
+      status: 'TRIGGERED',
     })
     if (error) throw new Error(error.message)
   },
@@ -317,14 +330,25 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   removeStaff: async (staffId: string) => {
-    // We soft-delete by setting left_at so we keep history
-    const { error } = await supabase
+    // Soft-delete: set left_at so coordinator loses access but we keep the history
+    const { error, data } = await supabase
       .from('event_staff')
-      .update({ left_at: new Date().toISOString() })
+      .update({ left_at: new Date().toISOString(), is_online: false })
       .eq('id', staffId)
+      .select('id')
 
     if (error) throw new Error(error.message)
-    
+
+    // If data length === 0, the UPDATE was blocked by RLS (row didn't match admin's policy)
+    // Fall back to hard DELETE which has a separate admin-only DELETE policy
+    if (!data || data.length === 0) {
+      const { error: delError } = await supabase
+        .from('event_staff')
+        .delete()
+        .eq('id', staffId)
+      if (delError) throw new Error('Could not remove coordinator: ' + delError.message)
+    }
+
     // Optimistically remove from local state
     set(state => ({
       staff: state.staff.filter(s => s.id !== staffId)

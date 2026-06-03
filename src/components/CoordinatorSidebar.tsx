@@ -1,4 +1,4 @@
-import { Shield, MessageSquare, AlertTriangle, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Shield, MessageSquare, AlertTriangle, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useNavigate } from 'react-router-dom'
 import { useUIStore } from '@/stores/uiStore'
@@ -6,8 +6,8 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { useLang } from '@/contexts/LanguageContext'
 
 interface CoordinatorSidebarProps {
-  activeTab: 'zone' | 'comms' | 'alerts'
-  setActiveTab: (tab: 'zone' | 'comms' | 'alerts') => void
+  activeTab: 'zone' | 'comms' | 'alerts' | 'settings'
+  setActiveTab: (tab: 'zone' | 'comms' | 'alerts' | 'settings') => void
   unreadCount: number
 }
 
@@ -24,10 +24,11 @@ export default function CoordinatorSidebar({ activeTab, setActiveTab, unreadCoun
     navigate('/')
   }
 
-  const navItems: { id: 'zone' | 'comms' | 'alerts', icon: React.ReactNode, label: string, badge?: number | null }[] = [
+  const navItems: { id: 'zone' | 'comms' | 'alerts' | 'settings', icon: React.ReactNode, label: string, badge?: number | null }[] = [
     { id: 'zone', icon: <Shield size={18} />, label: t('coordMyZone') },
     { id: 'comms', icon: <MessageSquare size={18} />, label: t('coordCommunicate') },
     { id: 'alerts', icon: <AlertTriangle size={18} />, label: t('coordAlerts'), badge: unreadCount > 0 ? unreadCount : null },
+    { id: 'settings', icon: <Settings size={18} />, label: 'Settings' },
   ]
 
   return (
