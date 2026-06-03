@@ -196,9 +196,7 @@ export default function ManagerDashboard() {
         <header className="virtus-header">
           <div style={{ display: 'flex', gap: '8px', marginRight: 'auto', alignItems: 'center' }}>
             <span style={{ fontWeight: 600 }}>{activeEvent.name}</span>
-            {activeEvent.status === 'ACTIVE' && (
-              <span className="live-indicator" style={{ marginLeft: '8px' }}><span className="live-indicator__dot" /> {t('live')}</span>
-            )}
+
             {activeEvent.status === 'PAUSED' && <span className="v-status-pill warning" style={{ marginLeft: '8px' }}>PAUSED</span>}
             {activeEvent.status === 'DRAFT' && <span className="v-status-pill" style={{ marginLeft: '8px' }}>DRAFT</span>}
             <button className="virtus-pill" onClick={handleCopyPin} style={{ marginLeft: '12px' }}>
