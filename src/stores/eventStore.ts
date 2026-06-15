@@ -5,6 +5,7 @@ import type {
   StewardUpdate, Instruction, EventStatus
 } from '@/lib/types'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import { LocalNotifications } from '@capacitor/local-notifications'
 
 interface EventState {
   // State
@@ -392,11 +393,43 @@ export const useEventStore = create<EventState>((set, get) => ({
         schema: 'public',
         table: 'zone_readings',
         filter: `event_id=eq.${eventId}`,
-      }, (payload) => {
+      }, async (payload) => {
         const reading = payload.new as ZoneReading
+        const previousReading = get().latestReadings[reading.zone_id]
+        
         set(state => ({
           latestReadings: { ...state.latestReadings, [reading.zone_id]: reading },
         }))
+
+        // Check for alerts based on percentage
+        const zone = get().zones.find(z => z.id === reading.zone_id)
+        if (zone && zone.capacity > 0) {
+          const currentPct = (reading.density / zone.capacity) * 100
+          const previousPct = previousReading ? (previousReading.density / zone.capacity) * 100 : 0
+          
+          if (currentPct >= 100 && previousPct < 100) {
+            await LocalNotifications.schedule({
+              notifications: [{
+                title: 'CRITICAL ALERT: 100% Capacity',
+                body: `Zone ${zone.label} has reached full capacity! Immediate action required.`,
+                id: new Date().getTime(),
+                schedule: { at: new Date(Date.now() + 1000) }
+              }]
+            })
+            // Optionally, also create a DB alert if you want it to show in the app's alert center
+            await get().triggerAlert(eventId, zone.id, 'CROWD', 'CRITICAL', `Zone ${zone.label} reached 100% capacity!`)
+          } else if (currentPct >= 85 && previousPct < 85) {
+            await LocalNotifications.schedule({
+              notifications: [{
+                title: 'RED ALERT: 85% Capacity',
+                body: `Zone ${zone.label} is filling up rapidly (85% capacity).`,
+                id: new Date().getTime(),
+                schedule: { at: new Date(Date.now() + 1000) }
+              }]
+            })
+            await get().triggerAlert(eventId, zone.id, 'CROWD', 'WARNING', `Zone ${zone.label} reached 85% capacity.`)
+          }
+        }
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') onSubscribed()
