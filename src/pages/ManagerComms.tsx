@@ -52,15 +52,22 @@ export default function ManagerComms() {
     e.preventDefault()
     if (!broadcastMessage.trim() || !activeEvent || !profile) return
     
-    // Find the manager's staff ID
-    const managerStaff = staff.find(s => s.profile_id === profile.id)
-    if (!managerStaff) {
-      alert("Manager staff record not found. Cannot send message.")
-      return
-    }
-
     setBroadcastSending(true)
     try {
+      // Find or create manager's staff ID
+      let managerStaffId = staff.find(s => s.profile_id === profile.id)?.id
+      if (!managerStaffId) {
+        const { data, error } = await supabase.from('event_staff').insert({
+          event_id: activeEvent.id,
+          profile_id: profile.id,
+          display_name: profile.full_name || 'Admin',
+          role: 'ADMIN',
+        }).select().single()
+        if (error) throw new Error("Manager staff record error: " + error.message)
+        managerStaffId = data.id
+        useEventStore.setState(state => ({ staff: [...state.staff, data] }))
+      }
+
       let zoneId: string | null = null
       let isBroadcast = false
 
@@ -70,7 +77,7 @@ export default function ManagerComms() {
         zoneId = broadcastZone
       }
 
-      await sendInstruction(activeEvent.id, zoneId, managerStaff.id, broadcastMessage.trim(), isBroadcast)
+      await sendInstruction(activeEvent.id, zoneId, managerStaffId, broadcastMessage.trim(), isBroadcast)
       setBroadcastSent(true)
       setBroadcastMessage('')
       setTimeout(() => setBroadcastSent(false), 2000)
@@ -85,15 +92,22 @@ export default function ManagerComms() {
     e.preventDefault()
     if (!personalMessage.trim() || !personalStaff || !activeEvent || !profile) return
 
-    // Find the manager's staff ID
-    const managerStaff = staff.find(s => s.profile_id === profile.id)
-    if (!managerStaff) {
-      alert("Manager staff record not found. Cannot send message.")
-      return
-    }
-
     setPersonalSending(true)
     try {
+      // Find or create manager's staff ID
+      let managerStaffId = staff.find(s => s.profile_id === profile.id)?.id
+      if (!managerStaffId) {
+        const { data, error } = await supabase.from('event_staff').insert({
+          event_id: activeEvent.id,
+          profile_id: profile.id,
+          display_name: profile.full_name || 'Admin',
+          role: 'ADMIN',
+        }).select().single()
+        if (error) throw new Error("Manager staff record error: " + error.message)
+        managerStaffId = data.id
+        useEventStore.setState(state => ({ staff: [...state.staff, data] }))
+      }
+
       const targetStaff = staff.find(s => s.id === personalStaff)
       const zoneId = targetStaff?.zone_id || null
       // Personal messages are technically "broadcasts" to everyone if the staff doesn't have a zone,
@@ -102,7 +116,7 @@ export default function ManagerComms() {
       const isBroadcast = !zoneId
       const finalMessage = `[Direct to ${targetStaff?.display_name || 'Coordinator'}] ${personalMessage.trim()}`
 
-      await sendInstruction(activeEvent.id, zoneId, managerStaff.id, finalMessage, isBroadcast)
+      await sendInstruction(activeEvent.id, zoneId, managerStaffId, finalMessage, isBroadcast)
       setPersonalSent(true)
       setPersonalMessage('')
       setTimeout(() => setPersonalSent(false), 2000)

@@ -205,8 +205,8 @@ function SimulationRunner() {
             flowRate = 10 + Math.random() * 12
             break
           case 'PEAK':
-            // hover near 90–105% with tiny oscillation
-            delta = (Math.random() - 0.4) * cap * 0.03
+            // hover near 98–105% to easily trigger CRITICAL alerts for prototype
+            delta = (Math.random() - 0.2) * cap * 0.05
             flowRate = 2 + Math.random() * 5  // very low flow = bottleneck feeling
             break
           case 'RECOVERING':
@@ -220,7 +220,7 @@ function SimulationRunner() {
         let newDensity = Math.max(0, Math.min(cap * 1.1, zs.density + delta))
 
         // Enforce phase-appropriate density floors/ceilings
-        if (zs.phase === 'PEAK')       newDensity = Math.max(newDensity, cap * 0.85)
+        if (zs.phase === 'PEAK')       newDensity = Math.max(newDensity, cap * 0.98) // Guarantee >= 98% for critical alert
         if (zs.phase === 'IDLE')       newDensity = Math.min(newDensity, cap * 0.65)
         if (zs.phase === 'RECOVERING') newDensity = Math.min(newDensity, cap * 0.80)
 
