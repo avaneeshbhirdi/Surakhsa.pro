@@ -47,7 +47,14 @@ export default function ManagerDashboard() {
     if (!profile) { setLoading(false); return }
 
     // If event already loaded in store (e.g. navigating back), skip fetch
-    if (activeEvent) { setLoading(false); return }
+    if (activeEvent) {
+      const store = useEventStore.getState()
+      if (store._channels.length === 0) {
+        store.subscribeToRealtime(activeEvent.id)
+      }
+      setLoading(false)
+      return
+    }
 
     const { data: events } = await supabase
       .from('events')

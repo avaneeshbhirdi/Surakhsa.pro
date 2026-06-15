@@ -114,6 +114,8 @@ export const useEventStore = create<EventState>((set, get) => ({
         isLoading: false,
       })
 
+      get().subscribeToRealtime(event.id)
+
       return event
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to create event'
