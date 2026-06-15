@@ -24,7 +24,7 @@ export default function ManagerAlerts() {
   const { profile } = useAuthStore()
   const { activeEvent, alerts, zones, loadEvent, acknowledgeAlert, resolveAlert } = useEventStore()
   const { t } = useLang()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!activeEvent)
   const [filter, setFilter] = useState<'ALL' | 'TRIGGERED' | 'ACKNOWLEDGED' | 'RESOLVED'>('ALL')
 
   useEffect(() => {

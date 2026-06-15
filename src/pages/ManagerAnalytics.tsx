@@ -12,7 +12,7 @@ export default function ManagerAnalytics() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, alerts, latestReadings, loadEvent } = useEventStore()
   const { t } = useLang()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!activeEvent)
 
   useEffect(() => {
     if (activeEvent) { setLoading(false); return }

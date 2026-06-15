@@ -11,7 +11,7 @@ export default function ManagerComms() {
   const { profile } = useAuthStore()
   const { activeEvent, zones, staff, stewardUpdates, loadEvent, sendInstruction } = useEventStore()
   const { t } = useLang()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!activeEvent)
   const [activeView, setActiveView] = useState<'compose' | 'inbox'>('compose')
 
   // Broadcast state

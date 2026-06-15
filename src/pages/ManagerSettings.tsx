@@ -80,6 +80,7 @@ export default function ManagerSettings() {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveProfile()}
                       autoFocus
                       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--v-orange)', color: '#fff', borderRadius: '6px', padding: '6px 10px', fontSize: '14px', width: '100%', outline: 'none' }}
                     />

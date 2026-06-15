@@ -22,7 +22,7 @@ export default function ManagerDashboard() {
   } = useEventStore()
   const { t } = useLang()
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!activeEvent)
   const [eventBusy, setEventBusy] = useState(false) // guards Start/Pause/End buttons
   const [pinCopied, setPinCopied] = useState(false)
 
