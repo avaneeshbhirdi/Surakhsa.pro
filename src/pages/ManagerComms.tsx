@@ -77,7 +77,7 @@ export default function ManagerComms() {
         zoneId = broadcastZone
       }
 
-      await sendInstruction(activeEvent.id, zoneId, managerStaffId, broadcastMessage.trim(), isBroadcast)
+      await sendInstruction(activeEvent.id, zoneId, managerStaffId as string, broadcastMessage.trim(), isBroadcast)
       setBroadcastSent(true)
       setBroadcastMessage('')
       setTimeout(() => setBroadcastSent(false), 2000)
@@ -116,7 +116,7 @@ export default function ManagerComms() {
       const isBroadcast = !zoneId
       const finalMessage = `[Direct to ${targetStaff?.display_name || 'Coordinator'}] ${personalMessage.trim()}`
 
-      await sendInstruction(activeEvent.id, zoneId, managerStaffId, finalMessage, isBroadcast)
+      await sendInstruction(activeEvent.id, zoneId, managerStaffId as string, finalMessage, isBroadcast)
       setPersonalSent(true)
       setPersonalMessage('')
       setTimeout(() => setPersonalSent(false), 2000)
